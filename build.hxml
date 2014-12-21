@@ -6,6 +6,6 @@
 # -cmd cp index.html build/
 
 # JEngineMain.JEngineMain (js:jenginemain.jenginemain.js)
--main jengine.JEngineMain
+-main ostm.GameMain
 -js script.js
 -cp jengine

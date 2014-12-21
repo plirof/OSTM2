@@ -1,5 +1,7 @@
 package jengine;
 
+import jengine.util.*;
+
 class EntitySystem {
     var _entities: Array<Entity> = new Array<Entity>();
 

@@ -3,10 +3,12 @@ package jengine;
 import js.*;
 import js.html.*;
 
-class HtmlRenderer extends Component {
-    var _size: Vec2;
+import jengine.util.*;
 
-    var _elem: Element;
+class HtmlRenderer extends Component {
+    var _size :Vec2;
+
+    var _elem :Element;
 
     public function new(?size: Vec2) {
         if (size == null) {
@@ -34,5 +36,9 @@ class HtmlRenderer extends Component {
         _elem.style.width = cast _size.x;
         _elem.style.height = cast _size.y;
         _elem.style.background = '#ff0000';
+    }
+
+    public function getElement() :Element {
+        return _elem;
     }
 }
