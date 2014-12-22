@@ -25,7 +25,7 @@ class HtmlRenderer extends Component {
         _elem = doc.createElement('span');
         doc.body.appendChild(cast _elem);
         _elem.style.position = 'absolute';
-        _elem.style.background = '#ff0000';
+        _elem.style.background = 'red';
     }
 
     public override function deinit() :Void {

@@ -14,9 +14,14 @@ class Entity {
         }
 
         for (cmp in _components) {
-            cmp._entity = this;
+            cmp.entity = this;
             cmp.init();
         }
+    }
+
+    public function addComponent(cmp :Component) :Void {
+        _components.push(cmp);
+        cmp.entity = this;
     }
 
     public function forAllComponents(f :Component -> Void) :Void {

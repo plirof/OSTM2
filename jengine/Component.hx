@@ -6,7 +6,7 @@ import haxe.macro.Type;
 
 @:allow(jengine.Entity)
 class Component {
-    var _entity :Entity = null;
+    public var entity(default, null) :Entity = null;
 
     public function init() :Void { }
     public function deinit() :Void { }
@@ -17,10 +17,10 @@ class Component {
     public function handleMessage(message :String, arg :Dynamic) :Void { }
 
     public inline function getComponent<T :Component>(c :Class<T>) :T {
-        return _entity.getComponent(c);
+        return entity.getComponent(c);
     }
 
     public inline function getTransform() :Transform {
-        return _entity.getComponent(Transform);
+        return entity.getComponent(Transform);
     }
 }

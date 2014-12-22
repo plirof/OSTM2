@@ -5,25 +5,69 @@ import jengine.util.*;
 
 import js.*;
 import js.html.Element;
+import js.html.MouseEvent;
 
-typedef MapNode = {
-    entity :Entity,
-    line :Element,
+@:allow(ostm.MapGenerator)
+class MapNode extends Component {
+    var line :Element;
+    var map :MapGenerator;
+    var parent :MapNode;
+    var depth :Int;
+
+    var elem :Element;
+
+    var color :String = 'red';
+    var _cachedColor :String = '';
+
+    function new(gen :MapGenerator, dep :Int, par :MapNode) {
+        map = gen;
+        depth = dep;
+        parent = par;
+    }
+
+    public override function start() :Void {
+        elem = entity.getComponent(HtmlRenderer).getElement();
+
+        elem.onmousedown = onMouseDown;
+        elem.onmouseout = onMouseUp;
+        elem.onmouseup = onMouseUp;
+        elem.onclick = onClick;
+    }
+
+    public override function update() :Void {
+        if (color != _cachedColor) {
+            _cachedColor = color;
+            elem.style.background = color;
+        }
+    }
+
+    function onMouseDown(event :MouseEvent) :Void {
+    }
+    function onMouseUp(event :MouseEvent) :Void {
+    }
+
+    function onClick(event :MouseEvent) :Void {
+        map.click(this);
+    }
 }
 
 class MapGenerator extends Component {    
     var _generated :Array<Map<Int, MapNode>>;
+    var _selected :MapNode;
 
     var _lineWidth :Float = 3;
 
     public override function start() :Void {
         _generated = new Array<Map<Int, MapNode>>();
         _generated.push(new Map<Int, MapNode>());
-        addNode(null, 0, 0);
+        
+        _selected = addNode(null, 0, 0);
 
-        for (i in 1...40) {
+        for (i in 1...3) {
             addLayer();
         }
+
+        updateColors();
     }
 
     function addLayer() :Void {
@@ -47,21 +91,23 @@ class MapGenerator extends Component {
         }
     }
 
-    function addNode(parent :MapNode, i :Int, j :Int) :Void {
+    function addNode(parent :MapNode, i :Int, j :Int) :MapNode {
         var origin :Vec2 = new Vec2(100, 300);
         var pos :Vec2 = origin + new Vec2(80 * i, 55 * j);
         var size :Vec2 = new Vec2(40, 40);
 
+        var node = new MapNode(this, i, parent);
         var ent = new Entity([
             new HtmlRenderer(size),
             new Transform(pos),
+            node,
         ]);
         var elem = ent.getComponent(HtmlRenderer).getElement();
         
         elem.style.borderRadius = cast 32;
         elem.style.border = _lineWidth + 'px solid black';
 
-        _entity.getSystem().addEntity(ent);
+        entity.getSystem().addEntity(ent);
 
         var line :Element = null;
         if (parent != null) {
@@ -70,10 +116,8 @@ class MapGenerator extends Component {
             line = addLine(pCenter, center);
         }
 
-        _generated[i][j] = {
-            entity: ent,
-            line: line,
-        };
+        _generated[i][j] = node;
+        return node;
     }
 
     function addLine(a :Vec2, b :Vec2) :Element {
@@ -96,5 +140,37 @@ class MapGenerator extends Component {
 
         Browser.document.body.appendChild(elem);
         return elem;
+    }
+
+    public function click(node :MapNode) :Void {
+        if (isAdjacent(node, _selected)) {
+            _selected = node;
+
+            if (node.depth + 1 == _generated.length) {
+                addLayer();
+            }
+
+            updateColors();
+        }
+    }
+
+    function updateColors() :Void {
+        for (map in _generated) {
+            for (node in map) {
+                if (node == _selected) {
+                    node.color = '#00ff00';
+                }
+                else if (isAdjacent(node, _selected)) {
+                    node.color = '#ffff00';
+                }
+                else {
+                    node.color = '#ff0000';
+                }
+            }
+        }
+    }
+
+    function isAdjacent(a :MapNode, b :MapNode) :Bool {
+        return b.parent == a || a.parent == b;
     }
 }
