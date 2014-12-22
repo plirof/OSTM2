@@ -63,7 +63,7 @@ class MapGenerator extends Component {
         
         _selected = addNode(null, 0, 0);
 
-        for (i in 1...3) {
+        for (i in 1...2) {
             addLayer();
         }
 
@@ -163,6 +163,9 @@ class MapGenerator extends Component {
                 else if (isAdjacent(node, _selected)) {
                     node.color = '#ffff00';
                 }
+                else if (!hasPathToStart(node)) {
+                    node.color = '#000000';
+                }
                 else {
                     node.color = '#ff0000';
                 }
@@ -172,5 +175,13 @@ class MapGenerator extends Component {
 
     function isAdjacent(a :MapNode, b :MapNode) :Bool {
         return b.parent == a || a.parent == b;
+    }
+
+    function hasPathToStart(node :MapNode) :Bool {
+        var n = node;
+        while (n.parent != null) {
+            n = n.parent;
+        }
+        return n.depth == 0;
     }
 }
