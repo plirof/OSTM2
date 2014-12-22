@@ -25,6 +25,8 @@ HxOverrides.remove = function(a,obj) {
 	a.splice(i,1);
 	return true;
 };
+var IMap = function() { };
+IMap.__name__ = true;
 Math.__name__ = true;
 var Std = function() { };
 Std.__name__ = true;
@@ -37,6 +39,21 @@ haxe.Timer.__name__ = true;
 haxe.Timer.stamp = function() {
 	return new Date().getTime() / 1000;
 };
+haxe.ds = {};
+haxe.ds.IntMap = function() {
+	this.h = { };
+};
+haxe.ds.IntMap.__name__ = true;
+haxe.ds.IntMap.__interfaces__ = [IMap];
+haxe.ds.IntMap.prototype = {
+	set: function(key,value) {
+		this.h[key] = value;
+	}
+	,get: function(key) {
+		return this.h[key];
+	}
+	,__class__: haxe.ds.IntMap
+};
 var jengine = {};
 jengine.Component = function() {
 	this._entity = null;
@@ -46,6 +63,8 @@ jengine.Component.prototype = {
 	init: function() {
 	}
 	,deinit: function() {
+	}
+	,start: function() {
 	}
 	,update: function() {
 	}
@@ -62,6 +81,7 @@ jengine.Component.prototype = {
 	,__class__: jengine.Component
 };
 jengine.Entity = function(components) {
+	this._hasStarted = false;
 	this._components = components;
 	if(this.getComponent(jengine.Transform) == null) this._components.push(new jengine.Transform());
 	var _g = 0;
@@ -94,6 +114,12 @@ jengine.Entity.prototype = {
 		}
 		return null;
 	}
+	,getTransform: function() {
+		return this.getComponent(jengine.Transform);
+	}
+	,getSystem: function() {
+		return this._system;
+	}
 	,__class__: jengine.Entity
 };
 jengine.EntitySystem = function() {
@@ -111,8 +137,14 @@ jengine.EntitySystem.prototype = {
 		while(_g < _g1.length) {
 			var ent = _g1[_g];
 			++_g;
-			ent.forAllComponents(function(cmp) {
-				cmp.update();
+			if(!ent._hasStarted) {
+				ent.forAllComponents(function(cmp) {
+					cmp.start();
+				});
+				ent._hasStarted = true;
+			}
+			ent.forAllComponents(function(cmp1) {
+				cmp1.update();
 			});
 		}
 		var _g2 = 0;
@@ -120,8 +152,8 @@ jengine.EntitySystem.prototype = {
 		while(_g2 < _g11.length) {
 			var ent1 = _g11[_g2];
 			++_g2;
-			ent1.forAllComponents(function(cmp1) {
-				cmp1.draw();
+			ent1.forAllComponents(function(cmp2) {
+				cmp2.draw();
 			});
 		}
 	}
@@ -165,12 +197,21 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 	,deinit: function() {
 		this._elem.parentElement.removeChild(this._elem);
 	}
+	,isDirty: function() {
+		return this._cachedPos != this._entity.getComponent(jengine.Transform).pos;
+	}
+	,markClean: function() {
+		this._cachedPos = this._entity.getComponent(jengine.Transform).pos;
+	}
 	,draw: function() {
-		var trans = this._entity.getComponent(jengine.Transform);
-		this._elem.style.left = trans.pos.x;
-		this._elem.style.top = trans.pos.y;
-		this._elem.style.width = this._size.x;
-		this._elem.style.height = this._size.y;
+		if(this.isDirty()) {
+			this.markClean();
+			var trans = this._entity.getComponent(jengine.Transform);
+			this._elem.style.left = trans.pos.x;
+			this._elem.style.top = trans.pos.y;
+			this._elem.style.width = this._size.x;
+			this._elem.style.height = this._size.y;
+		}
 	}
 	,getElement: function() {
 		return this._elem;
@@ -229,7 +270,13 @@ jengine._Vec2.Vec2_Impl = function(x_,y_) {
 };
 jengine._Vec2.Vec2_Impl.__name__ = true;
 jengine._Vec2.Vec2_Impl.prototype = {
-	__class__: jengine._Vec2.Vec2_Impl
+	length2: function() {
+		return this.x * this.x + this.y * this.y;
+	}
+	,length: function() {
+		return Math.sqrt(this.length2());
+	}
+	,__class__: jengine._Vec2.Vec2_Impl
 };
 jengine._Vec2.Vec2_Impl_ = function() { };
 jengine._Vec2.Vec2_Impl_.__name__ = true;
@@ -252,11 +299,29 @@ jengine._Vec2.Vec2_Impl_.scMult = function(lhs,rhs) {
 jengine._Vec2.Vec2_Impl_.scDiv = function(lhs,rhs) {
 	return jengine._Vec2.Vec2_Impl_._new(lhs.x / rhs,lhs.y / rhs);
 };
+jengine._Vec2.Vec2_Impl_.dist = function(this1,other) {
+	return jengine._Vec2.Vec2_Impl_._new(other.x - this1.x,other.y - this1.y).length();
+};
 jengine.util = {};
 jengine.util.Log = function() { };
 jengine.util.Log.__name__ = true;
 jengine.util.Log.log = function(message) {
 	console.log(message);
+};
+jengine.util.Random = function() { };
+jengine.util.Random.__name__ = true;
+jengine.util.Random.randomBool = function(prob) {
+	return Math.random() < prob;
+};
+jengine.util.Random.randomRange = function(lo,hi) {
+	return (hi - lo) * Math.random() + lo;
+};
+jengine.util.Random.randomIntRange = function(lo,hi) {
+	return Math.floor(jengine.util.Random.randomRange(lo,hi));
+};
+jengine.util.Random.randomElement = function(array) {
+	if(array.length > 0) return array[jengine.util.Random.randomIntRange(0,array.length)];
+	return null;
 };
 var js = {};
 js.Boot = function() { };
@@ -374,34 +439,6 @@ js.Boot.__instanceof = function(o,cl) {
 	}
 };
 var ostm = {};
-ostm.Draggable = function() {
-	jengine.Component.call(this);
-};
-ostm.Draggable.__name__ = true;
-ostm.Draggable.__super__ = jengine.Component;
-ostm.Draggable.prototype = $extend(jengine.Component.prototype,{
-	init: function() {
-		var elem = this._entity.getComponent(jengine.HtmlRenderer).getElement();
-		elem.draggable = true;
-		elem.ondragenter = $bind(this,this.onDragEnter);
-		elem.ondrag = $bind(this,this.onDrag);
-	}
-	,onDragEnter: function(event) {
-		this._clickPos = ostm.MouseManager.mousePos;
-		this._origPos = this._entity.getComponent(jengine.Transform).pos;
-	}
-	,onDrag: function(event) {
-		if(this._clickPos != null) {
-			var lhs;
-			var lhs1 = ostm.MouseManager.mousePos;
-			var rhs = this._clickPos;
-			lhs = jengine._Vec2.Vec2_Impl_._new(lhs1.x - rhs.x,lhs1.y - rhs.y);
-			var rhs1 = this._origPos;
-			this._entity.getComponent(jengine.Transform).pos = jengine._Vec2.Vec2_Impl_._new(lhs.x + rhs1.x,lhs.y + rhs1.y);
-		}
-	}
-	,__class__: ostm.Draggable
-});
 ostm.SineMover = function(v,p) {
 	jengine.Component.call(this);
 	this._v = v;
@@ -416,7 +453,7 @@ ostm.SineMover.prototype = $extend(jengine.Component.prototype,{
 	,__class__: ostm.SineMover
 });
 ostm.GameMain = function() {
-	var entityList = [new jengine.Entity([new ostm.SineMover(15,2.3),new jengine.HtmlRenderer(jengine._Vec2.Vec2_Impl_._new(20,20)),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(320,20))]),new jengine.Entity([new jengine.HtmlRenderer(),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(210,320)),new ostm.SineMover(45,1.2)])];
+	var entityList = [new jengine.Entity([new ostm.MapGenerator()])];
 	var _g = 0;
 	while(_g < 5) {
 		var i = _g++;
@@ -427,30 +464,102 @@ ostm.GameMain = function() {
 		entityList.push(e);
 	}
 	ostm.MouseManager.init();
-	window.document.getElementById("btn-add").onclick = $bind(this,this.addRandomSquare);
-	window.document.getElementById("btn-clear").onclick = $bind(this,this.clearSquares);
 	jengine.JEngineMain.call(this,entityList);
-	this.addRandomSquare(null);
-	this.addRandomSquare(null);
 };
 ostm.GameMain.__name__ = true;
 ostm.GameMain.main = function() {
 	new ostm.GameMain();
 };
-ostm.GameMain.randomRange = function(lo,hi) {
-	return (hi - lo) * Math.random() + lo;
-};
 ostm.GameMain.__super__ = jengine.JEngineMain;
 ostm.GameMain.prototype = $extend(jengine.JEngineMain.prototype,{
-	addRandomSquare: function(arg) {
-		var size = ostm.GameMain.randomRange(20,75);
-		var pos = jengine._Vec2.Vec2_Impl_._new(ostm.GameMain.randomRange(50,550),ostm.GameMain.randomRange(50,550));
-		this._entitySystem.addEntity(new jengine.Entity([new jengine.HtmlRenderer(jengine._Vec2.Vec2_Impl_._new(size,size)),new jengine.Transform(pos),new ostm.Draggable()]));
+	__class__: ostm.GameMain
+});
+ostm.MapGenerator = function() {
+	this._lineWidth = 3;
+	jengine.Component.call(this);
+};
+ostm.MapGenerator.__name__ = true;
+ostm.MapGenerator.__super__ = jengine.Component;
+ostm.MapGenerator.prototype = $extend(jengine.Component.prototype,{
+	start: function() {
+		this._generated = new Array();
+		this._generated.push(new haxe.ds.IntMap());
+		this.addNode(null,0,0);
+		var _g = 1;
+		while(_g < 40) {
+			var i = _g++;
+			this.addLayer();
+		}
 	}
-	,clearSquares: function(arg) {
-		this._entitySystem.removeAll();
+	,addLayer: function() {
+		this._generated.push(new haxe.ds.IntMap());
+		var i = this._generated.length - 1;
+		var v = Math.floor(i / 2);
+		var _g1 = -v;
+		var _g = v + 1;
+		while(_g1 < _g) {
+			var j = _g1++;
+			var possibleParents = [];
+			var _g3 = j - 1;
+			var _g2 = j + 2;
+			while(_g3 < _g2) {
+				var k = _g3++;
+				var p = this._generated[i - 1].get(k);
+				if(p != null) possibleParents.push(p);
+			}
+			var parent = jengine.util.Random.randomElement(possibleParents);
+			var prob;
+			if(parent == null) prob = 0.25; else prob = 0.75;
+			if(jengine.util.Random.randomBool(prob)) this.addNode(parent,i,j);
+		}
 	}
-	,__class__: ostm.GameMain
+	,addNode: function(parent,i,j) {
+		var origin = jengine._Vec2.Vec2_Impl_._new(100,300);
+		var pos;
+		var rhs = jengine._Vec2.Vec2_Impl_._new(80 * i,55 * j);
+		pos = jengine._Vec2.Vec2_Impl_._new(origin.x + rhs.x,origin.y + rhs.y);
+		var size = jengine._Vec2.Vec2_Impl_._new(40,40);
+		var ent = new jengine.Entity([new jengine.HtmlRenderer(size),new jengine.Transform(pos)]);
+		var elem = ent.getComponent(jengine.HtmlRenderer).getElement();
+		elem.style.borderRadius = 32;
+		elem.style.border = this._lineWidth + "px solid black";
+		this._entity.getSystem().addEntity(ent);
+		var line = null;
+		if(parent != null) {
+			var center;
+			var rhs1 = jengine._Vec2.Vec2_Impl_._new(size.x / 2,size.y / 2);
+			center = jengine._Vec2.Vec2_Impl_._new(pos.x + rhs1.x,pos.y + rhs1.y);
+			var pCenter;
+			var lhs = parent.entity.getComponent(jengine.Transform).pos;
+			var rhs2 = jengine._Vec2.Vec2_Impl_._new(size.x / 2,size.y / 2);
+			pCenter = jengine._Vec2.Vec2_Impl_._new(lhs.x + rhs2.x,lhs.y + rhs2.y);
+			line = this.addLine(pCenter,center);
+		}
+		var v = { entity : ent, line : line};
+		this._generated[i].set(j,v);
+		v;
+	}
+	,addLine: function(a,b) {
+		var elem = window.document.createElement("div");
+		var pos;
+		var lhs = jengine._Vec2.Vec2_Impl_._new(a.x + b.x,a.y + b.y);
+		pos = jengine._Vec2.Vec2_Impl_._new(lhs.x / 2,lhs.y / 2);
+		var delta = jengine._Vec2.Vec2_Impl_._new(b.x - a.x,b.y - a.y);
+		var width = this._lineWidth;
+		var height = delta.length();
+		var angle = Math.atan2(delta.y,delta.x) * 180 / Math.PI + 90;
+		elem.style.background = "black";
+		elem.style.position = "absolute";
+		elem.style.left = pos.x;
+		elem.style.top = pos.y - height / 2;
+		elem.style.width = width;
+		elem.style.height = height;
+		elem.style.transform = "rotate(" + angle + "deg)";
+		elem.style.zIndex = -1;
+		window.document.body.appendChild(elem);
+		return elem;
+	}
+	,__class__: ostm.MapGenerator
 });
 ostm.MouseManager = function() { };
 ostm.MouseManager.__name__ = true;

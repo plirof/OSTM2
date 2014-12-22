@@ -4,6 +4,7 @@ package jengine;
 class Entity {
     var _components :Array<Component>;
     var _system :EntitySystem;
+    var _hasStarted :Bool = false;
 
     public function new(components: Array<Component>) {
         _components = components;
@@ -32,5 +33,13 @@ class Entity {
         }
 
         return null;
+    }
+
+    public inline function getTransform() :Transform {
+        return getComponent(Transform);
+    }
+
+    public function getSystem() :EntitySystem {
+        return _system;
     }
 }

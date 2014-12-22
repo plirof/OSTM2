@@ -13,6 +13,12 @@ class EntitySystem {
 
     public function update() :Void {
         for (ent in _entities) {
+            if (!ent._hasStarted) {
+                ent.forAllComponents(function (cmp) {
+                    cmp.start();
+                });
+                ent._hasStarted = true;
+            }
             ent.forAllComponents(function (cmp) {
                 cmp.update();
             });

@@ -10,6 +10,9 @@ class HtmlRenderer extends Component {
 
     var _elem :Element;
 
+    var _cachedPos :Vec2;
+    var _cachedSize :Vec2;
+
     public function new(?size: Vec2) {
         if (size == null) {
             size = new Vec2(50, 50);
@@ -29,12 +32,23 @@ class HtmlRenderer extends Component {
         _elem.parentElement.removeChild(_elem);
     }
 
+    function isDirty() :Bool {
+        return _cachedPos != getTransform().pos;
+    }
+    function markClean() :Void {
+        _cachedPos = getTransform().pos;
+    }
+
     public override function draw() :Void {
-        var trans = getComponent(Transform);
-        _elem.style.left = cast trans.pos.x;
-        _elem.style.top = cast trans.pos.y;
-        _elem.style.width = cast _size.x;
-        _elem.style.height = cast _size.y;
+        if (isDirty()) {
+            markClean();
+
+            var trans = getComponent(Transform);
+            _elem.style.left = cast trans.pos.x;
+            _elem.style.top = cast trans.pos.y;
+            _elem.style.width = cast _size.x;
+            _elem.style.height = cast _size.y;
+        }
     }
 
     public function getElement() :Element {
