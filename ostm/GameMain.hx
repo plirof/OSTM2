@@ -33,6 +33,17 @@ class GameMain extends JEngineMain {
 	        ]),
         ];
 
+        for (i in 0...5) {
+            var e = new Entity([
+                new HtmlRenderer(new Vec2(75, 75)),
+                new Transform(new Vec2(30 + 85 * i, 570)),
+            ]);
+            var elem = e.getComponent(HtmlRenderer).getElement();
+            elem.style.border = '1px solid black';
+            elem.style.background = 'white';
+            entityList.push(e);
+        }
+
         MouseManager.init();
 
         Browser.document.getElementById('btn-add').onclick = addRandomSquare;

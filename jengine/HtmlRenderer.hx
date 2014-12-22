@@ -22,10 +22,10 @@ class HtmlRenderer extends Component {
         _elem = doc.createElement('span');
         doc.body.appendChild(cast _elem);
         _elem.style.position = 'absolute';
+        _elem.style.background = '#ff0000';
     }
 
     public override function deinit() :Void {
-        Log.log('poo');
         _elem.parentElement.removeChild(_elem);
     }
 
@@ -35,7 +35,6 @@ class HtmlRenderer extends Component {
         _elem.style.top = cast trans.pos.y;
         _elem.style.width = cast _size.x;
         _elem.style.height = cast _size.y;
-        _elem.style.background = '#ff0000';
     }
 
     public function getElement() :Element {

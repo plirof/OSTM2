@@ -51,6 +51,8 @@ jengine.Component.prototype = {
 	}
 	,draw: function() {
 	}
+	,handleMessage: function(message,arg) {
+	}
 	,getComponent: function(c) {
 		return this._entity.getComponent(c);
 	}
@@ -158,9 +160,9 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 		this._elem = doc.createElement("span");
 		doc.body.appendChild(this._elem);
 		this._elem.style.position = "absolute";
+		this._elem.style.background = "#ff0000";
 	}
 	,deinit: function() {
-		jengine.util.Log.log("poo");
 		this._elem.parentElement.removeChild(this._elem);
 	}
 	,draw: function() {
@@ -169,7 +171,6 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 		this._elem.style.top = trans.pos.y;
 		this._elem.style.width = this._size.x;
 		this._elem.style.height = this._size.y;
-		this._elem.style.background = "#ff0000";
 	}
 	,getElement: function() {
 		return this._elem;
@@ -381,7 +382,6 @@ ostm.Draggable.__super__ = jengine.Component;
 ostm.Draggable.prototype = $extend(jengine.Component.prototype,{
 	init: function() {
 		var elem = this._entity.getComponent(jengine.HtmlRenderer).getElement();
-		jengine.util.Log.log("initing w/: " + Std.string(elem));
 		elem.draggable = true;
 		elem.ondragenter = $bind(this,this.onDragEnter);
 		elem.ondrag = $bind(this,this.onDrag);
@@ -391,12 +391,14 @@ ostm.Draggable.prototype = $extend(jengine.Component.prototype,{
 		this._origPos = this._entity.getComponent(jengine.Transform).pos;
 	}
 	,onDrag: function(event) {
-		var lhs;
-		var lhs1 = ostm.MouseManager.mousePos;
-		var rhs = this._clickPos;
-		lhs = jengine._Vec2.Vec2_Impl_._new(lhs1.x - rhs.x,lhs1.y - rhs.y);
-		var rhs1 = this._origPos;
-		this._entity.getComponent(jengine.Transform).pos = jengine._Vec2.Vec2_Impl_._new(lhs.x + rhs1.x,lhs.y + rhs1.y);
+		if(this._clickPos != null) {
+			var lhs;
+			var lhs1 = ostm.MouseManager.mousePos;
+			var rhs = this._clickPos;
+			lhs = jengine._Vec2.Vec2_Impl_._new(lhs1.x - rhs.x,lhs1.y - rhs.y);
+			var rhs1 = this._origPos;
+			this._entity.getComponent(jengine.Transform).pos = jengine._Vec2.Vec2_Impl_._new(lhs.x + rhs1.x,lhs.y + rhs1.y);
+		}
 	}
 	,__class__: ostm.Draggable
 });
@@ -415,6 +417,15 @@ ostm.SineMover.prototype = $extend(jengine.Component.prototype,{
 });
 ostm.GameMain = function() {
 	var entityList = [new jengine.Entity([new ostm.SineMover(15,2.3),new jengine.HtmlRenderer(jengine._Vec2.Vec2_Impl_._new(20,20)),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(320,20))]),new jengine.Entity([new jengine.HtmlRenderer(),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(210,320)),new ostm.SineMover(45,1.2)])];
+	var _g = 0;
+	while(_g < 5) {
+		var i = _g++;
+		var e = new jengine.Entity([new jengine.HtmlRenderer(jengine._Vec2.Vec2_Impl_._new(75,75)),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(30 + 85 * i,570))]);
+		var elem = e.getComponent(jengine.HtmlRenderer).getElement();
+		elem.style.border = "1px solid black";
+		elem.style.background = "white";
+		entityList.push(e);
+	}
 	ostm.MouseManager.init();
 	window.document.getElementById("btn-add").onclick = $bind(this,this.addRandomSquare);
 	window.document.getElementById("btn-clear").onclick = $bind(this,this.clearSquares);

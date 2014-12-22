@@ -13,6 +13,8 @@ class Component {
     public function update() :Void { }
     public function draw() :Void { }
 
+    public function handleMessage(message :String, arg :Dynamic) :Void { }
+
     public inline function getComponent<T :Component>(c :Class<T>) :T {
         return _entity.getComponent(c);
     }

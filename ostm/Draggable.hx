@@ -12,7 +12,6 @@ class Draggable extends Component {
 
 	public override function init() {
 		var elem :Element = getComponent(HtmlRenderer).getElement();
-		Log.log("initing w/: " + elem);
 		elem.draggable = true;
 		elem.ondragenter = onDragEnter;
 		elem.ondrag = onDrag;
@@ -24,6 +23,8 @@ class Draggable extends Component {
 	}
 
 	function onDrag(event :Dynamic) :Void {
-		getTransform().pos = MouseManager.mousePos - _clickPos + _origPos;
+        if (_clickPos != null) {
+    		getTransform().pos = MouseManager.mousePos - _clickPos + _origPos;
+        }
 	}
 }
