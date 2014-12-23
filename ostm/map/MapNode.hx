@@ -1,4 +1,4 @@
-package ostm;
+package ostm.map;
 
 import js.Browser;
 import js.html.Element;
@@ -6,7 +6,7 @@ import js.html.MouseEvent;
 
 import jengine.*;
 
-@:allow(ostm.MapGenerator)
+@:allow(ostm.map.MapGenerator)
 class MapNode extends Component {
     var line :Element;
     var map :MapGenerator;
@@ -14,7 +14,7 @@ class MapNode extends Component {
     var depth :Int;
     var hasSeen :Bool = false;
     var hasVisited :Bool = false;
-    var isMarked :Bool = false;
+    var pathMark :Float = -1;
 
     var elem :Element;
 

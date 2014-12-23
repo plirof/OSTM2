@@ -1,3 +1,7 @@
-- 'gold path'
 - pseudo random w/ sine
+- path gradient color
+- 'gold path'
+- optimize pathfinding
+    - cache parents/children
+    - A*
 - map scrolling

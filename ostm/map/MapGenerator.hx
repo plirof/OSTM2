@@ -1,4 +1,4 @@
-package ostm;
+package ostm.map;
 
 import jengine.*;
 import jengine.util.*;
@@ -11,7 +11,10 @@ class MapGenerator extends Component {
     var _selected :MapNode;
     var _start :MapNode;
 
+    var _rand :MapRandom;
+
     public override function start() :Void {
+        _rand = new MapRandom();
         _generated = new Array<Map<Int, MapNode>>();
         _generated.push(new Map<Int, MapNode>());
         
@@ -29,6 +32,7 @@ class MapGenerator extends Component {
     function addLayer() :Void {
         _generated.push(new Map<Int, MapNode>());
         var i = _generated.length - 1;
+        _rand.setSeed(3571 * i + 143);
 
         var v :Int = Math.floor(i / 2);
         for (j in -v...(v+1)) {
@@ -39,9 +43,9 @@ class MapGenerator extends Component {
                     possibleParents.push(p);
                 }
             }
-            var parent :MapNode = Random.randomElement(possibleParents);
+            var parent :MapNode = _rand.randomElement(possibleParents);
             var prob = parent == null ? 0.25 : 0.75;
-            if (Random.randomBool(prob)) {
+            if (_rand.randomBool(prob)) {
                 addNode(parent, i, j);
             }
         }
@@ -67,9 +71,11 @@ class MapGenerator extends Component {
     public function click(node :MapNode) :Void {
         var path = findPath(_selected, node);
         if (path != null) {
-            forAllNodes(function (node :MapNode) { node.isMarked = false; });
-            for (n in path) {
-                n.isMarked = true;
+            forAllNodes(function (node :MapNode) { node.pathMark = -1; });
+            for (i in 0...path.length) {
+                var n = path[i];
+                n.hasVisited = true;
+                n.pathMark = i / path.length;
             }
 
             _selected = node;
@@ -91,6 +97,41 @@ class MapGenerator extends Component {
         }
     }
 
+    function rgb(r :Int, g :Int, b :Int) :String {
+        var toHex = function(c :Int) :String {
+            if (c < 0) { return '00'; }
+            if (c > 255) { return 'ff'; }
+            var hexC = function(i :Int) :String {
+                if (i < 10) {
+                    return '' + i;
+                }
+                switch (i) {
+                    case 10: return 'a';
+                    case 11: return 'b';
+                    case 12: return 'c';
+                    case 13: return 'd';
+                    case 14: return 'e';
+                    case 15: return 'f';
+                }
+                return '';
+            }
+            return hexC(Math.floor(c / 16)) + hexC(c % 16);
+        }
+        return '#' + toHex(r) + toHex(g) + toHex(b);
+    }
+
+    function clamp(t :Float, lo :Float, hi :Float) :Float {
+        if (t > hi) { return hi; }
+        if (t < lo) { return lo; }
+        return t;
+    }
+    inline function clamp01(t :Float) :Float {
+        return clamp(t, 0, 1);
+    }
+    inline function lerp(t :Float, lo :Float, hi :Float) :Float {
+        return clamp01(t) * (hi - lo) + lo;
+    }
+
     function updateColors() :Void {
         forAllNodes(function (node :MapNode) {
             if (isAdjacent(node, _selected)) {
@@ -102,12 +143,13 @@ class MapGenerator extends Component {
             else if (!hasPathToStart(node)) {
                 node.color = '#000000';
             }
-            else if (node.isMarked) {
-                node.color = '#00ffff';
+            else if (node.pathMark >= 0) {
+                var c = Math.floor(lerp(node.pathMark, 128, 255));
+                node.color = rgb(0, c, c);
             }
-            else if (!node.hasSeen) {
-                node.color = '';
-            }
+            // else if (!node.hasSeen) {
+            //     node.color = '';
+            // }
             else if (!node.hasVisited) {
                 node.color = '#888888';
             }

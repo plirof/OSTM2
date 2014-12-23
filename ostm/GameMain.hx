@@ -4,6 +4,8 @@ import js.*;
 
 import jengine.*;
 
+import ostm.map.*;
+
 class SineMover extends Component {
     var _v :Float;
     var _p :Float;
