@@ -54,4 +54,7 @@ class HtmlRenderer extends Component {
     public function getElement() :Element {
         return _elem;
     }
+    public function getSize() :Vec2 {
+        return _size;
+    }
 }
