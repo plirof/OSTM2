@@ -1,1 +1,3 @@
-- pathfinding! god!
+- 'gold path'
+- pseudo random w/ sine
+- map scrolling

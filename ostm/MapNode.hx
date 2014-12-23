@@ -14,6 +14,7 @@ class MapNode extends Component {
     var depth :Int;
     var hasSeen :Bool = false;
     var hasVisited :Bool = false;
+    var isMarked :Bool = false;
 
     var elem :Element;
 
@@ -80,7 +81,7 @@ class MapNode extends Component {
                 elem.style.display = disp;
                 line.style.display = disp;
             }
-            
+
             _cachedColor = color;
         }
     }
