@@ -8,13 +8,16 @@ import jengine.*;
 
 @:allow(ostm.map.MapGenerator)
 class MapNode extends Component {
-    var line :Element;
+    var lines :Array<Element>;
     var map :MapGenerator;
-    var parent :MapNode;
+    var parents :Array<MapNode>;
+    var neighbors :Array<MapNode>;
     var depth :Int;
+    var height :Int;
     var hasSeen :Bool = false;
     var hasVisited :Bool = false;
     var pathMark :Float = -1;
+    var isGold :Bool = false;
 
     var elem :Element;
 
@@ -23,10 +26,22 @@ class MapNode extends Component {
 
     var _lineWidth :Float = 3;
 
-    function new(gen :MapGenerator, dep :Int, par :MapNode) {
+    function new(gen :MapGenerator, d :Int, h :Int, par :MapNode) {
         map = gen;
-        depth = dep;
-        parent = par;
+        depth = d;
+        height = h;
+        parents = [];
+        lines = [];
+        neighbors = new Array<MapNode>();
+        if (par != null) {
+            parents.push(par);
+            neighbors.push(par);
+        }
+    }
+
+    public function addParent(par :MapNode) {
+        parents.push(par);
+        neighbors.push(par);
     }
 
     public override function start() :Void {
@@ -41,12 +56,12 @@ class MapNode extends Component {
         elem.onmouseup = onMouseUp;
         elem.onclick = onClick;
 
-        if (parent != null) {
+        for (parent in parents) {
             var pos = getTransform().pos;
             var size = renderer.getSize();
             var center = pos + size / 2;
             var pCenter = parent.getTransform().pos + size / 2;
-            line = addLine(pCenter, center);
+            lines.push(addLine(pCenter, center));
         }
     }
 
@@ -79,7 +94,9 @@ class MapNode extends Component {
             if (color == '' || _cachedColor == '') {
                 var disp = (color == '') ? 'none' : '';
                 elem.style.display = disp;
-                line.style.display = disp;
+                for (line in lines) {
+                    line.style.display = disp;
+                }
             }
 
             _cachedColor = color;
