@@ -14,7 +14,7 @@ class MapNode extends Component {
     var neighbors :Array<MapNode>;
     var depth :Int;
     var height :Int;
-    var hasSeen :Bool = false;
+    var hasSeen :Bool = true;
     var hasVisited :Bool = false;
     var pathMark :Float = -1;
     var isGold :Bool = false;
@@ -39,9 +39,12 @@ class MapNode extends Component {
         }
     }
 
-    public function addParent(par :MapNode) {
-        parents.push(par);
-        neighbors.push(par);
+    public function addParent(node :MapNode) {
+        parents.push(node);
+        neighbors.push(node);
+    }
+    public function addChild(node :MapNode) {
+        neighbors.push(node);
     }
 
     public override function start() :Void {

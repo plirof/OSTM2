@@ -21,7 +21,7 @@ class MapGenerator extends Component {
         _generated.push(new Map<Int, MapNode>());
         
         _scrollHelper = new Entity([
-            new HtmlRenderer(new Vec2(1, 1)),
+            new HtmlRenderer(new Vec2(10, 10)),
             new Transform(new Vec2(0, 0)),
         ]);
         entity.getSystem().addEntity(_scrollHelper);
@@ -45,30 +45,34 @@ class MapGenerator extends Component {
         _rand.setSeed(35613 * i + 273);
 
         for (parent in _generated[p]) {
-            var shouldContinue = _rand.randomBool(0.9) || parent.isGold;
-            if (shouldContinue) {
-                var nChildren = _rand.randomBool(0.4) ? 2 : 1;
-                var shouldBeGold = parent.isGold;
-                var possibles = [-1, 0, 1];
-                while (possibles.length > nChildren) {
-                    possibles.remove(_rand.randomElement(possibles));
+            var nChildren = _rand.randomBool(0.4) ? 2 : 1;
+            var shouldBeGold = parent.isGold;
+            var didAddPath = false;
+            var possibles = [-1, 0, 1];
+            while (possibles.length > nChildren) {
+                possibles.remove(_rand.randomElement(possibles));
+            }
+            while (possibles.length > 0) {
+                var j = _rand.randomElement(possibles);
+                possibles.remove(j);
+                j += parent.height;
+                var node = _generated[i].get(j);
+                if (node == null) {
+                    node = addNode(parent, i, j);
+                    node.isGold = shouldBeGold;
+                    shouldBeGold = false;
+                    didAddPath = true;
                 }
-                while (possibles.length > 0) {
-                    var j = _rand.randomElement(possibles);
-                    possibles.remove(j);
-                    j += parent.height;
-                    var node = _generated[i].get(j);
-                    if (node == null) {
-                        node = addNode(parent, i, j);
+                else if (shouldBeGold ||
+                        (_rand.randomBool(0.35) && !node.isGold) ||
+                        (possibles.length == 0 && !didAddPath)) {
+                    node.addParent(parent);
+                    parent.addChild(node);
+                    if (!node.isGold) {
                         node.isGold = shouldBeGold;
-                        shouldBeGold = false;
                     }
-                    else if (shouldBeGold ||
-                        (_rand.randomBool(0.5) && !node.isGold)) {
-                        node.addParent(parent);
-                        node.isGold = shouldBeGold;
-                        shouldBeGold = false;
-                    }
+                    shouldBeGold = false;
+                    didAddPath = true;
                 }
             }
         }
@@ -100,7 +104,7 @@ class MapGenerator extends Component {
     public function click(node :MapNode) :Void {
         var path = findPath(_selected, node);
         if (path != null) {
-            forAllNodes(function (node :MapNode) { node.pathMark = -1; });
+            forAllNodes(function (node) { node.pathMark = -1; });
             for (i in 0...path.length) {
                 var n = path[i];
                 n.hasVisited = true;
@@ -127,23 +131,23 @@ class MapGenerator extends Component {
     }
 
     function rgb(r :Int, g :Int, b :Int) :String {
+        var hexC = function(i :Int) :String {
+            if (i < 10) {
+                return '' + i;
+            }
+            switch (i) {
+                case 10: return 'a';
+                case 11: return 'b';
+                case 12: return 'c';
+                case 13: return 'd';
+                case 14: return 'e';
+                case 15: return 'f';
+            }
+            return '';
+        }
         var toHex = function(c :Int) :String {
             if (c < 0) { return '00'; }
             if (c > 255) { return 'ff'; }
-            var hexC = function(i :Int) :String {
-                if (i < 10) {
-                    return '' + i;
-                }
-                switch (i) {
-                    case 10: return 'a';
-                    case 11: return 'b';
-                    case 12: return 'c';
-                    case 13: return 'd';
-                    case 14: return 'e';
-                    case 15: return 'f';
-                }
-                return '';
-            }
             return hexC(Math.floor(c / 16)) + hexC(c % 16);
         }
         return '#' + toHex(r) + toHex(g) + toHex(b);
@@ -169,19 +173,16 @@ class MapGenerator extends Component {
             if (node == _selected) {
                 node.color = '#00ff00';
             }
-            else if (!hasPathToStart(node)) {
-                node.color = '#000000';
-            }
             else if (node.pathMark >= 0) {
                 var c = Math.floor(lerp(node.pathMark, 128, 255));
                 node.color = rgb(0, c, c);
             }
-            else if (node.isGold) {
-                node.color = '#ffff00';
-            }
-            // else if (!node.hasSeen) {
-            //     node.color = '';
+            // else if (node.isGold) {
+            //     node.color = '#ffff00';
             // }
+            else if (!node.hasSeen) {
+                node.color = '';
+            }
             else if (!node.hasVisited) {
                 node.color = '#888888';
             }
@@ -192,14 +193,15 @@ class MapGenerator extends Component {
     }
 
     function isAdjacent(a :MapNode, b :MapNode) :Bool {
-        return b.parents.indexOf(a) != -1 ||
-            a.parents.indexOf(b) != -1;
+        return a.neighbors.indexOf(b) != -1;
     }
+
     function bfsPath(start :MapNode, endFunction :MapNode -> Bool) :Array<MapNode> {
         var openSet = new Array<MapNode>();
         var closedSet = new Map<MapNode, MapNode>(); //key: item, val: parent
         openSet.push(start);
         closedSet[start] = start;
+        var count = 0;
 
         var constructPath = function (node :MapNode) :Array<MapNode> {
             var path = new Array<MapNode>();
@@ -218,7 +220,8 @@ class MapGenerator extends Component {
             openSet.remove(node);
 
             for (n in node.neighbors) {
-                if (closedSet.get(n) == null) {
+                if (n.hasSeen && closedSet.get(n) == null) {
+                    count++;
                     openSet.push(n);
                     closedSet[n] = node;
                 }
@@ -236,15 +239,5 @@ class MapGenerator extends Component {
             function (node :MapNode) {
                 return node == end;
             });
-    }
-
-    function hasPathToStart(node :MapNode) :Bool {
-        return findPath(node, _start) != null;
-
-        // var n = node;
-        // while (n.parent != null) {
-        //     n = n.parent;
-        // }
-        // return n.depth == 0;
     }
 }
