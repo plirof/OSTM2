@@ -6,23 +6,30 @@ import js.html.MouseEvent;
 
 import jengine.*;
 
+typedef MapLine = {
+    var elem :Element;
+    var node :MapNode;
+};
+
+enum MapNodeState {
+}
+
 @:allow(ostm.map.MapGenerator)
 class MapNode extends Component {
-    var lines :Array<Element>;
+    var lines :Array<MapLine>;
     var map :MapGenerator;
     var parents :Array<MapNode>;
     var neighbors :Array<MapNode>;
     var depth :Int;
     var height :Int;
-    var hasSeen :Bool = true;
+    var hasSeen :Bool = false;
     var hasVisited :Bool = false;
     var pathMark :Float = -1;
-    var isGold :Bool = false;
 
     var elem :Element;
 
     var color :String = 'red';
-    var _cachedColor :String = 'notacoloratall';
+    var _isDirty :Bool = true;
 
     var _lineWidth :Float = 3;
 
@@ -64,11 +71,11 @@ class MapNode extends Component {
             var size = renderer.getSize();
             var center = pos + size / 2;
             var pCenter = parent.getTransform().pos + size / 2;
-            lines.push(addLine(pCenter, center));
+            lines.push(addLine(pCenter, center, parent));
         }
     }
 
-    function addLine(a :Vec2, b :Vec2) :Element {
+    function addLine(a :Vec2, b :Vec2, endPoint :MapNode) :MapLine {
         var elem = Browser.document.createElement('div');
         var pos = (a + b) / 2;
         var delta = b - a;
@@ -87,22 +94,23 @@ class MapNode extends Component {
         elem.style.zIndex = cast -1;
 
         Browser.document.body.appendChild(elem);
-        return elem;
+        return {
+            elem: elem,
+            node: endPoint,
+        };
     }
 
     public override function update() :Void {
-        if (color != _cachedColor) {
+        if (_isDirty) {
             elem.style.background = color;
 
-            if (color == '' || _cachedColor == '') {
-                var disp = (color == '') ? 'none' : '';
-                elem.style.display = disp;
-                for (line in lines) {
-                    line.style.display = disp;
-                }
+            elem.style.display = (color != '') ? '' : 'none';
+            for (line in lines) {
+                var disp = color != '' &&
+                    (line.node.hasSeen && hasVisited ||
+                        line.node.hasVisited && hasSeen);
+                line.elem.style.display = disp ? '' : 'none';
             }
-
-            _cachedColor = color;
         }
     }
 

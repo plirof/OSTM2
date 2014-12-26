@@ -28,7 +28,6 @@ class MapGenerator extends Component {
 
         _start = addNode(null, 0, 0);
         _start.hasVisited = true;
-        _start.isGold = true;
         _selected = _start;
 
         for (i in 1...75) {
@@ -46,7 +45,6 @@ class MapGenerator extends Component {
 
         for (parent in _generated[p]) {
             var nChildren = _rand.randomBool(0.4) ? 2 : 1;
-            var shouldBeGold = parent.isGold;
             var didAddPath = false;
             var possibles = [-1, 0, 1];
             while (possibles.length > nChildren) {
@@ -59,19 +57,12 @@ class MapGenerator extends Component {
                 var node = _generated[i].get(j);
                 if (node == null) {
                     node = addNode(parent, i, j);
-                    node.isGold = shouldBeGold;
-                    shouldBeGold = false;
                     didAddPath = true;
                 }
-                else if (shouldBeGold ||
-                        (_rand.randomBool(0.35) && !node.isGold) ||
+                else if (_rand.randomBool(0.35) ||
                         (possibles.length == 0 && !didAddPath)) {
                     node.addParent(parent);
                     parent.addChild(node);
-                    if (!node.isGold) {
-                        node.isGold = shouldBeGold;
-                    }
-                    shouldBeGold = false;
                     didAddPath = true;
                 }
             }
@@ -177,9 +168,6 @@ class MapGenerator extends Component {
                 var c = Math.floor(lerp(node.pathMark, 128, 255));
                 node.color = rgb(0, c, c);
             }
-            // else if (node.isGold) {
-            //     node.color = '#ffff00';
-            // }
             else if (!node.hasSeen) {
                 node.color = '';
             }
