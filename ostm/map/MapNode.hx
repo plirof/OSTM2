@@ -9,6 +9,7 @@ import jengine.*;
 typedef MapLine = {
     var elem :Element;
     var node :MapNode;
+    var offset :Vec2;
 };
 
 @:enum @:forward
@@ -39,7 +40,8 @@ class MapNode extends Component {
 
     var elem :Element;
 
-    var state :MapNodeState = MapNodeState.Invisible;
+    var state :MapNodeState = MapNodeState.Visited;
+    // var state :MapNodeState = MapNodeState.Invisible;
     var _dirtyFlag :Bool = true;
     var _cachedState :MapNodeState = MapNodeState.Invisible;
 
@@ -83,16 +85,15 @@ class MapNode extends Component {
 
         for (node in neighbors) {
             if (node.depth < depth) {
-                var pos = getTransform().pos;
-                var size = renderer.getSize();
-                var center = pos + size / 2;
-                var pCenter = node.getTransform().pos + size / 2;
-                lines.push(addLine(pCenter, center, node));
+                lines.push(addLine(node));
             }
         }
     }
 
-    function addLine(a :Vec2, b :Vec2, endPoint :MapNode) :MapLine {
+    function addLine(endPoint :MapNode) :MapLine {
+        var size = getComponent(HtmlRenderer).getSize();
+        var a = getTransform().pos + size / 2;
+        var b = endPoint.getTransform().pos + size / 2;
         var elem = Browser.document.createElement('div');
         var pos = (a + b) / 2;
         var delta = b - a;
@@ -114,6 +115,7 @@ class MapNode extends Component {
         return {
             elem: elem,
             node: endPoint,
+            offset: (delta + size) / 2 - new Vec2(0, height / 2),
         };
     }
 
@@ -132,11 +134,16 @@ class MapNode extends Component {
                 default: color = '';
             }
             elem.style.background = color;
-
             elem.style.display = hasSeen() ? '' : 'none';
+
+            var size = getComponent(HtmlRenderer).getSize();
+            var pos = getTransform().pos;// + size / 2;
             for (line in lines) {
                 var disp = isPathVisible(line.node);
                 line.elem.style.display = disp ? '' : 'none';
+
+                line.elem.style.left = cast pos.x + line.offset.x;
+                line.elem.style.top = cast pos.y + line.offset.y;
             }
 
             _cachedState = state;
@@ -144,7 +151,7 @@ class MapNode extends Component {
         }
     }
 
-    function isDirty() :Bool {
+    inline function isDirty() :Bool {
         return _dirtyFlag || state != _cachedState;
     }
     public function markDirty() :Void {
@@ -157,6 +164,11 @@ class MapNode extends Component {
     }
     function onClick(event :MouseEvent) :Void {
         map.click(this);
+    }
+
+    public function getOffset(origin :Vec2) :Vec2 {
+        var spacing :Vec2 = new Vec2(80, 55);
+        return origin + new Vec2(depth * spacing.x, height * spacing.y);
     }
 
     public function ratchetState() :Void {

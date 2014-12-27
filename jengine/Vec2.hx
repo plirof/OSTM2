@@ -40,4 +40,13 @@ abstract Vec2(Vec2_Impl) to Vec2_Impl from Vec2_Impl {
     public function dist(other :Vec2) :Float {
         return (other - this).length();
     }
+
+    public static function max(lhs :Vec2, rhs :Vec2) :Vec2 {
+        return new Vec2(Math.max(lhs.x, rhs.x),
+            Math.max(lhs.y, rhs.y));
+    }
+    public static function min(lhs :Vec2, rhs :Vec2) :Vec2 {
+        return new Vec2(Math.min(lhs.x, rhs.x),
+            Math.min(lhs.y, rhs.y));
+    }
 }

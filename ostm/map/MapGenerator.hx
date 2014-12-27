@@ -68,27 +68,24 @@ class MapGenerator extends Component {
 
         forAllNodes(function (node) {
             tryUncross(node.depth, node.height);
+            node.markDirty();
         });
+        updateScrollBounds();
     }
 
     function addNode(parent :MapNode, i :Int, j :Int) :MapNode {
-        var origin :Vec2 = new Vec2(100, 300);
-        var pos :Vec2 = origin + new Vec2(80 * i, 55 * j);
         var size :Vec2 = new Vec2(40, 40);
 
         var node = new MapNode(this, i, j, parent);
         var ent = new Entity([
             new HtmlRenderer(size),
-            new Transform(pos),
+            new Transform(),
             node,
         ]);
         entity.getSystem().addEntity(ent);
         if (parent != null) {
             parent.neighbors.push(node);
         }
-
-        var scrollBuffer = new Vec2(750, 350);
-        _scrollHelper.getTransform().pos = pos + scrollBuffer;
 
         _generated[i][j] = node;
         return node;
@@ -139,6 +136,25 @@ class MapGenerator extends Component {
                 f(node);
             }
         }
+    }
+
+    function updateScrollBounds() :Void {
+        var topLeft = new Vec2(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
+        var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
+        var origin :Vec2 = new Vec2(100, 300);
+        forAllNodes(function (node) {
+            var pos = node.getOffset(origin);
+            topLeft = Vec2.min(topLeft, pos);
+        });
+
+        forAllNodes(function (node) {
+            var pos = origin + node.getOffset(origin) - topLeft;
+            node.getTransform().pos = pos;
+            botRight = Vec2.max(botRight, pos);
+        });
+        
+        var scrollBuffer = new Vec2(750, 350);
+        _scrollHelper.getTransform().pos = origin + botRight + scrollBuffer;
     }
 
     function rgb(r :Int, g :Int, b :Int) :String {
