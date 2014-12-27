@@ -21,7 +21,7 @@ class MapRandom {
     public function randomFloat() :Float {
         return randomInt() / kRandMax;
     }
-    public function randomBool(prob :Float) :Bool {
+    public function randomBool(prob :Float = 0.5) :Bool {
         return randomInt(kRandBoolPrecision) < prob * kRandBoolPrecision;
     }
     public function randomElement<T>(array :Array<T>) :T {

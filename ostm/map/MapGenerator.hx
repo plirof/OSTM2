@@ -29,7 +29,7 @@ class MapGenerator extends Component {
         _start = addNode(null, 0, 0);
         _selected = _start;
 
-        for (i in 1...75) {
+        for (i in 1...25) {
             addLayer();
         }
 
@@ -60,12 +60,15 @@ class MapGenerator extends Component {
                 }
                 else if (_rand.randomBool(0.35) ||
                         (possibles.length == 0 && !didAddPath)) {
-                    node.addParent(parent);
-                    parent.addChild(node);
+                    node.addNeighbor(parent);
                     didAddPath = true;
                 }
             }
         }
+
+        forAllNodes(function (node) {
+            tryUncross(node.depth, node.height);
+        });
     }
 
     function addNode(parent :MapNode, i :Int, j :Int) :MapNode {
@@ -89,6 +92,27 @@ class MapGenerator extends Component {
 
         _generated[i][j] = node;
         return node;
+    }
+
+    function tryUncross(i :Int, j :Int) :Void {
+        if (i > 0) {
+            var ul = _generated[i - 1].get(j - 1);
+            var ur = _generated[i].get(j - 1);
+            var dl = _generated[i - 1].get(j);
+            var dr = _generated[i].get(j);
+            if (ul != null && ur != null &&
+                dl != null && dr != null &&
+                isAdjacent(ul, dr) && isAdjacent(ur, dl)) {
+                if (_rand.randomBool()) {
+                    ul.removeNeighbor(dr);
+                }
+                else {
+                    ur.removeNeighbor(dl);
+                }
+                ul.addNeighbor(ur);
+                dl.addNeighbor(dr);
+            }
+        }
     }
 
     public function click(node :MapNode) :Void {
@@ -179,12 +203,15 @@ class MapGenerator extends Component {
             openSet.remove(node);
 
             for (n in node.neighbors) {
-                if (n.hasSeen() && closedSet.get(n) == null) {
-                    openSet.push(n);
-                    closedSet[n] = node;
-                }
-                if (endFunction(n)) {
-                    return constructPath(n);
+                var canVisit = node.isPathVisible(n);
+                if (canVisit) {
+                    if (closedSet.get(n) == null) {
+                        openSet.push(n);
+                        closedSet[n] = node;
+                    }
+                    if (endFunction(n)) {
+                        return constructPath(n);
+                    }
                 }
             }
         }

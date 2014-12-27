@@ -33,7 +33,6 @@ abstract MapNodeState(Int) to Int from Int {
 class MapNode extends Component {
     var lines :Array<MapLine>;
     var map :MapGenerator;
-    var parents :Array<MapNode>;
     var neighbors :Array<MapNode>;
     var depth :Int;
     var height :Int;
@@ -50,21 +49,24 @@ class MapNode extends Component {
         map = gen;
         depth = d;
         height = h;
-        parents = [];
         lines = [];
         neighbors = new Array<MapNode>();
         if (par != null) {
-            parents.push(par);
             neighbors.push(par);
         }
     }
 
-    public function addParent(node :MapNode) {
-        parents.push(node);
-        neighbors.push(node);
+    public function addNeighbor(node :MapNode) :Void {
+        if (neighbors.indexOf(node) == -1) {
+            neighbors.push(node);
+            node.addNeighbor(this);
+        }
     }
-    public function addChild(node :MapNode) {
-        neighbors.push(node);
+    public function removeNeighbor(node :MapNode) :Void {
+        if (neighbors.indexOf(node) != -1) {
+            neighbors.remove(node);
+            node.removeNeighbor(this);
+        }
     }
 
     public override function start() :Void {
@@ -79,12 +81,14 @@ class MapNode extends Component {
         elem.onmouseup = onMouseUp;
         elem.onclick = onClick;
 
-        for (parent in parents) {
-            var pos = getTransform().pos;
-            var size = renderer.getSize();
-            var center = pos + size / 2;
-            var pCenter = parent.getTransform().pos + size / 2;
-            lines.push(addLine(pCenter, center, parent));
+        for (node in neighbors) {
+            if (node.depth < depth) {
+                var pos = getTransform().pos;
+                var size = renderer.getSize();
+                var center = pos + size / 2;
+                var pCenter = node.getTransform().pos + size / 2;
+                lines.push(addLine(pCenter, center, node));
+            }
         }
     }
 
@@ -113,6 +117,10 @@ class MapNode extends Component {
         };
     }
 
+    public function isPathVisible(node :MapNode) :Bool {
+        return hasSeen() && (hasVisited() || node.hasVisited());
+    }
+
     public override function update() :Void {
         if (isDirty()) {
             var color;
@@ -121,18 +129,15 @@ class MapNode extends Component {
                 case Visited: color = '#ff0000';
                 case PathHighlight: color = '#00ffff';
                 case Occupied: color = '#ffff00';
-                default: trace(state); color = '';
+                default: color = '';
             }
             elem.style.background = color;
 
             elem.style.display = hasSeen() ? '' : 'none';
             for (line in lines) {
-                var disp = color != '' &&
-                    (line.node.hasSeen() && hasVisited() ||
-                        line.node.hasVisited() && hasSeen());
+                var disp = isPathVisible(line.node);
                 line.elem.style.display = disp ? '' : 'none';
             }
-            elem.innerText = cast state;
 
             _cachedState = state;
             _dirtyFlag = false;
@@ -159,20 +164,20 @@ class MapNode extends Component {
             state = MapNodeState.Visited;
         }
     }
-    public function setVisible() :Void {
-        if (MapNodeState.Visible > state) {
-            state = MapNodeState.Visible;
+    function upgradeState(s :MapNodeState) {
+        if (s > state) {
+            state = s;
         }
+        _dirtyFlag = true;
+    }
+    public function setVisible() :Void {
+        upgradeState(MapNodeState.Visible);
     }
     public function setPath() :Void {
-        if (MapNodeState.PathHighlight > state) {
-            state = MapNodeState.PathHighlight;
-        }
+        upgradeState(MapNodeState.PathHighlight);
     }
     public function setOccupied() :Void {
-        if (MapNodeState.Occupied > state) {
-            state = MapNodeState.Occupied;
-        }
+        upgradeState(MapNodeState.Occupied);
         markNeighborsVisible();
     }
     public function markNeighborsVisible() :Void {
@@ -186,5 +191,9 @@ class MapNode extends Component {
     }
     public function hasVisited() :Bool {
         return state >= MapNodeState.Visited;
+    }
+
+    public function posString() :String {
+        return '(' + depth + ', ' + height + ')';
     }
 }
