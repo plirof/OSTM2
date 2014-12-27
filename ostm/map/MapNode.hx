@@ -11,7 +11,22 @@ typedef MapLine = {
     var node :MapNode;
 };
 
-enum MapNodeState {
+@:enum @:forward
+abstract MapNodeState(Int) to Int from Int {
+    var Invisible = 0;
+    var Visible = 1;
+    var Visited = 2;
+    var PathHighlight = 3;
+    var Occupied = 4;
+
+    @:op(A > B) public static inline function
+    gt(lhs :MapNodeState, rhs :MapNodeState) {
+        return lhs > rhs;
+    }
+    @:op(A >= B) public static inline function
+    gte(lhs :MapNodeState, rhs :MapNodeState) {
+        return lhs >= rhs;
+    }
 }
 
 @:allow(ostm.map.MapGenerator)
@@ -22,14 +37,12 @@ class MapNode extends Component {
     var neighbors :Array<MapNode>;
     var depth :Int;
     var height :Int;
-    var hasSeen :Bool = false;
-    var hasVisited :Bool = false;
-    var pathMark :Float = -1;
 
     var elem :Element;
 
-    var color :String = 'red';
-    var _isDirty :Bool = true;
+    var state :MapNodeState = MapNodeState.Invisible;
+    var _dirtyFlag :Bool = true;
+    var _cachedState :MapNodeState = MapNodeState.Invisible;
 
     var _lineWidth :Float = 3;
 
@@ -101,25 +114,77 @@ class MapNode extends Component {
     }
 
     public override function update() :Void {
-        if (_isDirty) {
+        if (isDirty()) {
+            var color;
+            switch (state) {
+                case Visible: color = '#888888';
+                case Visited: color = '#ff0000';
+                case PathHighlight: color = '#00ffff';
+                case Occupied: color = '#ffff00';
+                default: trace(state); color = '';
+            }
             elem.style.background = color;
 
-            elem.style.display = (color != '') ? '' : 'none';
+            elem.style.display = hasSeen() ? '' : 'none';
             for (line in lines) {
                 var disp = color != '' &&
-                    (line.node.hasSeen && hasVisited ||
-                        line.node.hasVisited && hasSeen);
+                    (line.node.hasSeen() && hasVisited() ||
+                        line.node.hasVisited() && hasSeen());
                 line.elem.style.display = disp ? '' : 'none';
             }
+            elem.innerText = cast state;
+
+            _cachedState = state;
+            _dirtyFlag = false;
         }
+    }
+
+    function isDirty() :Bool {
+        return _dirtyFlag || state != _cachedState;
+    }
+    public function markDirty() :Void {
+        _dirtyFlag = true;
     }
 
     function onMouseDown(event :MouseEvent) :Void {
     }
     function onMouseUp(event :MouseEvent) :Void {
     }
-
     function onClick(event :MouseEvent) :Void {
         map.click(this);
+    }
+
+    public function ratchetState() :Void {
+        if (state > MapNodeState.Visited) {
+            state = MapNodeState.Visited;
+        }
+    }
+    public function setVisible() :Void {
+        if (MapNodeState.Visible > state) {
+            state = MapNodeState.Visible;
+        }
+    }
+    public function setPath() :Void {
+        if (MapNodeState.PathHighlight > state) {
+            state = MapNodeState.PathHighlight;
+        }
+    }
+    public function setOccupied() :Void {
+        if (MapNodeState.Occupied > state) {
+            state = MapNodeState.Occupied;
+        }
+        markNeighborsVisible();
+    }
+    public function markNeighborsVisible() :Void {
+        for (node in neighbors) {
+            node.setVisible();
+        }
+    }
+
+    public function hasSeen() :Bool {
+        return state >= MapNodeState.Visible;
+    }
+    public function hasVisited() :Bool {
+        return state >= MapNodeState.Visited;
     }
 }

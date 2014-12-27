@@ -27,14 +27,13 @@ class MapGenerator extends Component {
         entity.getSystem().addEntity(_scrollHelper);
 
         _start = addNode(null, 0, 0);
-        _start.hasVisited = true;
         _selected = _start;
 
         for (i in 1...75) {
             addLayer();
         }
 
-        updateColors();
+        _start.setOccupied();
     }
 
     function addLayer() :Void {
@@ -95,21 +94,18 @@ class MapGenerator extends Component {
     public function click(node :MapNode) :Void {
         var path = findPath(_selected, node);
         if (path != null) {
-            forAllNodes(function (node) { node.pathMark = -1; });
-            for (i in 0...path.length) {
-                var n = path[i];
-                n.hasVisited = true;
-                n.pathMark = i / path.length;
-            }
+            forAllNodes(function (node) { node.ratchetState(); });
 
             _selected = node;
-            node.hasVisited = true;
+            for (i in 0...path.length) {
+                var n = path[i];
+                n.setPath();
+            }
+            _selected.setOccupied();
 
-            if (node.depth + 1 == _generated.length) {
+            if (_selected.depth + 1 == _generated.length) {
                 addLayer();
             }
-
-            updateColors();
         }
     }
 
@@ -156,30 +152,6 @@ class MapGenerator extends Component {
         return clamp01(t) * (hi - lo) + lo;
     }
 
-    function updateColors() :Void {
-        forAllNodes(function (node :MapNode) {
-            if (isAdjacent(node, _selected)) {
-                node.hasSeen = true;
-            }
-            if (node == _selected) {
-                node.color = '#00ff00';
-            }
-            else if (node.pathMark >= 0) {
-                var c = Math.floor(lerp(node.pathMark, 128, 255));
-                node.color = rgb(0, c, c);
-            }
-            else if (!node.hasSeen) {
-                node.color = '';
-            }
-            else if (!node.hasVisited) {
-                node.color = '#888888';
-            }
-            else {
-                node.color = '#ff0000';
-            }
-        });
-    }
-
     function isAdjacent(a :MapNode, b :MapNode) :Bool {
         return a.neighbors.indexOf(b) != -1;
     }
@@ -189,7 +161,6 @@ class MapGenerator extends Component {
         var closedSet = new Map<MapNode, MapNode>(); //key: item, val: parent
         openSet.push(start);
         closedSet[start] = start;
-        var count = 0;
 
         var constructPath = function (node :MapNode) :Array<MapNode> {
             var path = new Array<MapNode>();
@@ -208,8 +179,7 @@ class MapGenerator extends Component {
             openSet.remove(node);
 
             for (n in node.neighbors) {
-                if (n.hasSeen && closedSet.get(n) == null) {
-                    count++;
+                if (n.hasSeen() && closedSet.get(n) == null) {
                     openSet.push(n);
                     closedSet[n] = node;
                 }
