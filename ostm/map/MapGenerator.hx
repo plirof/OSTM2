@@ -29,7 +29,7 @@ class MapGenerator extends Component {
         _start = addNode(null, 0, 0);
         _selected = _start;
 
-        for (i in 1...5) {
+        for (i in 1...75) {
             addLayer();
         }
 
@@ -131,7 +131,7 @@ class MapGenerator extends Component {
             }
             _selected.setOccupied();
 
-            updateScrollBounds();
+            centerCurrentNode();
         }
     }
 
@@ -160,11 +160,24 @@ class MapGenerator extends Component {
         
         var scrollBuffer = new Vec2(750, 350);
         _scrollHelper.getTransform().pos = origin + botRight + scrollBuffer;
+    }
 
-        if (_start.elem != null) {
-            var div = _start.elem.parentElement;
-            var scrollPos = _selected.getTransform().pos - new Vec2(div.clientWidth, div.clientHeight) / 2;
-            Browser.window.scrollTo(cast scrollPos.x, cast scrollPos.y);
+    function centerCurrentNode() :Void {
+        if (_selected.elem != null) {
+            var container = _selected.elem.parentElement;
+            var size = new Vec2(container.clientWidth, container.clientHeight);
+            var pos = _selected.getTransform().pos;
+            var scroll = new Vec2(container.scrollLeft, container.scrollTop);
+            var relPos = pos - scroll;
+            var scrollToPos = new Vec2(scroll.x, scroll.y);
+            var tlBound = size / 3;
+            var brBound = size * 2 / 3;
+            scrollToPos = new Vec2(scroll.x, scroll.y);
+            if (relPos.x < tlBound.x) { scrollToPos.x += relPos.x - tlBound.x; }
+            if (relPos.y < tlBound.y) { scrollToPos.y += relPos.y - tlBound.y; }
+            if (relPos.x > brBound.x) { scrollToPos.x += relPos.x - brBound.x; }
+            if (relPos.y > brBound.y) { scrollToPos.y += relPos.y - brBound.y; }
+            Browser.window.scrollTo(cast scrollToPos.x, cast scrollToPos.y);
         }
     }
 
