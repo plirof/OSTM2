@@ -29,7 +29,7 @@ class MapGenerator extends Component {
         _start = addNode(null, 0, 0);
         _selected = _start;
 
-        for (i in 1...75) {
+        for (i in 1...5) {
             addLayer();
         }
 
@@ -117,22 +117,35 @@ class MapGenerator extends Component {
         var path = findPath(_selected, node);
         if (path != null) {
             forAllNodes(function (node) {
-                node.ratchetState();
+                node.clearPath();
             });
 
+            _selected.clearOccupied();
             _selected = node;
             if (_selected.depth + 1 == _generated.length) {
                 addLayer();
             }
 
-            for (i in 0...path.length) {
-                var n = path[i];
+            for (n in path) {
                 n.setPath();
             }
             _selected.setOccupied();
 
             centerCurrentNode();
         }
+    }
+
+    public function hover(node :MapNode) :Void {
+        var path = findPath(_selected, node);
+        if (path != null) {
+            for (n in path) {
+                n.setPathHighlight();
+            }
+        }
+    }
+
+    public function hoverOver(node :MapNode) :Void {
+        forAllNodes(function (node) { node.clearPathHighlight(); });
     }
 
     function forAllNodes(f :MapNode -> Void) :Void {

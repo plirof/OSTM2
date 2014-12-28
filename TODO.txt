@@ -1,3 +1,4 @@
+- traveling path, and occupied nodes, highlights the border and lines
 - Regions
 - Pre-specified nodes
     - Discovery hints

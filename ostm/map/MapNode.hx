@@ -12,24 +12,6 @@ typedef MapLine = {
     var offset :Vec2;
 };
 
-@:enum @:forward
-abstract MapNodeState(Int) to Int from Int {
-    var Invisible = 0;
-    var Visible = 1;
-    var Visited = 2;
-    var PathHighlight = 3;
-    var Occupied = 4;
-
-    @:op(A > B) public static inline function
-    gt(lhs :MapNodeState, rhs :MapNodeState) {
-        return lhs > rhs;
-    }
-    @:op(A >= B) public static inline function
-    gte(lhs :MapNodeState, rhs :MapNodeState) {
-        return lhs >= rhs;
-    }
-}
-
 @:allow(ostm.map.MapGenerator)
 class MapNode extends Component {
     var lines :Array<MapLine>;
@@ -40,9 +22,12 @@ class MapNode extends Component {
 
     var elem :Element;
 
-    var state :MapNodeState = MapNodeState.Invisible;
+    var _isVisible :Bool = false;
+    var _isVisited :Bool = false;
+    var _isPathHighlighted :Bool = false;
+    var _isPathSelected :Bool = false;
+    var _isOccupied :Bool = false;
     var _dirtyFlag :Bool = true;
-    var _cachedState :MapNodeState = MapNodeState.Invisible;
 
     var _lineWidth :Float = 3;
 
@@ -74,12 +59,11 @@ class MapNode extends Component {
         var renderer = getComponent(HtmlRenderer);
         elem = renderer.getElement();
 
-        elem.style.borderRadius = cast 32;
+        elem.style.borderRadius = cast 18;
         elem.style.border = _lineWidth + 'px solid black';
 
-        elem.onmousedown = onMouseDown;
-        elem.onmouseout = onMouseUp;
-        elem.onmouseup = onMouseUp;
+        elem.onmouseover = onMouseOver;
+        elem.onmouseout = onMouseOut;
         elem.onclick = onClick;
 
         for (node in neighbors) {
@@ -124,14 +108,13 @@ class MapNode extends Component {
 
     public override function update() :Void {
         if (isDirty()) {
-            var color;
-            switch (state) {
-                case Visible: color = '#888888';
-                case Visited: color = '#ff0000';
-                case PathHighlight: color = '#00ffff';
-                case Occupied: color = '#ffff00';
-                default: color = '';
-            }
+            var color = '';
+            if (_isOccupied) { color = '#ffff00'; }
+            else if (_isPathHighlighted) { color = '#00ffff'; }
+            else if (_isPathSelected) { color = '#00ff00'; }
+            else if (_isVisited) { color = '#ff0000'; }
+            else if (_isVisible) { color = '#888888'; }
+
             elem.style.background = color;
             elem.style.display = hasSeen() ? '' : 'none';
 
@@ -145,21 +128,22 @@ class MapNode extends Component {
                 line.elem.style.top = cast pos.y + line.offset.y;
             }
 
-            _cachedState = state;
             _dirtyFlag = false;
         }
     }
 
     inline function isDirty() :Bool {
-        return _dirtyFlag || state != _cachedState;
+        return _dirtyFlag;
     }
-    public function markDirty() :Void {
+    public inline function markDirty() :Void {
         _dirtyFlag = true;
     }
 
-    function onMouseDown(event :MouseEvent) :Void {
+    function onMouseOver(event :MouseEvent) :Void {
+        map.hover(this);
     }
-    function onMouseUp(event :MouseEvent) :Void {
+    function onMouseOut(event :MouseEvent) :Void {
+        map.hoverOver(this);
     }
     function onClick(event :MouseEvent) :Void {
         map.click(this);
@@ -170,26 +154,38 @@ class MapNode extends Component {
         return origin + new Vec2(depth * spacing.x, height * spacing.y);
     }
 
-    public function ratchetState() :Void {
-        if (state > MapNodeState.Visited) {
-            state = MapNodeState.Visited;
-        }
-    }
-    inline function upgradeState(s :MapNodeState) {
-        if (s > state) {
-            state = s;
-        }
-        _dirtyFlag = true;
-    }
     public function setVisible() :Void {
-        upgradeState(MapNodeState.Visible);
+        _isVisible = true;
+        markDirty();
     }
     public function setPath() :Void {
-        upgradeState(MapNodeState.PathHighlight);
+        _isPathSelected = true;
+        _isVisited = true;
+        markDirty();
+    }
+    public function clearPath() :Void {
+        _isPathSelected = false;
+        markDirty();
     }
     public function setOccupied() :Void {
-        upgradeState(MapNodeState.Occupied);
+        _isVisible = true;
+        _isVisited = true;
+        _isOccupied = true;
+        markDirty();
+
         markNeighborsVisible();
+    }
+    public function clearOccupied() :Void {
+        _isOccupied = false;
+        markDirty();
+    }
+    public function setPathHighlight() :Void {
+        _isPathHighlighted = true;
+        markDirty();
+    }
+    public function clearPathHighlight() :Void {
+        _isPathHighlighted = false;
+        markDirty();
     }
     public function markNeighborsVisible() :Void {
         for (node in neighbors) {
@@ -198,10 +194,10 @@ class MapNode extends Component {
     }
 
     public function hasSeen() :Bool {
-        return state >= MapNodeState.Visible;
+        return _isVisible;
     }
     public function hasVisited() :Bool {
-        return state >= MapNodeState.Visited;
+        return _isVisited;
     }
 
     public function posString() :String {
