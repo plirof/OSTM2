@@ -1,4 +1,4 @@
-- uncross nodes (change 'X' to 'Z' or 'S')
-- hide undiscovered parent lines
-- map scrolling
-- A* pathfinding?
+- Regions
+- Pre-specified nodes
+    - Discovery hints
+- Travel takes time

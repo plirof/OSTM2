@@ -29,7 +29,7 @@ class MapGenerator extends Component {
         _start = addNode(null, 0, 0);
         _selected = _start;
 
-        for (i in 1...25) {
+        for (i in 1...5) {
             addLayer();
         }
 
@@ -43,7 +43,7 @@ class MapGenerator extends Component {
         _rand.setSeed(35613 * i + 273);
 
         for (parent in _generated[p]) {
-            var nChildren = _rand.randomBool(0.4) ? 2 : 1;
+            var nChildren = _rand.randomBool(0.3) ? 2 : 1;
             var didAddPath = false;
             var possibles = [-1, 0, 1];
             while (possibles.length > nChildren) {
@@ -70,6 +70,7 @@ class MapGenerator extends Component {
             tryUncross(node.depth, node.height);
             node.markDirty();
         });
+
         updateScrollBounds();
     }
 
@@ -115,18 +116,22 @@ class MapGenerator extends Component {
     public function click(node :MapNode) :Void {
         var path = findPath(_selected, node);
         if (path != null) {
-            forAllNodes(function (node) { node.ratchetState(); });
+            forAllNodes(function (node) {
+                node.ratchetState();
+            });
 
             _selected = node;
+            if (_selected.depth + 1 == _generated.length) {
+                addLayer();
+            }
+
             for (i in 0...path.length) {
                 var n = path[i];
                 n.setPath();
             }
             _selected.setOccupied();
 
-            if (_selected.depth + 1 == _generated.length) {
-                addLayer();
-            }
+            updateScrollBounds();
         }
     }
 
@@ -155,6 +160,12 @@ class MapGenerator extends Component {
         
         var scrollBuffer = new Vec2(750, 350);
         _scrollHelper.getTransform().pos = origin + botRight + scrollBuffer;
+
+        if (_start.elem != null) {
+            var div = _start.elem.parentElement;
+            var scrollPos = _selected.getTransform().pos - new Vec2(div.clientWidth, div.clientHeight) / 2;
+            Browser.window.scrollTo(cast scrollPos.x, cast scrollPos.y);
+        }
     }
 
     function rgb(r :Int, g :Int, b :Int) :String {

@@ -40,8 +40,7 @@ class MapNode extends Component {
 
     var elem :Element;
 
-    var state :MapNodeState = MapNodeState.Visited;
-    // var state :MapNodeState = MapNodeState.Invisible;
+    var state :MapNodeState = MapNodeState.Invisible;
     var _dirtyFlag :Bool = true;
     var _cachedState :MapNodeState = MapNodeState.Invisible;
 
@@ -120,7 +119,7 @@ class MapNode extends Component {
     }
 
     public function isPathVisible(node :MapNode) :Bool {
-        return hasSeen() && (hasVisited() || node.hasVisited());
+        return (hasSeen() && node.hasVisited()) || (hasVisited() && node.hasSeen());
     }
 
     public override function update() :Void {
@@ -137,7 +136,7 @@ class MapNode extends Component {
             elem.style.display = hasSeen() ? '' : 'none';
 
             var size = getComponent(HtmlRenderer).getSize();
-            var pos = getTransform().pos;// + size / 2;
+            var pos = getTransform().pos;
             for (line in lines) {
                 var disp = isPathVisible(line.node);
                 line.elem.style.display = disp ? '' : 'none';
@@ -167,7 +166,7 @@ class MapNode extends Component {
     }
 
     public function getOffset(origin :Vec2) :Vec2 {
-        var spacing :Vec2 = new Vec2(80, 55);
+        var spacing :Vec2 = new Vec2(80, 60);
         return origin + new Vec2(depth * spacing.x, height * spacing.y);
     }
 
@@ -176,7 +175,7 @@ class MapNode extends Component {
             state = MapNodeState.Visited;
         }
     }
-    function upgradeState(s :MapNodeState) {
+    inline function upgradeState(s :MapNodeState) {
         if (s > state) {
             state = s;
         }
