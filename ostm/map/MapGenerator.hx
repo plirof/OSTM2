@@ -27,7 +27,6 @@ class MapGenerator extends Component {
         entity.getSystem().addEntity(_scrollHelper);
 
         _start = addNode(null, 0, 0);
-        _start.layerMax = 1;
         _selected = _start;
 
         for (i in 1...125) {
@@ -40,7 +39,8 @@ class MapGenerator extends Component {
     function addLayer() :Void {
         var kBackPathChance = 0.15;
         var kSidePathChance = 0.1;
-        var kChildCountPossibles = [1, 1, 1, 2, 2, 3];
+        var kNewRegionChance = 0.38;
+        var kChildCountPossibles = [1, 1, 1, 1, 2, 2, 2];
         var kHeightChangePossibles = [-1, 0, 1];
 
         _generated.push(new Map<Int, MapNode>());
@@ -64,6 +64,10 @@ class MapGenerator extends Component {
                 var node = _generated[i].get(j);
                 if (node == null) {
                     node = addNode(parent, i, j);
+                    node.region = parent.region;
+                    if (didAddPath && _rand.randomBool(kNewRegionChance)) {
+                        node.region = node.getRandomRegion(_rand);
+                    }
                     didAddPath = true;
                 }
                 else if (_rand.randomBool(kBackPathChance) ||

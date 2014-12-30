@@ -19,7 +19,7 @@ class MapNode extends Component {
     var neighbors :Array<MapNode>;
     var depth :Int;
     var height :Int;
-    var layerMax :Int;
+    var region :Int = 0;
 
     var elem :Element;
 
@@ -32,6 +32,8 @@ class MapNode extends Component {
 
     var _lineWidth :Float = 3;
     var _highlightedLineWidth :Float = 8;
+
+    static var kMaxRegions = 12;
 
     function new(gen :MapGenerator, d :Int, h :Int, par :MapNode) {
         map = gen;
@@ -55,6 +57,11 @@ class MapNode extends Component {
     public function removeNeighbor(node :MapNode) :Void {
         neighbors.remove(node);
         node.neighbors.remove(this);
+    }
+
+    function getRandomRegion(rand :MapRandom) :Int {
+        var d = rand.randomElement([-1, 1, 1, 2]);
+        return (region + kMaxRegions + d) % kMaxRegions;
     }
 
     public override function start() :Void {
@@ -122,7 +129,22 @@ class MapNode extends Component {
 
     public override function update() :Void {
         if (isDirty()) {
-            var color = '#ff0000';
+            var color;
+            switch (region) {
+                case 0: color = '#ff0000';
+                case 1: color = '#ff8800';
+                case 2: color = '#ffff00';
+                case 3: color = '#88ff00';
+                case 4: color = '#00ff00';
+                case 5: color = '#00ff88';
+                case 6: color = '#00ffff';
+                case 7: color = '#0088ff';
+                case 8: color = '#0000ff';
+                case 9: color = '#8800ff';
+                case 10: color = '#ff00ff';
+                case 11: color = '#ff0088';
+                default: color = '';
+            }
             if (!_isVisited) {
                 color = '#888888';
             }
