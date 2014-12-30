@@ -29,7 +29,7 @@ class MapGenerator extends Component {
         _start = addNode(null, 0, 0);
         _selected = _start;
 
-        for (i in 1...125) {
+        for (i in 1...250) {
             addLayer();
         }
 
@@ -39,8 +39,8 @@ class MapGenerator extends Component {
     function addLayer() :Void {
         var kBackPathChance = 0.15;
         var kSidePathChance = 0.1;
-        var kNewRegionChance = 0.38;
-        var kChildCountPossibles = [1, 1, 1, 1, 2, 2, 2];
+        var kNewRegionChance = 0.75;
+        var kChildCountPossibles = [1, 1, 1, 1, 1, 2, 2, 2];
         var kHeightChangePossibles = [-1, 0, 1];
 
         _generated.push(new Map<Int, MapNode>());
@@ -73,6 +73,14 @@ class MapGenerator extends Component {
                 else if (_rand.randomBool(kBackPathChance) ||
                         (possibles.length == 0 && !didAddPath)) {
                     node.addNeighbor(parent);
+                    if (!didAddPath &&
+                        parent.region < MapNode.kLaunchRegions &&
+                        node.region >= MapNode.kLaunchRegions) {
+                        node.region = parent.region;
+                    }
+                    else if (didAddPath) {
+                        node.region = Math.round(Math.max(node.region, parent.region));
+                    }
                     didAddPath = true;
                 }
             }

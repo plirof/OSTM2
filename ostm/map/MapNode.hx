@@ -34,6 +34,8 @@ class MapNode extends Component {
     var _highlightedLineWidth :Float = 8;
 
     static var kMaxRegions = 12;
+    static var kMaxVisibleRegion = 14;
+    static var kLaunchRegions = 4;
 
     function new(gen :MapGenerator, d :Int, h :Int, par :MapNode) {
         map = gen;
@@ -167,6 +169,9 @@ class MapNode extends Component {
             for (line in lines) {
                 var disp = isPathVisible(line.node);
                 line.elem.style.display = disp ? '' : 'none';
+                if (!disp) {
+                    continue;
+                }
 
                 var lineColor = '#000000';
                 var lineIsHighlighted = true;
@@ -255,10 +260,10 @@ class MapNode extends Component {
     }
 
     public function hasSeen() :Bool {
-        return _isVisible;
+        return _isVisible && region < kMaxVisibleRegion;
     }
     public function hasVisited() :Bool {
-        return _isVisited;
+        return _isVisited && region < kMaxVisibleRegion;
     }
 
     public function posString() :String {
