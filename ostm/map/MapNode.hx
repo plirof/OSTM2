@@ -24,12 +24,13 @@ class MapNode extends Component {
 
     var _isVisible :Bool = false;
     var _isVisited :Bool = false;
-    var _isPathHighlighted :Bool = false;
-    var _isPathSelected :Bool = false;
+    var _selectedPath :Array<MapNode> = null;
+    var _highlightedPath :Array<MapNode> = null;
     var _isOccupied :Bool = false;
     var _dirtyFlag :Bool = true;
 
     var _lineWidth :Float = 3;
+    var _highlightedLineWidth :Float = 8;
 
     function new(gen :MapGenerator, d :Int, h :Int, par :MapNode) {
         map = gen;
@@ -60,7 +61,6 @@ class MapNode extends Component {
         elem = renderer.getElement();
 
         elem.style.borderRadius = cast 18;
-        elem.style.border = _lineWidth + 'px solid black';
 
         elem.onmouseover = onMouseOver;
         elem.onmouseout = onMouseOut;
@@ -108,14 +108,22 @@ class MapNode extends Component {
 
     public override function update() :Void {
         if (isDirty()) {
-            var color = '';
-            if (_isOccupied) { color = '#ffff00'; }
-            else if (_isPathHighlighted) { color = '#00ffff'; }
-            else if (_isPathSelected) { color = '#00ff00'; }
-            else if (_isVisited) { color = '#ff0000'; }
-            else if (_isVisible) { color = '#888888'; }
+            var color = '#ff0000';
+            if (!_isVisited) {
+                color = '#888888';
+            }
+
+            var borderColor = '#000000';
+            var isHighlighted = true;
+            if (_isOccupied) { borderColor = '#ffff00'; }
+            else if (_highlightedPath != null) { borderColor = '#00ffff'; }
+            else if (_selectedPath != null) { borderColor = '#00ff00'; }
+            else { isHighlighted = false; }
+            // var borderWidth = isHighlighted ? _highlightedLineWidth : _lineWidth;
+            var borderWidth = _lineWidth;
 
             elem.style.background = color;
+            elem.style.border = borderWidth + 'px solid ' + borderColor;
             elem.style.display = hasSeen() ? '' : 'none';
 
             var size = getComponent(HtmlRenderer).getSize();
@@ -124,8 +132,25 @@ class MapNode extends Component {
                 var disp = isPathVisible(line.node);
                 line.elem.style.display = disp ? '' : 'none';
 
+                var lineColor = '#000000';
+                var lineIsHighlighted = true;
+                if (_highlightedPath != null &&
+                    _highlightedPath.indexOf(line.node) != -1) {
+                    lineColor = '#00ffff';
+                }
+                else if (_selectedPath != null &&
+                    _selectedPath.indexOf(line.node) != -1) {
+                    lineColor = '#00ff00';
+                }
+                else {
+                    lineIsHighlighted = false;
+                }
+                var lineWidth = lineIsHighlighted ? _highlightedLineWidth : _lineWidth;
+
                 line.elem.style.left = cast pos.x + line.offset.x;
                 line.elem.style.top = cast pos.y + line.offset.y;
+                line.elem.style.background = lineColor;
+                line.elem.style.width = cast lineWidth;
             }
 
             _dirtyFlag = false;
@@ -158,13 +183,13 @@ class MapNode extends Component {
         _isVisible = true;
         markDirty();
     }
-    public function setPath() :Void {
-        _isPathSelected = true;
+    public function setPath(path :Array<MapNode>) :Void {
+        _selectedPath = path;
         _isVisited = true;
         markDirty();
     }
     public function clearPath() :Void {
-        _isPathSelected = false;
+        _selectedPath = null;
         markDirty();
     }
     public function setOccupied() :Void {
@@ -179,12 +204,12 @@ class MapNode extends Component {
         _isOccupied = false;
         markDirty();
     }
-    public function setPathHighlight() :Void {
-        _isPathHighlighted = true;
+    public function setPathHighlight(path :Array<MapNode>) :Void {
+        _highlightedPath = path;
         markDirty();
     }
     public function clearPathHighlight() :Void {
-        _isPathHighlighted = false;
+        _highlightedPath = null;
         markDirty();
     }
     public function markNeighborsVisible() :Void {

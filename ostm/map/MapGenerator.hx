@@ -127,7 +127,7 @@ class MapGenerator extends Component {
             }
 
             for (n in path) {
-                n.setPath();
+                n.setPath(path);
             }
             _selected.setOccupied();
 
@@ -139,7 +139,7 @@ class MapGenerator extends Component {
         var path = findPath(_selected, node);
         if (path != null) {
             for (n in path) {
-                n.setPathHighlight();
+                n.setPathHighlight(path);
             }
         }
     }

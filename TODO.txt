@@ -1,5 +1,6 @@
-- traveling path, and occupied nodes, highlights the border and lines
-- Regions
+- try circular map
+- same-level connections
+- Regions / terrain types
 - Pre-specified nodes
     - Discovery hints
 - Travel takes time

@@ -3,3 +3,7 @@ html {
     -webkit-user-select: none;
     -webkit-user-drag: none;
 }
+
+body {
+    background: #aaaaaa;
+}
