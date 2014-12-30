@@ -19,11 +19,12 @@ class MapNode extends Component {
     var neighbors :Array<MapNode>;
     var depth :Int;
     var height :Int;
+    var layerMax :Int;
 
     var elem :Element;
 
-    var _isVisible :Bool = false;
-    var _isVisited :Bool = false;
+    var _isVisible :Bool = true;
+    var _isVisited :Bool = true;
     var _selectedPath :Array<MapNode> = null;
     var _highlightedPath :Array<MapNode> = null;
     var _isOccupied :Bool = false;
@@ -46,14 +47,14 @@ class MapNode extends Component {
     public function addNeighbor(node :MapNode) :Void {
         if (neighbors.indexOf(node) == -1) {
             neighbors.push(node);
-            node.addNeighbor(this);
+        }
+        if (node.neighbors.indexOf(this) == -1) {
+            node.neighbors.push(this);
         }
     }
     public function removeNeighbor(node :MapNode) :Void {
-        if (neighbors.indexOf(node) != -1) {
-            neighbors.remove(node);
-            node.removeNeighbor(this);
-        }
+        neighbors.remove(node);
+        node.neighbors.remove(this);
     }
 
     public override function start() :Void {
@@ -67,10 +68,23 @@ class MapNode extends Component {
         elem.onclick = onClick;
 
         for (node in neighbors) {
-            if (node.depth < depth) {
+            if (!hasLineTo(this)) {
                 lines.push(addLine(node));
             }
         }
+
+        if (_isOccupied) {
+            map.centerCurrentNode();
+        }
+    }
+
+    function hasLineTo(node :MapNode) :Bool {
+        for (line in lines) {
+            if (line.node == node) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function addLine(endPoint :MapNode) :MapLine {
@@ -174,9 +188,9 @@ class MapNode extends Component {
         map.click(this);
     }
 
-    public function getOffset(origin :Vec2) :Vec2 {
-        var spacing :Vec2 = new Vec2(80, 60);
-        return origin + new Vec2(depth * spacing.x, height * spacing.y);
+    public function getOffset() :Vec2 {
+        var spacing :Vec2 = new Vec2(80, 80);
+        return new Vec2(depth * spacing.x, height * spacing.y);
     }
 
     public function setVisible() :Void {

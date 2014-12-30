@@ -30,7 +30,7 @@ abstract Vec2(Vec2_Impl) to Vec2_Impl from Vec2_Impl {
         return new Vec2(lhs.x - rhs.x, lhs.y - rhs.y);
     }
 
-    @:op(A * B) public static inline function scMult(lhs: Vec2, rhs :Float) :Vec2 {
+    @:op(A * B) @:commutative public static inline function scMult(lhs: Vec2, rhs :Float) :Vec2 {
         return new Vec2(lhs.x * rhs, lhs.y * rhs);
     }
     @:op(A / B) public static inline function scDiv(lhs: Vec2, rhs :Float) :Vec2 {
@@ -48,5 +48,9 @@ abstract Vec2(Vec2_Impl) to Vec2_Impl from Vec2_Impl {
     public static function min(lhs :Vec2, rhs :Vec2) :Vec2 {
         return new Vec2(Math.min(lhs.x, rhs.x),
             Math.min(lhs.y, rhs.y));
+    }
+
+    public static function unit(radians :Float) :Vec2 {
+        return new Vec2(Math.cos(radians), Math.sin(radians));
     }
 }

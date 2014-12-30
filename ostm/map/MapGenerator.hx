@@ -27,9 +27,10 @@ class MapGenerator extends Component {
         entity.getSystem().addEntity(_scrollHelper);
 
         _start = addNode(null, 0, 0);
+        _start.layerMax = 1;
         _selected = _start;
 
-        for (i in 1...5) {
+        for (i in 1...125) {
             addLayer();
         }
 
@@ -37,15 +38,22 @@ class MapGenerator extends Component {
     }
 
     function addLayer() :Void {
+        var kBackPathChance = 0.15;
+        var kSidePathChance = 0.1;
+        var kChildCountPossibles = [1, 1, 1, 2, 2, 3];
+        var kHeightChangePossibles = [-1, 0, 1];
+
         _generated.push(new Map<Int, MapNode>());
         var i = _generated.length - 1;
         var p = i - 1;
         _rand.setSeed(35613 * i + 273);
 
+        var hMin = _generated.length * 11;
+        var hMax = -hMin;
         for (parent in _generated[p]) {
-            var nChildren = _rand.randomBool(0.3) ? 2 : 1;
+            var nChildren = _rand.randomElement(kChildCountPossibles);
             var didAddPath = false;
-            var possibles = [-1, 0, 1];
+            var possibles = kHeightChangePossibles.copy();
             while (possibles.length > nChildren) {
                 possibles.remove(_rand.randomElement(possibles));
             }
@@ -58,7 +66,7 @@ class MapGenerator extends Component {
                     node = addNode(parent, i, j);
                     didAddPath = true;
                 }
-                else if (_rand.randomBool(0.35) ||
+                else if (_rand.randomBool(kBackPathChance) ||
                         (possibles.length == 0 && !didAddPath)) {
                     node.addNeighbor(parent);
                     didAddPath = true;
@@ -66,10 +74,14 @@ class MapGenerator extends Component {
             }
         }
 
-        forAllNodes(function (node) {
+        for (node in _generated[i]) {
             tryUncross(node.depth, node.height);
+            var prev = _generated[i].get(node.height - 1);
+            if (prev != null && _rand.randomBool(kSidePathChance)) {
+                node.addNeighbor(prev);
+            }
             node.markDirty();
-        });
+        }
 
         updateScrollBounds();
     }
@@ -161,12 +173,12 @@ class MapGenerator extends Component {
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
         var origin :Vec2 = new Vec2(100, 300);
         forAllNodes(function (node) {
-            var pos = node.getOffset(origin);
+            var pos = node.getOffset();
             topLeft = Vec2.min(topLeft, pos);
         });
 
         forAllNodes(function (node) {
-            var pos = origin + node.getOffset(origin) - topLeft;
+            var pos = origin + node.getOffset() - topLeft;
             node.getTransform().pos = pos;
             botRight = Vec2.max(botRight, pos);
         });
@@ -175,7 +187,7 @@ class MapGenerator extends Component {
         _scrollHelper.getTransform().pos = origin + botRight + scrollBuffer;
     }
 
-    function centerCurrentNode() :Void {
+    public function centerCurrentNode() :Void {
         if (_selected.elem != null) {
             var container = _selected.elem.parentElement;
             var size = new Vec2(container.clientWidth, container.clientHeight);
