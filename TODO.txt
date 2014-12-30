@@ -1,6 +1,4 @@
-- cull visiblity of unfinished region types
-- golden path of visible-at-launch regions
+- Travel takes time
 - single-letter rendering on nodes
 - Pre-specified nodes
     - Discovery hints
-- Travel takes time

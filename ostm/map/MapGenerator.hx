@@ -27,9 +27,10 @@ class MapGenerator extends Component {
         entity.getSystem().addEntity(_scrollHelper);
 
         _start = addNode(null, 0, 0);
+        _start.isGoldPath = true;
         _selected = _start;
 
-        for (i in 1...250) {
+        for (i in 1...25) {
             addLayer();
         }
 
@@ -39,9 +40,9 @@ class MapGenerator extends Component {
     function addLayer() :Void {
         var kBackPathChance = 0.15;
         var kSidePathChance = 0.1;
-        var kNewRegionChance = 0.75;
-        var kChildCountPossibles = [1, 1, 1, 1, 1, 2, 2, 2];
-        var kHeightChangePossibles = [-1, 0, 1];
+        var kNewRegionChance = 0.15;
+        var kChildCountPossibles = [1, 2, 3];
+        var kHeightChangePossibles = [-1, 0, 0, 0, 1];
 
         _generated.push(new Map<Int, MapNode>());
         var i = _generated.length - 1;
@@ -57,6 +58,16 @@ class MapGenerator extends Component {
             while (possibles.length > nChildren) {
                 possibles.remove(_rand.randomElement(possibles));
             }
+            var k = 0;
+            while (k < possibles.length) {
+                var n = possibles[k];
+                k++;
+                if (possibles.indexOf(n, k + 1) != -1) {
+                    possibles.remove(n);
+                    k = 0;
+                }
+            }
+            var shouldSetGold = parent.isGoldPath;
             while (possibles.length > 0) {
                 var j = _rand.randomElement(possibles);
                 possibles.remove(j);
@@ -65,23 +76,25 @@ class MapGenerator extends Component {
                 if (node == null) {
                     node = addNode(parent, i, j);
                     node.region = parent.region;
-                    if (didAddPath && _rand.randomBool(kNewRegionChance)) {
-                        node.region = node.getRandomRegion(_rand);
+                    if (_rand.randomBool(kNewRegionChance)) {
+                        node.region = parent.getRandomRegion(_rand);
                     }
+                    node.isGoldPath = shouldSetGold;
                     didAddPath = true;
+                    shouldSetGold = false;
                 }
                 else if (_rand.randomBool(kBackPathChance) ||
                         (possibles.length == 0 && !didAddPath)) {
                     node.addNeighbor(parent);
-                    if (!didAddPath &&
-                        parent.region < MapNode.kLaunchRegions &&
-                        node.region >= MapNode.kLaunchRegions) {
-                        node.region = parent.region;
+                    if (shouldSetGold &&
+                        (_rand.randomBool(kNewRegionChance) || node.region >= MapNode.kLaunchRegions)) {
+                        node.region = parent.getRandomRegion(_rand);
                     }
-                    else if (didAddPath) {
-                        node.region = Math.round(Math.max(node.region, parent.region));
+                    if (shouldSetGold) {
+                        node.isGoldPath = true;
                     }
                     didAddPath = true;
+                    shouldSetGold = false;
                 }
             }
         }
@@ -125,7 +138,9 @@ class MapGenerator extends Component {
             if (ul != null && ur != null &&
                 dl != null && dr != null &&
                 isAdjacent(ul, dr) && isAdjacent(ur, dl)) {
-                if (_rand.randomBool()) {
+                if ((_rand.randomBool() &&
+                    !(ul.isGoldPath && dr.isGoldPath)) ||
+                    (ur.isGoldPath && dl.isGoldPath)) {
                     ul.removeNeighbor(dr);
                 }
                 else {
@@ -280,7 +295,7 @@ class MapGenerator extends Component {
             openSet.remove(node);
 
             for (n in node.neighbors) {
-                var canVisit = node.isPathVisible(n);
+                var canVisit = node.hasVisited();
                 if (canVisit) {
                     if (closedSet.get(n) == null) {
                         openSet.push(n);

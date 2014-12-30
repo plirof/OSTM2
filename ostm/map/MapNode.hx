@@ -20,11 +20,12 @@ class MapNode extends Component {
     var depth :Int;
     var height :Int;
     var region :Int = 0;
+    var isGoldPath :Bool = false;
 
     var elem :Element;
 
-    var _isVisible :Bool = true;
-    var _isVisited :Bool = true;
+    var _isVisible :Bool = false;
+    var _isVisited :Bool = false;
     var _selectedPath :Array<MapNode> = null;
     var _highlightedPath :Array<MapNode> = null;
     var _isOccupied :Bool = false;
@@ -63,7 +64,8 @@ class MapNode extends Component {
 
     function getRandomRegion(rand :MapRandom) :Int {
         var d = rand.randomElement([-1, 1, 1, 2]);
-        return (region + kMaxRegions + d) % kMaxRegions;
+        var max = isGoldPath ? kLaunchRegions : kMaxRegions;
+        return (region + max + d) % max;
     }
 
     public override function start() :Void {
