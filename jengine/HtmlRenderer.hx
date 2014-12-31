@@ -6,24 +6,27 @@ import js.html.*;
 import jengine.util.*;
 
 class HtmlRenderer extends Component {
-    var _size :Vec2;
+    public var size(default, default) :Vec2;
+    public var floating(default, default) :Bool = false;
 
+    var _parentId :String;
     var _elem :Element;
 
     var _cachedPos :Vec2;
     var _cachedSize :Vec2;
 
-    public function new(?size: Vec2) {
-        if (size == null) {
-            size = new Vec2(50, 50);
+    public function new(parent :String, ?siz: Vec2) {
+        _parentId = parent;
+        if (siz == null) {
+            siz = new Vec2(50, 50);
         }
-        _size = size;
+        size = siz;
     }
 
     public override function init() :Void {
-        var doc :Document = Browser.document;
-        _elem = doc.createElement('span');
-        doc.body.appendChild(cast _elem);
+        var parent = Browser.document.getElementById(_parentId);
+        _elem = Browser.document.createElement('span');
+        parent.appendChild(cast _elem);
         _elem.style.position = 'absolute';
         _elem.style.background = 'red';
     }
@@ -32,29 +35,37 @@ class HtmlRenderer extends Component {
         _elem.parentElement.removeChild(_elem);
     }
 
+    function getPos() :Vec2 {
+        var pos = getTransform().pos;
+        if (floating) {
+            var container = _elem.parentElement;
+            // var container = Browser.document.body;
+            var scroll = new Vec2(container.scrollLeft, container.scrollTop);
+            pos += scroll;
+        }
+        return pos;
+    }
+
     function isDirty() :Bool {
-        return _cachedPos != getTransform().pos;
+        return _cachedPos != getPos() || _cachedSize != size;
     }
     function markClean() :Void {
-        _cachedPos = getTransform().pos;
+        _cachedPos = getPos();
     }
 
     public override function draw() :Void {
         if (isDirty()) {
             markClean();
 
-            var trans = getComponent(Transform);
-            _elem.style.left = cast trans.pos.x;
-            _elem.style.top = cast trans.pos.y;
-            _elem.style.width = cast _size.x;
-            _elem.style.height = cast _size.y;
+            var pos = getPos();
+            _elem.style.left = cast pos.x;
+            _elem.style.top = cast pos.y;
+            _elem.style.width = cast size.x;
+            _elem.style.height = cast size.y;
         }
     }
 
     public function getElement() :Element {
         return _elem;
-    }
-    public function getSize() :Vec2 {
-        return _size;
     }
 }

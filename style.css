@@ -7,3 +7,20 @@ html {
 body {
     background: #aaaaaa;
 }
+
+#header {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    height: 100px;
+}
+
+#game-body {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 100px;
+    bottom: 0px;
+    overflow: auto;
+}

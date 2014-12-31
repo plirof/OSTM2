@@ -37,6 +37,17 @@ abstract Vec2(Vec2_Impl) to Vec2_Impl from Vec2_Impl {
         return new Vec2(lhs.x / rhs, lhs.y / rhs);
     }
 
+    @:op(A == B) public static inline function eq(lhs :Vec2, rhs :Vec2) {
+        if (lhs == null && rhs == null) { return true; }
+        if (lhs == null || rhs == null) { return false; }
+        return lhs.x == rhs.x && lhs.y == rhs.y;
+    }
+    @:op(A != B) public static inline function neq(lhs :Vec2, rhs :Vec2) {
+        if (lhs == null && rhs == null) { return false; }
+        if (lhs == null || rhs == null) { return true; }
+        return lhs.x != rhs.x || lhs.y != rhs.y;
+    }
+
     public function dist(other :Vec2) :Float {
         return (other - this).length();
     }

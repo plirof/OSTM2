@@ -15,26 +15,51 @@ class MapGenerator extends Component {
 
     var _scrollHelper :Entity;
 
+    static var kMoveTime :Float = 3.0;
+    static var kMoveBarWidth :Float = 500;
+    var _moveBar :Element;
+    var _moveTimer :Float = 0;
+
     public override function start() :Void {
         _rand = new MapRandom();
         _generated = new Array<Map<Int, MapNode>>();
         _generated.push(new Map<Int, MapNode>());
         
         _scrollHelper = new Entity([
-            new HtmlRenderer(new Vec2(10, 10)),
+            new HtmlRenderer('map-screen', new Vec2(1, 1)),
             new Transform(new Vec2(0, 0)),
         ]);
         entity.getSystem().addEntity(_scrollHelper);
+
+        var moveHtml = new HtmlRenderer('game-header', new Vec2(kMoveBarWidth, 25));
+        var moveEntity = new Entity([
+            moveHtml,
+            new Transform(new Vec2(200, 100)),
+        ]);
+        entity.getSystem().addEntity(moveEntity);
+        _moveBar = Browser.document.createSpanElement();
+        _moveBar.style.position = 'absolute';
+        _moveBar.style.height = '100%';
+        _moveBar.style.background = 'white';
+        moveHtml.getElement().appendChild(_moveBar);
 
         _start = addNode(null, 0, 0);
         _start.isGoldPath = true;
         _selected = _start;
 
-        for (i in 1...25) {
+        for (i in 1...3) {
             addLayer();
         }
 
         _start.setOccupied();
+    }
+
+    public override function update() {
+        _moveTimer += Time.dt;
+        if (_moveTimer > kMoveTime) {
+            _moveTimer = 0;
+        }
+        _moveBar.style.width = (100 * _moveTimer / kMoveTime) + '%';
     }
 
     function addLayer() :Void {
@@ -116,7 +141,7 @@ class MapGenerator extends Component {
 
         var node = new MapNode(this, i, j, parent);
         var ent = new Entity([
-            new HtmlRenderer(size),
+            new HtmlRenderer('map-screen', size),
             new Transform(),
             node,
         ]);

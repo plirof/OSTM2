@@ -99,7 +99,8 @@ class MapNode extends Component {
     }
 
     function addLine(endPoint :MapNode) :MapLine {
-        var size = getComponent(HtmlRenderer).getSize();
+        var renderer = getComponent(HtmlRenderer);
+        var size = renderer.size;
         var a = getTransform().pos + size / 2;
         var b = endPoint.getTransform().pos + size / 2;
         var elem = Browser.document.createElement('div');
@@ -119,7 +120,7 @@ class MapNode extends Component {
         elem.style.transform = 'rotate(' + angle + 'deg)';
         elem.style.zIndex = cast -1;
 
-        Browser.document.body.appendChild(elem);
+        renderer.getElement().parentElement.appendChild(elem);
         return {
             elem: elem,
             node: endPoint,
@@ -166,7 +167,7 @@ class MapNode extends Component {
             elem.style.border = borderWidth + 'px solid ' + borderColor;
             elem.style.display = hasSeen() ? '' : 'none';
 
-            var size = getComponent(HtmlRenderer).getSize();
+            var size = getComponent(HtmlRenderer).size;
             var pos = getTransform().pos;
             for (line in lines) {
                 var disp = isPathVisible(line.node);
