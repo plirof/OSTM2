@@ -19,6 +19,7 @@ class MapGenerator extends Component {
     static var kMoveBarWidth :Float = 500;
     var _moveBar :Element;
     var _moveTimer :Float = 0;
+    var _movePath :Array<MapNode> = null;
 
     public override function start() :Void {
         _rand = new MapRandom();
@@ -35,10 +36,6 @@ class MapGenerator extends Component {
             new HtmlRenderer('game-header', new Vec2(kMoveBarWidth, 25)),
             new Transform(new Vec2(200, 100)),
             new ProgressBar(function() {
-                _moveTimer += Time.dt;
-                if (_moveTimer > kMoveTime) {
-                    _moveTimer = 0;
-                }
                 return _moveTimer / kMoveTime;
             }),
         ]);
@@ -56,6 +53,30 @@ class MapGenerator extends Component {
     }
 
     public override function update() {
+        if (_movePath != null) {
+            _moveTimer += Time.dt;
+            if (_moveTimer > kMoveTime) {
+                _moveTimer = 0;
+                
+                _selected.clearPath();
+                _selected.clearOccupied();
+                
+                var next = _movePath[1];
+                _selected = next;
+                if (_selected.depth + 1 == _generated.length) {
+                    addLayer();
+                }
+                _selected.setOccupied();
+
+                // centerCurrentNode();
+
+                _movePath.remove(next);
+                if (_movePath.length <= 1) {
+                    _selected.clearPath();
+                    _movePath = null;
+                }
+            }
+        }
     }
 
     function addLayer() :Void {
@@ -126,8 +147,10 @@ class MapGenerator extends Component {
             if (prev != null && _rand.randomBool(kSidePathChance)) {
                 node.addNeighbor(prev);
             }
-            node.markDirty();
         }
+        forAllNodes(function(node) {
+            node.markDirty();
+        });
 
         updateScrollBounds();
     }
@@ -174,24 +197,24 @@ class MapGenerator extends Component {
     }
 
     public function click(node :MapNode) :Void {
+        if (node == _selected) {
+            return;
+        }
+
         var path = findPath(_selected, node);
-        if (path != null) {
-            forAllNodes(function (node) {
-                node.clearPath();
-            });
+        if (path == null) {
+            return;
+        }
 
-            _selected.clearOccupied();
-            _selected = node;
-            if (_selected.depth + 1 == _generated.length) {
-                addLayer();
-            }
+        _moveTimer = 0;
+        _movePath = path;
 
-            for (n in path) {
-                n.setPath(path);
-            }
-            _selected.setOccupied();
+        forAllNodes(function (node) {
+            node.clearPath();
+        });
 
-            centerCurrentNode();
+        for (n in path) {
+            n.setPath(path);
         }
     }
 

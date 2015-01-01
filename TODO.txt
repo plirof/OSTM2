@@ -1,4 +1,8 @@
-- Travel takes time
+Battle
+- different screens
+- more progress bars
+
+Map
 - single-letter rendering on nodes
 - Pre-specified nodes
     - Discovery hints

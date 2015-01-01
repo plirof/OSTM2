@@ -79,7 +79,7 @@ class MapNode extends Component {
         elem.onclick = onClick;
 
         for (node in neighbors) {
-            if (!hasLineTo(this)) {
+            if (!node.hasLineTo(this)) {
                 lines.push(addLine(node));
             }
         }
@@ -132,6 +132,13 @@ class MapNode extends Component {
         return (hasSeen() && node.hasVisited()) || (hasVisited() && node.hasSeen());
     }
 
+    public function isLinePartOfPath(line :MapLine, path :Array<MapNode>) :Bool {
+        var node = line.node;
+        return (path.indexOf(this) != -1 ||
+            path.indexOf(node) != -1) &&
+            (node._highlightedPath == path || node._selectedPath == path);
+    }
+
     public override function update() :Void {
         if (isDirty()) {
             var color;
@@ -179,11 +186,13 @@ class MapNode extends Component {
                 var lineColor = '#000000';
                 var lineIsHighlighted = true;
                 if (_highlightedPath != null &&
-                    _highlightedPath.indexOf(line.node) != -1) {
+                    isLinePartOfPath(line, _highlightedPath)) {
+                    // _highlightedPath.indexOf(line.node) != -1) {
                     lineColor = '#00ffff';
                 }
                 else if (_selectedPath != null &&
-                    _selectedPath.indexOf(line.node) != -1) {
+                    isLinePartOfPath(line, _selectedPath)) {
+                    // _selectedPath.indexOf(line.node) != -1) {
                     lineColor = '#00ff00';
                 }
                 else {
@@ -229,7 +238,6 @@ class MapNode extends Component {
     }
     public function setPath(path :Array<MapNode>) :Void {
         _selectedPath = path;
-        _isVisited = true;
         markDirty();
     }
     public function clearPath() :Void {
