@@ -4,6 +4,7 @@ import js.*;
 import js.html.*;
 
 import jengine.*;
+import jengine.util.*;
 
 class ProgressBar extends Component {
     var _elem :Element;
@@ -25,6 +26,6 @@ class ProgressBar extends Component {
     }
 
     public override function update() :Void {
-        _elem.style.width = (100 * _func()) + '%';
+        _elem.style.width = (100 * Util.clamp01(_func())) + '%';
     }
 }

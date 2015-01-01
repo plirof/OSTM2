@@ -53,8 +53,8 @@ class MapGenerator extends Component {
     }
 
     public override function update() {
+        _moveTimer += Time.dt;
         if (_movePath != null) {
-            _moveTimer += Time.dt;
             if (_moveTimer > kMoveTime) {
                 _moveTimer = 0;
                 
@@ -206,7 +206,6 @@ class MapGenerator extends Component {
             return;
         }
 
-        _moveTimer = 0;
         _movePath = path;
 
         forAllNodes(function (node) {
@@ -298,18 +297,6 @@ class MapGenerator extends Component {
             return hexC(Math.floor(c / 16)) + hexC(c % 16);
         }
         return '#' + toHex(r) + toHex(g) + toHex(b);
-    }
-
-    function clamp(t :Float, lo :Float, hi :Float) :Float {
-        if (t > hi) { return hi; }
-        if (t < lo) { return lo; }
-        return t;
-    }
-    inline function clamp01(t :Float) :Float {
-        return clamp(t, 0, 1);
-    }
-    inline function lerp(t :Float, lo :Float, hi :Float) :Float {
-        return clamp01(t) * (hi - lo) + lo;
     }
 
     function isAdjacent(a :MapNode, b :MapNode) :Bool {

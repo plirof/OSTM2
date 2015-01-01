@@ -73,6 +73,7 @@ class MapNode extends Component {
         elem = renderer.getElement();
 
         elem.style.borderRadius = cast 18;
+        elem.style.zIndex = cast 1;
 
         elem.onmouseover = onMouseOver;
         elem.onmouseout = onMouseOut;
@@ -118,7 +119,6 @@ class MapNode extends Component {
         elem.style.width = cast width;
         elem.style.height = cast height;
         elem.style.transform = 'rotate(' + angle + 'deg)';
-        elem.style.zIndex = cast -1;
 
         renderer.getElement().parentElement.appendChild(elem);
         return {
@@ -187,12 +187,10 @@ class MapNode extends Component {
                 var lineIsHighlighted = true;
                 if (_highlightedPath != null &&
                     isLinePartOfPath(line, _highlightedPath)) {
-                    // _highlightedPath.indexOf(line.node) != -1) {
                     lineColor = '#00ffff';
                 }
                 else if (_selectedPath != null &&
                     isLinePartOfPath(line, _selectedPath)) {
-                    // _selectedPath.indexOf(line.node) != -1) {
                     lineColor = '#00ff00';
                 }
                 else {

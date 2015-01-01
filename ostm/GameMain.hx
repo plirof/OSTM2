@@ -5,6 +5,7 @@ import js.*;
 import jengine.*;
 
 import ostm.map.*;
+import ostm.battle.BattleManager;
 
 class SineMover extends Component {
     var _v :Float;
@@ -25,6 +26,9 @@ class GameMain extends JEngineMain {
 		var entityList = [
             new Entity([
                 new MapGenerator(),
+            ]),
+            new Entity([
+                new BattleManager(),
             ]),
         ];
 
