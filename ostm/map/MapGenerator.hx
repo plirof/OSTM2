@@ -31,17 +31,18 @@ class MapGenerator extends Component {
         ]);
         entity.getSystem().addEntity(_scrollHelper);
 
-        var moveHtml = new HtmlRenderer('game-header', new Vec2(kMoveBarWidth, 25));
-        var moveEntity = new Entity([
-            moveHtml,
+        var moveBarEntity = new Entity([
+            new HtmlRenderer('game-header', new Vec2(kMoveBarWidth, 25)),
             new Transform(new Vec2(200, 100)),
+            new ProgressBar(function() {
+                _moveTimer += Time.dt;
+                if (_moveTimer > kMoveTime) {
+                    _moveTimer = 0;
+                }
+                return _moveTimer / kMoveTime;
+            }),
         ]);
-        entity.getSystem().addEntity(moveEntity);
-        _moveBar = Browser.document.createSpanElement();
-        _moveBar.style.position = 'absolute';
-        _moveBar.style.height = '100%';
-        _moveBar.style.background = 'white';
-        moveHtml.getElement().appendChild(_moveBar);
+        entity.getSystem().addEntity(moveBarEntity);
 
         _start = addNode(null, 0, 0);
         _start.isGoldPath = true;
@@ -55,11 +56,6 @@ class MapGenerator extends Component {
     }
 
     public override function update() {
-        _moveTimer += Time.dt;
-        if (_moveTimer > kMoveTime) {
-            _moveTimer = 0;
-        }
-        _moveBar.style.width = (100 * _moveTimer / kMoveTime) + '%';
     }
 
     function addLayer() :Void {
