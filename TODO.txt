@@ -1,8 +1,16 @@
 Battle
-- different screens
-- more progress bars
+- attack timers
+- attacks drain hp
+- unlock map nodes with enemy defeats
+- stats
 
 Map
 - single-letter rendering on nodes
 - Pre-specified nodes
     - Discovery hints
+
+Overall
+- screen switching architecture
+- htmlrenderer improvements
+    - %-based pos (i.e., left 25%)
+    - anchor point (center, topleft; set by vec2)

@@ -11,6 +11,7 @@ html {
     top: 0px;
     height: 100px;
     background: #cccccc;
+    overflow: auto;
 }
 
 #game-body {
@@ -39,4 +40,5 @@ html {
     bottom: 0px;
     width: 45%;
     background: #ff9922;
+    overflow: auto;
 }

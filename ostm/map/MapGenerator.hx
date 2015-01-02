@@ -27,17 +27,29 @@ class MapGenerator extends Component {
         _generated.push(new Map<Int, MapNode>());
         
         _scrollHelper = new Entity([
-            new HtmlRenderer('map-screen', new Vec2(1, 1)),
+            new HtmlRenderer({
+                parent: 'map-screen',
+                size: new Vec2(1, 1),
+            }),
             new Transform(new Vec2(0, 0)),
         ]);
         entity.getSystem().addEntity(_scrollHelper);
 
         var moveBarEntity = new Entity([
-            new HtmlRenderer('game-header', new Vec2(kMoveBarWidth, 25)),
-            new Transform(new Vec2(200, 100)),
+            new HtmlRenderer({
+                parent: 'game-header',
+                size: new Vec2(kMoveBarWidth, 25),
+                style: [
+                    'background' => 'none',
+                    'border' => '1px solid white',
+                ],
+            }),
+            new Transform(new Vec2(20, 10)),
             new ProgressBar(function() {
                 return _moveTimer / kMoveTime;
-            }),
+            }, [
+                'background' => '#ffff00',
+            ]),
         ]);
         entity.getSystem().addEntity(moveBarEntity);
 
@@ -160,7 +172,10 @@ class MapGenerator extends Component {
 
         var node = new MapNode(this, i, j, parent);
         var ent = new Entity([
-            new HtmlRenderer('map-screen', size),
+            new HtmlRenderer({
+                parent: 'map-screen',
+                size: size,
+            }),
             new Transform(),
             node,
         ]);

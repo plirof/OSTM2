@@ -9,26 +9,49 @@ class HtmlRenderer extends Component {
     public var size(default, default) :Vec2;
     public var floating(default, default) :Bool = false;
 
-    var _parentId :String;
+    var _options :Dynamic;
     var _elem :Element;
 
     var _cachedPos :Vec2;
     var _cachedSize :Vec2;
 
-    public function new(parent :String, ?siz: Vec2) {
-        _parentId = parent;
-        if (siz == null) {
-            siz = new Vec2(50, 50);
+    // public function new(parent :String, ?siz: Vec2) {
+    public function new(options :Dynamic) {
+        _options = options;
+
+        var size = _options.size;
+        if (size == null) {
+            size = new Vec2(50, 50);
         }
-        size = siz;
+        this.size = size;
     }
 
     public override function init() :Void {
-        var parent = Browser.document.getElementById(_parentId);
+        var parent;
+        if (_options.parent != null) {
+            parent = Browser.document.getElementById(_options.parent);
+        }
+        else {
+            parent = Browser.document.body;
+        }
         _elem = Browser.document.createElement('span');
-        parent.appendChild(cast _elem);
+        if (_options.id) {
+            _elem.id = _options.id;
+        }
+
         _elem.style.position = 'absolute';
         _elem.style.background = 'red';
+        styleElement(_elem, _options.style);
+
+        parent.appendChild(_elem);
+    }
+
+    public static function styleElement(elem :Element, style :Map<String, String>) :Void {
+        if (style != null) {
+            for (k in style.keys()) {
+                elem.style.setProperty(k, style[k], '');
+            }
+        }
     }
 
     public override function deinit() :Void {
@@ -39,7 +62,6 @@ class HtmlRenderer extends Component {
         var pos = getTransform().pos;
         if (floating) {
             var container = _elem.parentElement;
-            // var container = Browser.document.body;
             var scroll = new Vec2(container.scrollLeft, container.scrollTop);
             pos += scroll;
         }

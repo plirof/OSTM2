@@ -4,9 +4,9 @@ private class Vec2_Impl {
     public var x: Float;
     public var y: Float;
 
-    public function new(x_: Float = 0, y_: Float = 0) {
-        x = x_;
-        y = y_;
+    public function new(x: Float = 0, y: Float = 0) {
+        this.x = x;
+        this.y = y;
     }
 
     public function length2() :Float {
@@ -19,8 +19,8 @@ private class Vec2_Impl {
 
 @:forward
 abstract Vec2(Vec2_Impl) to Vec2_Impl from Vec2_Impl {
-    public function new(x_: Float = 0, y_: Float = 0) {
-        return new Vec2_Impl(x_, y_);
+    public function new(x: Float = 0, y: Float = 0) {
+        return new Vec2_Impl(x, y);
     }
 
     @:op(A + B) public static inline function add(lhs: Vec2, rhs :Vec2) :Vec2 {
@@ -43,9 +43,7 @@ abstract Vec2(Vec2_Impl) to Vec2_Impl from Vec2_Impl {
         return lhs.x == rhs.x && lhs.y == rhs.y;
     }
     @:op(A != B) public static inline function neq(lhs :Vec2, rhs :Vec2) {
-        if (lhs == null && rhs == null) { return false; }
-        if (lhs == null || rhs == null) { return true; }
-        return lhs.x != rhs.x || lhs.y != rhs.y;
+        return !(lhs == rhs);
     }
 
     public function dist(other :Vec2) :Float {
