@@ -256,7 +256,7 @@ class MapGenerator extends Component {
     function updateScrollBounds() :Void {
         var topLeft = new Vec2(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
-        var origin :Vec2 = new Vec2(100, 300);
+        var origin :Vec2 = new Vec2(100, 100);
         forAllNodes(function (node) {
             var pos = node.getOffset();
             topLeft = Vec2.min(topLeft, pos);
@@ -268,7 +268,7 @@ class MapGenerator extends Component {
             botRight = Vec2.max(botRight, pos);
         });
         
-        var scrollBuffer = new Vec2(750, 350);
+        var scrollBuffer = new Vec2(250, 150);
         _scrollHelper.getTransform().pos = origin + botRight + scrollBuffer;
     }
 

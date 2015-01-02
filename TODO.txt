@@ -1,6 +1,4 @@
 Battle
-- attack timers
-- attacks drain hp
 - unlock map nodes with enemy defeats
 - stats
 

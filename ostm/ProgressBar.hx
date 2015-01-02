@@ -33,4 +33,8 @@ class ProgressBar extends Component {
     public override function update() :Void {
         _elem.style.width = (100 * Util.clamp01(_func())) + '%';
     }
+
+    public function setFunction(f) :Void {
+        _func = f;
+    }
 }

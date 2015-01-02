@@ -226,8 +226,8 @@ class MapNode extends Component {
     }
 
     public function getOffset() :Vec2 {
-        var spacing :Vec2 = new Vec2(80, 80);
-        return new Vec2(depth * spacing.x, height * spacing.y);
+        var spacing :Vec2 = new Vec2(80, -80);
+        return new Vec2(height * spacing.x, depth * spacing.y);
     }
 
     public function setVisible() :Void {
