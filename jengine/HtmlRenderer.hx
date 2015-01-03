@@ -15,7 +15,6 @@ class HtmlRenderer extends Component {
     var _cachedPos :Vec2;
     var _cachedSize :Vec2;
 
-    // public function new(parent :String, ?siz: Vec2) {
     public function new(options :Dynamic) {
         _options = options;
 
@@ -35,7 +34,7 @@ class HtmlRenderer extends Component {
             parent = Browser.document.body;
         }
         _elem = Browser.document.createElement('span');
-        if (_options.id) {
+        if (_options.id != null) {
             _elem.id = _options.id;
         }
 
@@ -73,6 +72,7 @@ class HtmlRenderer extends Component {
     }
     function markClean() :Void {
         _cachedPos = getPos();
+        _cachedSize = size;
     }
 
     public override function draw() :Void {

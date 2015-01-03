@@ -1,12 +1,13 @@
 package ostm.map;
 
-import jengine.*;
-import jengine.util.*;
-
 import js.*;
 import js.html.Element;
 
-class MapGenerator extends Component {    
+import jengine.*;
+import jengine.util.*;
+import ostm.battle.*;
+
+class MapGenerator extends Component {
     var _generated :Array<Map<Int, MapNode>>;
     var _selected :MapNode;
     var _start :MapNode;
@@ -15,11 +16,18 @@ class MapGenerator extends Component {
 
     var _scrollHelper :Entity;
 
-    static var kMoveTime :Float = 3.0;
-    static var kMoveBarWidth :Float = 500;
+    static inline var kMoveTime :Float = 10.0;
+    static inline var kMoveBarWidth :Float = 500;
+    static inline var kKillsToUnlock :Int = 2;
     var _moveBar :Element;
     var _moveTimer :Float = 0;
     var _movePath :Array<MapNode> = null;
+
+    public static var instance(default, null) :MapGenerator;
+
+    public override function init() :Void {
+        instance = this;
+    }
 
     public override function start() :Void {
         _rand = new MapRandom();
@@ -37,11 +45,12 @@ class MapGenerator extends Component {
 
         var moveBarEntity = new Entity([
             new HtmlRenderer({
+                id: 'move-bar',
                 parent: 'game-header',
                 size: new Vec2(kMoveBarWidth, 25),
                 style: [
                     'background' => 'none',
-                    'border' => '1px solid white',
+                    'border' => '1px solid #000000',
                 ],
             }),
             new Transform(new Vec2(20, 10)),
@@ -52,6 +61,26 @@ class MapGenerator extends Component {
             ]),
         ]);
         entity.getSystem().addEntity(moveBarEntity);
+        entity.getSystem().addEntity(new Entity([
+            new HtmlRenderer({
+                id: 'kill-bar',
+                parent: 'game-header',
+                size: new Vec2(kMoveBarWidth, 25),
+                style: [
+                    'background' => 'none',
+                    'border' => '1px solid #000000',
+                ],
+            }),
+            new Transform(new Vec2(20, 40)),
+            new ProgressBar(function() {
+                if (!_selected.hasUnseenNeighbors()) {
+                    return 0;
+                }
+                return BattleManager.instance.getKillCount() / kKillsToUnlock;
+            }, [
+                'background' => '#ffaa00',
+            ]),
+        ]));
 
         _start = addNode(null, 0, 0);
         _start.isGoldPath = true;
@@ -65,9 +94,19 @@ class MapGenerator extends Component {
     }
 
     public override function update() {
+        if (BattleManager.instance.isPlayerDead()) {
+            return;
+        }
+
+        if (BattleManager.instance.getKillCount() >= kKillsToUnlock &&
+            _selected.hasUnseenNeighbors()) {
+            _selected.unlockRandomNeighbor();
+            BattleManager.instance.resetKillCount();
+        }
+
         _moveTimer += Time.dt;
         if (_movePath != null) {
-            if (_moveTimer > kMoveTime) {
+            if (_moveTimer > kMoveTime && !BattleManager.instance.isInBattle()) {
                 _moveTimer = 0;
                 
                 _selected.clearPath();
@@ -79,6 +118,7 @@ class MapGenerator extends Component {
                     addLayer();
                 }
                 _selected.setOccupied();
+                BattleManager.instance.resetKillCount();
 
                 // centerCurrentNode();
 

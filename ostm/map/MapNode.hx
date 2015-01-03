@@ -5,6 +5,7 @@ import js.html.Element;
 import js.html.MouseEvent;
 
 import jengine.*;
+import jengine.util.*;
 
 typedef MapLine = {
     var elem :Element;
@@ -247,8 +248,6 @@ class MapNode extends Component {
         _isVisited = true;
         _isOccupied = true;
         markDirty();
-
-        markNeighborsVisible();
     }
     public function clearOccupied() :Void {
         _isOccupied = false;
@@ -273,6 +272,27 @@ class MapNode extends Component {
     }
     public function hasVisited() :Bool {
         return _isVisited && region < kMaxVisibleRegion;
+    }
+
+    public function hasUnseenNeighbors() :Bool {
+        for (node in neighbors) {
+            if (!node.hasSeen()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function unlockRandomNeighbor() :Void {
+        var unseen = neighbors.filter(function (node) { return !node.hasSeen(); });
+        if (unseen.length > 0) {
+            var node = Random.randomElement(unseen);
+            node.setVisible();
+            markDirty();
+        }
+        else {
+            trace('warning: trying to unlock neighbor on node with no unseen neighbors');
+        }
     }
 
     public function posString() :String {

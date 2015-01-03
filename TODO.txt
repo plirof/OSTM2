@@ -1,6 +1,6 @@
 Battle
-- unlock map nodes with enemy defeats
 - stats
+- leveling up
 
 Map
 - single-letter rendering on nodes

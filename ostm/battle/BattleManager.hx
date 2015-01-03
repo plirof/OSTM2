@@ -12,6 +12,7 @@ class BattleMember {
     public var maxHealth :Int;
     public var healthRegen :Float;
     public var attackSpeed :Float;
+    public var damage :Int;
 
     public var health :Int;
     public var healthPartial :Float = 0;
@@ -28,8 +29,16 @@ class BattleManager extends Component {
     var _battleMembers :Array<BattleMember> = [];
 
     var _enemySpawnTimer :Float = 0;
-    static inline var kEnemySpawnTime :Float = 4;
     var _isPlayerDead :Bool = false;
+    var _killCount :Int = 0;
+    static inline var kEnemySpawnTime :Float = 4;
+    static inline var kPlayerDeathTime :Float = 15;
+
+    public static var instance(default, null) :BattleManager;
+
+    public override function init() :Void {
+        instance = this;
+    }
 
     public override function start() :Void {
         _player = addBattleMember(new Vec2(50, 300));
@@ -40,9 +49,11 @@ class BattleManager extends Component {
         _player.maxHealth = 100;
         _player.attackSpeed = 1.2;
         _player.healthRegen = 2.5;
+        _player.damage = 6;
 
         _enemy.maxHealth = 50;
         _enemy.attackSpeed = 0.9;
+        _enemy.damage = 4;
         
         for (mem in _battleMembers) {
             mem.health = mem.maxHealth;
@@ -50,12 +61,13 @@ class BattleManager extends Component {
     }
 
     public override function update() :Void {
-        var hasEnemySpawned = _enemySpawnTimer >= kEnemySpawnTime && !_isPlayerDead;
+        var hasEnemySpawned = isInBattle();
         _enemy.elem.style.display = hasEnemySpawned ? '' : 'none';
         if (!hasEnemySpawned) {
             _enemySpawnTimer += Time.dt;
 
-            _player.healthPartial += _player.healthRegen * Time.dt;
+            var regen = _isPlayerDead ? _player.maxHealth / kPlayerDeathTime : _player.healthRegen;
+            _player.healthPartial += regen * Time.dt;
             var dHealth = Math.floor(_player.healthPartial);
             _player.health += dHealth;
             _player.healthPartial -= dHealth;
@@ -76,12 +88,8 @@ class BattleManager extends Component {
             var attackTime = 1.0 / mem.attackSpeed;
             if (mem.attackTimer > attackTime) {
                 mem.attackTimer -= attackTime;
-                if (mem.isPlayer) {
-                    dealDamage(_enemy, 5);
-                }
-                else {
-                    dealDamage(_player, 5);
-                }
+                var target = mem.isPlayer ? _enemy : _player;
+                dealDamage(target, mem.damage);
             }
         }
     }
@@ -89,17 +97,18 @@ class BattleManager extends Component {
     function dealDamage(target :BattleMember, damage :Int) :Void {
         target.health -= damage;
         if (target.health <= 0) {
-            target.health = 0;
+            target.health = target.isPlayer ? 0 : target.maxHealth;
             for (mem in _battleMembers) {
-                if (!mem.isPlayer) {
-                    mem.health = mem.maxHealth;
-                }
                 mem.attackTimer = 0;
             }
             _enemySpawnTimer = 0;
 
             if (target.isPlayer) {
                 _isPlayerDead = true;
+                _enemy.health = _enemy.maxHealth;
+            }
+            else {
+                _killCount++;
             }
         }
     }
@@ -160,5 +169,20 @@ class BattleManager extends Component {
 
         _battleMembers.push(bat);
         return bat;
+    }
+
+    public function isPlayerDead() :Bool {
+        return _isPlayerDead;
+    }
+
+    public function isInBattle() :Bool {
+        return _enemySpawnTimer >= kEnemySpawnTime && !_isPlayerDead;
+    }
+
+    public function getKillCount() :Int {
+        return _killCount;
+    }
+    public function resetKillCount() :Void {
+        _killCount = 0;
     }
 }
