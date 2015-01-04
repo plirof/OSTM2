@@ -251,8 +251,23 @@ class MapGenerator extends Component {
         }
     }
 
+    function setPath(path :Array<MapNode>) :Void {
+        _movePath = path;
+
+        forAllNodes(function (node) {
+            node.clearPath();
+        });
+
+        if (path != null) {
+            for (n in path) {
+                n.setPath(path);
+            }
+        }
+    }
+
     public function click(node :MapNode) :Void {
         if (node == _selected) {
+            setPath(null);
             return;
         }
 
@@ -261,15 +276,7 @@ class MapGenerator extends Component {
             return;
         }
 
-        _movePath = path;
-
-        forAllNodes(function (node) {
-            node.clearPath();
-        });
-
-        for (n in path) {
-            n.setPath(path);
-        }
+        setPath(path);
     }
 
     public function hover(node :MapNode) :Void {
@@ -329,29 +336,6 @@ class MapGenerator extends Component {
             if (relPos.y > brBound.y) { scrollToPos.y += relPos.y - brBound.y; }
             Browser.window.scrollTo(cast scrollToPos.x, cast scrollToPos.y);
         }
-    }
-
-    function rgb(r :Int, g :Int, b :Int) :String {
-        var hexC = function(i :Int) :String {
-            if (i < 10) {
-                return '' + i;
-            }
-            switch (i) {
-                case 10: return 'a';
-                case 11: return 'b';
-                case 12: return 'c';
-                case 13: return 'd';
-                case 14: return 'e';
-                case 15: return 'f';
-            }
-            return '';
-        }
-        var toHex = function(c :Int) :String {
-            if (c < 0) { return '00'; }
-            if (c > 255) { return 'ff'; }
-            return hexC(Math.floor(c / 16)) + hexC(c % 16);
-        }
-        return '#' + toHex(r) + toHex(g) + toHex(b);
     }
 
     function isAdjacent(a :MapNode, b :MapNode) :Bool {

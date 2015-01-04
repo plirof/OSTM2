@@ -125,6 +125,9 @@ class BattleManager extends Component {
                 id: id,
                 parent: 'battle-screen',
                 size: size,
+                style: [
+                    'border' => '2px solid black',
+                ],
             }),
         ]);
         system.addEntity(ent);
@@ -138,7 +141,7 @@ class BattleManager extends Component {
                 parent: id,
                 size: barSize,
                 style: [
-                    'background' => 'none',
+                    'background' => '#662222',
                     'border' => '2px solid black',
                 ],
             }),
@@ -155,7 +158,7 @@ class BattleManager extends Component {
                 parent: id,
                 size: barSize,
                 style: [
-                    'background' => 'none',
+                    'background' => '#226622',
                     'border' => '2px solid black',
                 ],
             }),

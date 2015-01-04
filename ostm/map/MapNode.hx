@@ -36,7 +36,7 @@ class MapNode extends Component {
     var _highlightedLineWidth :Float = 8;
 
     static var kMaxRegions = 12;
-    static var kMaxVisibleRegion = 14;
+    static var kMaxVisibleRegion = 4;
     static var kLaunchRegions = 4;
 
     function new(gen :MapGenerator, d :Int, h :Int, par :MapNode) {
@@ -142,25 +142,7 @@ class MapNode extends Component {
 
     public override function update() :Void {
         if (isDirty()) {
-            var color;
-            switch (region) {
-                case 0: color = '#ff0000';
-                case 1: color = '#ff8800';
-                case 2: color = '#ffff00';
-                case 3: color = '#88ff00';
-                case 4: color = '#00ff00';
-                case 5: color = '#00ff88';
-                case 6: color = '#00ffff';
-                case 7: color = '#0088ff';
-                case 8: color = '#0000ff';
-                case 9: color = '#8800ff';
-                case 10: color = '#ff00ff';
-                case 11: color = '#ff0088';
-                default: color = '';
-            }
-            if (!_isVisited) {
-                color = '#888888';
-            }
+            var color = getColor().asHtml();
 
             var borderColor = '#000000';
             var isHighlighted = true;
@@ -209,6 +191,29 @@ class MapNode extends Component {
         }
     }
 
+    function getColor() :Color {
+        var color :Color = null;
+        switch (region) {
+            case 0: color = new Color(0xff, 0x00, 0x00);
+            case 1: color = new Color(0xff, 0x88, 0x00);
+            case 2: color = new Color(0xff, 0xff, 0x00);
+            case 3: color = new Color(0x88, 0xff, 0x00);
+            case 4: color = new Color(0x00, 0xff, 0x00);
+            case 5: color = new Color(0x00, 0xff, 0x88);
+            case 6: color = new Color(0x00, 0xff, 0xff);
+            case 7: color = new Color(0x00, 0x88, 0xff);
+            case 8: color = new Color(0x00, 0x00, 0xff);
+            case 9: color = new Color(0x88, 0x00, 0xff);
+            case 10: color = new Color(0xff, 0x00, 0xff);
+            case 11: color = new Color(0xff, 0x00, 0x88);
+            default: color = new Color(0, 0, 0);
+        }
+        if (!_isVisited) {
+            color = color.multiply(0.5);
+        }
+        return color;
+    }
+
     inline function isDirty() :Bool {
         return _dirtyFlag;
     }
@@ -248,6 +253,9 @@ class MapNode extends Component {
         _isVisited = true;
         _isOccupied = true;
         markDirty();
+
+        var bg = Browser.document.getElementById('battle-screen');
+        bg.style.background = getColor().mix(new Color(0x80, 0x80, 0x80)).asHtml();
     }
     public function clearOccupied() :Void {
         _isOccupied = false;
