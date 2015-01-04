@@ -49,11 +49,11 @@ class MapGenerator extends Component {
                 parent: 'game-header',
                 size: new Vec2(kMoveBarWidth, 25),
                 style: [
-                    'background' => 'none',
+                    'background' => '#888800',
                     'border' => '1px solid #000000',
                 ],
             }),
-            new Transform(new Vec2(20, 10)),
+            new Transform(new Vec2(20, 7)),
             new ProgressBar(function() {
                 return _moveTimer / kMoveTime;
             }, [
@@ -67,11 +67,11 @@ class MapGenerator extends Component {
                 parent: 'game-header',
                 size: new Vec2(kMoveBarWidth, 25),
                 style: [
-                    'background' => 'none',
+                    'background' => '#885500',
                     'border' => '1px solid #000000',
                 ],
             }),
-            new Transform(new Vec2(20, 40)),
+            new Transform(new Vec2(20, 37)),
             new ProgressBar(function() {
                 if (!_selected.hasUnseenNeighbors()) {
                     return 0;
@@ -98,8 +98,9 @@ class MapGenerator extends Component {
             return;
         }
 
-        if (BattleManager.instance.getKillCount() >= kKillsToUnlock &&
-            _selected.hasUnseenNeighbors()) {
+        var hasUnseen = _selected.hasUnseenNeighbors();
+        Browser.document.getElementById('kill-bar').style.background = hasUnseen ? '#885500' : '#666666';
+        if (hasUnseen && BattleManager.instance.getKillCount() >= kKillsToUnlock) {
             _selected.unlockRandomNeighbor();
             BattleManager.instance.resetKillCount();
         }

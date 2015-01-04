@@ -23,22 +23,39 @@ html {
     overflow: auto;
 }
 
-#map-screen {
+div {
     position: absolute;
     left: 0px;
     top: 0px;
-    bottom: 0px;
-    width: 55%;
-    background: #aaaaaa;
+}
+
+.column {
+    height: 100%;
+}
+
+#column-1 {
+    width: 30%;
+    left: 0px;
+}
+#column-2 {
+    width: 70%;
+    left: 30%;
+}
+
+.screen {
+    width: 100%;
     overflow: auto;
 }
 
+#stat-screen {
+    height: 100%;
+    background: #aaffaa;
+}
+#map-screen {
+    height: 50%;
+    background: #aaaaaa;
+}
 #battle-screen {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    bottom: 0px;
-    width: 45%;
-    background: #ff9922;
-    overflow: auto;
+    height: 50%;
+    top: 50%;
 }

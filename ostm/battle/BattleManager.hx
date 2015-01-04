@@ -1,5 +1,6 @@
 package ostm.battle;
 
+import js.*;
 import js.html.*;
 
 import jengine.*;
@@ -9,6 +10,7 @@ class BattleMember {
     public var elem :Element;
     public var isPlayer :Bool = false;
 
+    public var level :Int;
     public var maxHealth :Int;
     public var healthRegen :Float;
     public var attackSpeed :Float;
@@ -28,6 +30,8 @@ class BattleManager extends Component {
     var _enemy :BattleMember;
     var _battleMembers :Array<BattleMember> = [];
 
+    var _playerXp :Int = 0;
+
     var _enemySpawnTimer :Float = 0;
     var _isPlayerDead :Bool = false;
     var _killCount :Int = 0;
@@ -41,16 +45,18 @@ class BattleManager extends Component {
     }
 
     public override function start() :Void {
-        _player = addBattleMember(new Vec2(50, 300));
+        _player = addBattleMember(new Vec2(125, 200));
         _player.elem.style.background = '#0088ff';
-        _enemy = addBattleMember(new Vec2(300, 300));
+        _enemy = addBattleMember(new Vec2(400, 200));
 
         _player.isPlayer = true;
+        _player.level = 1;
         _player.maxHealth = 100;
         _player.attackSpeed = 1.2;
         _player.healthRegen = 2.5;
         _player.damage = 6;
 
+        _enemy.level = 1;
         _enemy.maxHealth = 50;
         _enemy.attackSpeed = 0.9;
         _enemy.damage = 4;
@@ -58,9 +64,33 @@ class BattleManager extends Component {
         for (mem in _battleMembers) {
             mem.health = mem.maxHealth;
         }
+
+        entity.getSystem().addEntity(new Entity([
+            new HtmlRenderer({
+                id: 'xp-bar',
+                parent: 'game-header',
+                size: new Vec2(500, 25),
+                style: [
+                    'background' => '#118811',
+                    'border' => '1px solid #000000',
+                ],
+            }),
+            new Transform(new Vec2(20, 67)),
+            new ProgressBar(function() {
+                return 0.65;
+            }, [
+                'background' => '#22ff22',
+            ]),
+        ]));
     }
 
     public override function update() :Void {
+        var stats = Browser.document.getElementById('stat-screen');
+        stats.innerHTML = '<ul>' +
+                '<li>Level: ' + _player.level + '</li>' +
+                '<li>Attack: ' + _player.damage + '</li>' +
+            '</ul>';
+
         var hasEnemySpawned = isInBattle();
         _enemy.elem.style.display = hasEnemySpawned ? '' : 'none';
         if (!hasEnemySpawned) {
