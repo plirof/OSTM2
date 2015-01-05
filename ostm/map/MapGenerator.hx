@@ -8,8 +8,9 @@ import jengine.util.*;
 import ostm.battle.*;
 
 class MapGenerator extends Component {
+    public var selectedNode(default, null) :MapNode;
+    
     var _generated :Array<Map<Int, MapNode>>;
-    var _selected :MapNode;
     var _start :MapNode;
 
     var _rand :MapRandom;
@@ -73,7 +74,7 @@ class MapGenerator extends Component {
             }),
             new Transform(new Vec2(20, 37)),
             new ProgressBar(function() {
-                if (!_selected.hasUnseenNeighbors()) {
+                if (!selectedNode.hasUnseenNeighbors()) {
                     return 0;
                 }
                 return BattleManager.instance.getKillCount() / kKillsToUnlock;
@@ -84,7 +85,7 @@ class MapGenerator extends Component {
 
         _start = addNode(null, 0, 0);
         _start.isGoldPath = true;
-        _selected = _start;
+        selectedNode = _start;
 
         for (i in 1...3) {
             addLayer();
@@ -98,10 +99,10 @@ class MapGenerator extends Component {
             return;
         }
 
-        var hasUnseen = _selected.hasUnseenNeighbors();
+        var hasUnseen = selectedNode.hasUnseenNeighbors();
         Browser.document.getElementById('kill-bar').style.background = hasUnseen ? '#885500' : '#666666';
         if (hasUnseen && BattleManager.instance.getKillCount() >= kKillsToUnlock) {
-            _selected.unlockRandomNeighbor();
+            selectedNode.unlockRandomNeighbor();
             BattleManager.instance.resetKillCount();
         }
 
@@ -110,22 +111,22 @@ class MapGenerator extends Component {
             if (_moveTimer > kMoveTime && !BattleManager.instance.isInBattle()) {
                 _moveTimer = 0;
                 
-                _selected.clearPath();
-                _selected.clearOccupied();
+                selectedNode.clearPath();
+                selectedNode.clearOccupied();
                 
                 var next = _movePath[1];
-                _selected = next;
-                while (_selected.depth + 2 >= _generated.length) {
+                selectedNode = next;
+                while (selectedNode.depth + 2 >= _generated.length) {
                     addLayer();
                 }
-                _selected.setOccupied();
+                selectedNode.setOccupied();
                 BattleManager.instance.resetKillCount();
 
                 // centerCurrentNode();
 
                 _movePath.remove(next);
                 if (_movePath.length <= 1) {
-                    _selected.clearPath();
+                    selectedNode.clearPath();
                     _movePath = null;
                 }
             }
@@ -267,12 +268,12 @@ class MapGenerator extends Component {
     }
 
     public function click(node :MapNode) :Void {
-        if (node == _selected) {
+        if (node == selectedNode) {
             setPath(null);
             return;
         }
 
-        var path = findPath(_selected, node);
+        var path = findPath(selectedNode, node);
         if (path == null) {
             return;
         }
@@ -281,7 +282,7 @@ class MapGenerator extends Component {
     }
 
     public function hover(node :MapNode) :Void {
-        var path = findPath(_selected, node);
+        var path = findPath(selectedNode, node);
         if (path != null) {
             for (n in path) {
                 n.setPathHighlight(path);
@@ -321,10 +322,10 @@ class MapGenerator extends Component {
     }
 
     public function centerCurrentNode() :Void {
-        if (_selected.elem != null) {
-            var container = _selected.elem.parentElement;
+        if (selectedNode.elem != null) {
+            var container = selectedNode.elem.parentElement;
             var size = new Vec2(container.clientWidth, container.clientHeight);
-            var pos = _selected.getTransform().pos;
+            var pos = selectedNode.getTransform().pos;
             var scroll = new Vec2(container.scrollLeft, container.scrollTop);
             var relPos = pos - scroll;
             var scrollToPos = new Vec2(scroll.x, scroll.y);

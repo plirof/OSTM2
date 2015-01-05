@@ -18,8 +18,8 @@ class MapNode extends Component {
     var lines :Array<MapLine>;
     var map :MapGenerator;
     var neighbors :Array<MapNode>;
-    var depth :Int;
-    var height :Int;
+    public var depth(default, null) :Int;
+    public var height(default, null) :Int;
     var region :Int = 0;
     var isGoldPath :Bool = false;
 

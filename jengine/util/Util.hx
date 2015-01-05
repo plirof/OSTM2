@@ -15,4 +15,11 @@ class Util {
     public static inline function lerp(t :Float, lo :Float, hi :Float) :Float {
         return clamp01(t) * (hi - lo) + lo;
     }
+
+    public static inline function intMax(a :Int, b :Int) :Int {
+        return a > b ? a : b;
+    }
+    public static inline function intMin(a :Int, b :Int) :Int {
+        return a < b ? a : b;
+    }
 }

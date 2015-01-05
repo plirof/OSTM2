@@ -4,41 +4,9 @@ import js.*;
 import js.html.*;
 
 import jengine.*;
+import jengine.util.Util;
 
-class BattleMember {
-    public var entity :Entity;
-    public var elem :Element;
-    public var isPlayer :Bool = false;
-
-    public var level :Int;
-    public var maxHealth :Int;
-    public var healthRegen :Float;
-    public var attackSpeed :Float;
-    public var damage :Int;
-
-    public var xp :Int = 0;
-    public var health :Int;
-    public var healthPartial :Float = 0;
-    public var attackTimer :Float = 0;
-
-    public function new(entity :Entity) {
-        this.entity = entity;
-    }
-
-    public function xpToNextLevel() :Int {
-        return 10 + 5 * (level - 1);
-    }
-    public function addXp(xp :Int) :Void {
-        this.xp += xp;
-        var tnl = xpToNextLevel();
-        if (this.xp >= tnl) {
-            this.xp -= tnl;
-            level++;
-            maxHealth += 5;
-            damage += 1;
-        }
-    }
-}
+import ostm.map.MapGenerator;
 
 class BattleManager extends Component {
     var _player :BattleMember;
@@ -64,18 +32,19 @@ class BattleManager extends Component {
 
         _player.isPlayer = true;
         _player.level = 1;
-        _player.maxHealth = 100;
+        _player.baseHealth = 100;
         _player.attackSpeed = 1.8;
-        _player.healthRegen = 2.5;
-        _player.damage = 6;
+        _player.baseDamage = 9;
+        _player.baseDefense = 3;
 
         _enemy.level = 1;
-        _enemy.maxHealth = 50;
+        _enemy.baseHealth = 50;
         _enemy.attackSpeed = 1.4;
-        _enemy.damage = 1;
+        _enemy.baseDamage = 5;
+        _enemy.baseDefense = 2;
         
         for (mem in _battleMembers) {
-            mem.health = mem.maxHealth;
+            mem.health = mem.maxHealth();
         }
 
         entity.getSystem().addEntity(new Entity([
@@ -102,8 +71,10 @@ class BattleManager extends Component {
         stats.innerHTML = '<ul>' +
                 '<li>Level: ' + _player.level + '</li>' +
                 '<li>XP: ' + _player.xp + ' / ' + _player.xpToNextLevel() + '</li>' +
-                '<li>HP: ' + _player.health + ' / ' + _player.maxHealth + '</li>' +
-                '<li>Attack: ' + _player.damage + '</li>' +
+                '<li>HP: ' + _player.health + ' / ' + _player.maxHealth() + '</li>' +
+                '<li>Damage: ' + _player.damage() + '</li>' +
+                '<li>Defense: ' + _player.defense() + '</li>' +
+                '<li>Enemy Level: ' + _enemy.level + '</li>' +
             '</ul>';
 
         var hasEnemySpawned = isInBattle();
@@ -111,13 +82,19 @@ class BattleManager extends Component {
         if (!hasEnemySpawned) {
             _enemySpawnTimer += Time.dt;
 
-            var regen = _isPlayerDead ? _player.maxHealth / kPlayerDeathTime : _player.healthRegen;
+            if (_enemySpawnTimer >= kEnemySpawnTime) {
+                var node = MapGenerator.instance.selectedNode;
+                _enemy.level = node.depth + Math.floor(node.height / 2) + 1;
+                _enemy.health = _enemy.maxHealth();
+            }
+
+            var regen = _isPlayerDead ? _player.maxHealth() / kPlayerDeathTime : _player.healthRegen();
             _player.healthPartial += regen * Time.dt;
             var dHealth = Math.floor(_player.healthPartial);
             _player.health += dHealth;
             _player.healthPartial -= dHealth;
-            if (_player.health >= _player.maxHealth) {
-                _player.health = _player.maxHealth;
+            if (_player.health >= _player.maxHealth()) {
+                _player.health = _player.maxHealth();
 
                 if (_isPlayerDead) {
                     _isPlayerDead = false;
@@ -134,15 +111,16 @@ class BattleManager extends Component {
             if (mem.attackTimer > attackTime) {
                 mem.attackTimer -= attackTime;
                 var target = mem.isPlayer ? _enemy : _player;
-                dealDamage(target, mem.damage);
+                dealDamage(target, mem.damage());
             }
         }
     }
 
     function dealDamage(target :BattleMember, damage :Int) :Void {
-        target.health -= damage;
+        var dam = Util.intMax(damage - target.defense(), 0);
+        target.health -= dam;
         if (target.health <= 0) {
-            target.health = target.isPlayer ? 0 : target.maxHealth;
+            target.health = target.isPlayer ? 0 : target.maxHealth();
             for (mem in _battleMembers) {
                 mem.attackTimer = 0;
             }
@@ -150,11 +128,11 @@ class BattleManager extends Component {
 
             if (target.isPlayer) {
                 _isPlayerDead = true;
-                _enemy.health = _enemy.maxHealth;
+                _enemy.health = _enemy.maxHealth();
             }
             else {
                 _killCount++;
-                _player.addXp(2);
+                _player.addXp(_enemy.xpReward());
             }
         }
     }
@@ -192,7 +170,7 @@ class BattleManager extends Component {
                 ],
             }),
             new ProgressBar(function() {
-                return bat.health / bat.maxHealth;
+                return bat.health / bat.maxHealth();
             }, [
                 'background' => '#ff0000',
             ]),
