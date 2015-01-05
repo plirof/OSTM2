@@ -4,7 +4,7 @@ import js.*;
 import js.html.*;
 
 import jengine.*;
-import jengine.util.Util;
+import jengine.util.*;
 
 import ostm.map.MapGenerator;
 import ostm.battle.Item;
@@ -19,8 +19,18 @@ class BattleManager extends Component {
     var _killCount :Int = 0;
     static inline var kEnemySpawnTime :Float = 1;
     static inline var kPlayerDeathTime :Float = 5;
+    static inline var kMaxInventoryCount :Int = 10;
 
     public static var instance(default, null) :BattleManager;
+
+    var _itemTypes = [
+        new ItemType('Sword', Weapon, 3, 1),
+        new ItemType('Axe', Weapon, 4, 0),
+        new ItemType('Armor', Body, 0, 2),
+        new ItemType('Helm', Helmet, 0, 1),
+        new ItemType('Boots', Boots, 0, 1),
+    ];
+    var _inventory :Array<Item> = [];
 
     public override function init() :Void {
         instance = this;
@@ -44,8 +54,7 @@ class BattleManager extends Component {
         _enemy.baseDamage = 5;
         _enemy.baseDefense = 2;
 
-        var sword = new ItemType('Sword', Weapon, 3, 0);
-        _player.equipment[Weapon] = new Item(sword, 1);
+        updateInventoryHtml();
         
         for (mem in _battleMembers) {
             mem.health = mem.maxHealth();
@@ -70,9 +79,50 @@ class BattleManager extends Component {
         ]));
     }
 
+    public function updateInventoryHtml() :Void {
+        var inventory = Browser.document.getElementById('inventory');
+        while (inventory.children.length > 0) {
+            inventory.removeChild(inventory.children[0]);
+        }
+
+        var count = Browser.document.createLIElement();
+        count.innerText = 'Capacity: ' + _inventory.length + ' / ' + kMaxInventoryCount;
+        inventory.appendChild(count);
+
+        for (item in _inventory) {
+            var li = Browser.document.createLIElement();
+            inventory.appendChild(li);
+            
+            var equip = Browser.document.createButtonElement();
+            equip.innerText = 'Equip';
+            equip.onclick = function (event) {
+                var cur = _player.equipment[item.type.slot];
+                if (cur != null) {
+                    _inventory.push(cur);
+                }
+                _player.equip(item);
+                _inventory.remove(item);
+                updateInventoryHtml();
+            };
+            li.appendChild(equip);
+            
+            var name = Browser.document.createSpanElement();
+            name.innerText = item.name();
+            li.appendChild(name);
+
+            var discard = Browser.document.createButtonElement();
+            discard.innerText = 'Discard';
+            discard.onclick = function (event) {
+                _inventory.remove(item);
+                updateInventoryHtml();
+            };
+            li.appendChild(discard);
+        }
+    }
+
     public override function update() :Void {
         var statHtml = 'Player: ' + _player.statHtml() + 'Enemy: ' + _enemy.statHtml();
-        var stats = Browser.document.getElementById('stat-screen');
+        var stats = Browser.document.getElementById('stats');
         stats.innerHTML = statHtml;
 
         var hasEnemySpawned = isInBattle();
@@ -131,6 +181,13 @@ class BattleManager extends Component {
             else {
                 _killCount++;
                 _player.addXp(_enemy.xpReward());
+
+                if (Random.randomBool(0.35) && _inventory.length < kMaxInventoryCount) {
+                    var type = Random.randomElement(_itemTypes);
+                    var level = Random.randomIntRange(1, _enemy.level + 1);
+                    _inventory.push(new Item(type, level));
+                    updateInventoryHtml();
+                }
             }
         }
     }

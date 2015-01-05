@@ -35,9 +35,9 @@ class Item {
     }
 
     public function attack() :Int {
-        return Math.round(type.attack * (1 + 0.2 * (level - 1)));
+        return Math.round(type.attack * (1 + 0.4 * (level - 1)));
     }
     public function defense() :Int {
-        return Math.round(type.defense * (1 + 0.2 * (level - 1)));
+        return Math.round(type.defense * (1 + 0.4 * (level - 1)));
     }
 }

@@ -71,6 +71,10 @@ class BattleMember {
         return maxHealth() * 0.015;
     }
 
+    public function equip(item :Item) :Void {
+        equipment[item.type.slot] = item;
+    }
+
     public function statHtml() :String {
         var html = '<ul>' +
                 '<li>Level: ' + level + '</li>' +
