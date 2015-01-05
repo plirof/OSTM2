@@ -48,8 +48,8 @@ class BattleManager extends Component {
     var _enemySpawnTimer :Float = 0;
     var _isPlayerDead :Bool = false;
     var _killCount :Int = 0;
-    static inline var kEnemySpawnTime :Float = 4;
-    static inline var kPlayerDeathTime :Float = 15;
+    static inline var kEnemySpawnTime :Float = 1;
+    static inline var kPlayerDeathTime :Float = 5;
 
     public static var instance(default, null) :BattleManager;
 
@@ -65,14 +65,14 @@ class BattleManager extends Component {
         _player.isPlayer = true;
         _player.level = 1;
         _player.maxHealth = 100;
-        _player.attackSpeed = 1.2;
+        _player.attackSpeed = 1.8;
         _player.healthRegen = 2.5;
         _player.damage = 6;
 
         _enemy.level = 1;
         _enemy.maxHealth = 50;
-        _enemy.attackSpeed = 0.9;
-        _enemy.damage = 4;
+        _enemy.attackSpeed = 1.4;
+        _enemy.damage = 1;
         
         for (mem in _battleMembers) {
             mem.health = mem.maxHealth;

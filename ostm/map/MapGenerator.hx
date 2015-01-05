@@ -115,7 +115,7 @@ class MapGenerator extends Component {
                 
                 var next = _movePath[1];
                 _selected = next;
-                if (_selected.depth + 1 == _generated.length) {
+                while (_selected.depth + 2 >= _generated.length) {
                     addLayer();
                 }
                 _selected.setOccupied();

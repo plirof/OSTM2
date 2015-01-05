@@ -149,6 +149,7 @@ class MapNode extends Component {
             if (_isOccupied) { borderColor = '#ffff00'; }
             else if (_highlightedPath != null) { borderColor = '#00ffff'; }
             else if (_selectedPath != null) { borderColor = '#00ff00'; }
+            else if (hasUnseenNeighbors()) { borderColor = '#008888'; }
             else { isHighlighted = false; }
             // var borderWidth = isHighlighted ? _highlightedLineWidth : _lineWidth;
             var borderWidth = _lineWidth;
@@ -275,16 +276,23 @@ class MapNode extends Component {
         }
     }
 
+    public function canBeSeen() :Bool {
+        return region < kMaxVisibleRegion;
+    }
+    public function canMarkSeen() :Bool {
+        return !_isVisible && canBeSeen();
+    }
+
     public function hasSeen() :Bool {
-        return _isVisible && region < kMaxVisibleRegion;
+        return _isVisible && canBeSeen();
     }
     public function hasVisited() :Bool {
-        return _isVisited && region < kMaxVisibleRegion;
+        return _isVisited && canBeSeen();
     }
 
     public function hasUnseenNeighbors() :Bool {
         for (node in neighbors) {
-            if (!node.hasSeen()) {
+            if (node.canMarkSeen()) {
                 return true;
             }
         }
@@ -292,7 +300,7 @@ class MapNode extends Component {
     }
 
     public function unlockRandomNeighbor() :Void {
-        var unseen = neighbors.filter(function (node) { return !node.hasSeen(); });
+        var unseen = neighbors.filter(function (node) { return node.canMarkSeen(); });
         if (unseen.length > 0) {
             var node = Random.randomElement(unseen);
             node.setVisible();
