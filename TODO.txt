@@ -1,11 +1,11 @@
-Battle
-- stats
-- leveling up
-
 Map
-- single-letter rendering on nodes
 - Pre-specified nodes
     - Discovery hints
+- towns
+
+Battle
+- more-real stat scaling
+- abilities
 
 Overall
 - screen switching architecture

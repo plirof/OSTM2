@@ -76,6 +76,10 @@ class MapNode extends Component {
         elem.style.borderRadius = cast 18;
         elem.style.zIndex = cast 1;
 
+        elem.style.textAlign = 'center';
+        elem.style.fontSize = '2.25em';
+        elem.style.color = '#ffffff';
+
         elem.onmouseover = onMouseOver;
         elem.onmouseout = onMouseOut;
         elem.onclick = onClick;
@@ -157,6 +161,7 @@ class MapNode extends Component {
             elem.style.background = color;
             elem.style.border = borderWidth + 'px solid ' + borderColor;
             elem.style.display = hasSeen() ? '' : 'none';
+            elem.innerText = cast areaLevel();
 
             var size = getComponent(HtmlRenderer).size;
             var pos = getTransform().pos;
@@ -309,6 +314,10 @@ class MapNode extends Component {
         else {
             trace('warning: trying to unlock neighbor on node with no unseen neighbors');
         }
+    }
+
+    public function areaLevel() :Int {
+        return depth + Math.floor(height / 2) + 1;
     }
 
     public function posString() :String {

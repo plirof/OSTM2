@@ -132,7 +132,7 @@ class BattleManager extends Component {
 
             if (_enemySpawnTimer >= kEnemySpawnTime) {
                 var node = MapGenerator.instance.selectedNode;
-                _enemy.level = node.depth + Math.floor(node.height / 2) + 1;
+                _enemy.level = node.areaLevel();
                 _enemy.health = _enemy.maxHealth();
             }
 

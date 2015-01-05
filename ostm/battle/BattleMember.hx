@@ -83,13 +83,16 @@ class BattleMember {
                 '<li>Damage: ' + damage() + '</li>' +
                 '<li>Defense: ' + defense() + '</li>' +
             '</ul>';
-        html += '<ul>';
-        for (k in equipment.keys()) {
-            var item = equipment[k];
-            var desc = item != null ? item.name() : '(none)';
-            html += '<li>' + k + ': ' + desc + '</li>';
+
+        if (isPlayer) {
+            html += '<ul>';
+            for (k in equipment.keys()) {
+                var item = equipment[k];
+                var desc = item != null ? item.name() : '(none)';
+                html += '<li>' + k + ': ' + desc + '</li>';
+            }
+            html += '</ul>';
         }
-        html += '</ul>';
         return html;
     }
 }
