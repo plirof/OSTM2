@@ -7,6 +7,7 @@ import jengine.*;
 import jengine.util.Util;
 
 import ostm.map.MapGenerator;
+import ostm.battle.Item;
 
 class BattleManager extends Component {
     var _player :BattleMember;
@@ -34,7 +35,7 @@ class BattleManager extends Component {
         _player.level = 1;
         _player.baseHealth = 100;
         _player.attackSpeed = 1.8;
-        _player.baseDamage = 9;
+        _player.baseDamage = 6;
         _player.baseDefense = 3;
 
         _enemy.level = 1;
@@ -42,6 +43,9 @@ class BattleManager extends Component {
         _enemy.attackSpeed = 1.4;
         _enemy.baseDamage = 5;
         _enemy.baseDefense = 2;
+
+        var sword = new ItemType('Sword', Weapon, 3, 0);
+        _player.equipment[Weapon] = new Item(sword, 1);
         
         for (mem in _battleMembers) {
             mem.health = mem.maxHealth();
@@ -67,15 +71,9 @@ class BattleManager extends Component {
     }
 
     public override function update() :Void {
+        var statHtml = 'Player: ' + _player.statHtml() + 'Enemy: ' + _enemy.statHtml();
         var stats = Browser.document.getElementById('stat-screen');
-        stats.innerHTML = '<ul>' +
-                '<li>Level: ' + _player.level + '</li>' +
-                '<li>XP: ' + _player.xp + ' / ' + _player.xpToNextLevel() + '</li>' +
-                '<li>HP: ' + _player.health + ' / ' + _player.maxHealth() + '</li>' +
-                '<li>Damage: ' + _player.damage() + '</li>' +
-                '<li>Defense: ' + _player.defense() + '</li>' +
-                '<li>Enemy Level: ' + _enemy.level + '</li>' +
-            '</ul>';
+        stats.innerHTML = statHtml;
 
         var hasEnemySpawned = isInBattle();
         _enemy.elem.style.display = hasEnemySpawned ? '' : 'none';

@@ -4,10 +4,14 @@ import js.html.Element;
 
 import jengine.Entity;
 
+import ostm.battle.Item;
+
 class BattleMember {
     public var entity :Entity;
     public var elem :Element;
     public var isPlayer :Bool = false;
+
+    public var equipment :Map<ItemSlot, Item> = new Map<ItemSlot, Item>();
 
     public var level :Int;
     public var attackSpeed :Float;
@@ -22,6 +26,10 @@ class BattleMember {
 
     public function new(entity :Entity) {
         this.entity = entity;
+
+        for (k in ItemSlot.createAll()) {
+            equipment[k] = null;
+        }
     }
 
     public function addXp(xp :Int) :Void {
@@ -46,12 +54,38 @@ class BattleMember {
         return scaleStat(baseHealth, 0.15);
     }
     public function damage() :Int {
-        return scaleStat(baseDamage, 0.17);
+        var damage = scaleStat(baseDamage, 0.17);
+        for (item in equipment) {
+            damage += item != null ? item.attack() : 0;
+        }
+        return damage;
     }
     public function defense() :Int {
-        return scaleStat(baseDefense, 0.12);
+        var defense = scaleStat(baseDefense, 0.12);
+        for (item in equipment) {
+            defense += item != null ? item.defense() : 0;
+        }
+        return defense;
     }
     public function healthRegen() :Float {
         return maxHealth() * 0.015;
+    }
+
+    public function statHtml() :String {
+        var html = '<ul>' +
+                '<li>Level: ' + level + '</li>' +
+                '<li>XP: ' + xp + ' / ' + xpToNextLevel() + '</li>' +
+                '<li>HP: ' + health + ' / ' + maxHealth() + '</li>' +
+                '<li>Damage: ' + damage() + '</li>' +
+                '<li>Defense: ' + defense() + '</li>' +
+            '</ul>';
+        html += '<ul>';
+        for (k in equipment.keys()) {
+            var item = equipment[k];
+            var desc = item != null ? item.name() : '(none)';
+            html += '<li>' + k + ': ' + desc + '</li>';
+        }
+        html += '</ul>';
+        return html;
     }
 }
