@@ -16,6 +16,7 @@ class BattleMember {
     public var attackSpeed :Float;
     public var damage :Int;
 
+    public var xp :Int = 0;
     public var health :Int;
     public var healthPartial :Float = 0;
     public var attackTimer :Float = 0;
@@ -23,14 +24,26 @@ class BattleMember {
     public function new(entity :Entity) {
         this.entity = entity;
     }
+
+    public function xpToNextLevel() :Int {
+        return 10 + 5 * (level - 1);
+    }
+    public function addXp(xp :Int) :Void {
+        this.xp += xp;
+        var tnl = xpToNextLevel();
+        if (this.xp >= tnl) {
+            this.xp -= tnl;
+            level++;
+            maxHealth += 5;
+            damage += 1;
+        }
+    }
 }
 
 class BattleManager extends Component {
     var _player :BattleMember;
     var _enemy :BattleMember;
     var _battleMembers :Array<BattleMember> = [];
-
-    var _playerXp :Int = 0;
 
     var _enemySpawnTimer :Float = 0;
     var _isPlayerDead :Bool = false;
@@ -77,7 +90,7 @@ class BattleManager extends Component {
             }),
             new Transform(new Vec2(20, 67)),
             new ProgressBar(function() {
-                return 0.65;
+                return _player.xp / _player.xpToNextLevel();
             }, [
                 'background' => '#22ff22',
             ]),
@@ -88,6 +101,8 @@ class BattleManager extends Component {
         var stats = Browser.document.getElementById('stat-screen');
         stats.innerHTML = '<ul>' +
                 '<li>Level: ' + _player.level + '</li>' +
+                '<li>XP: ' + _player.xp + ' / ' + _player.xpToNextLevel() + '</li>' +
+                '<li>HP: ' + _player.health + ' / ' + _player.maxHealth + '</li>' +
                 '<li>Attack: ' + _player.damage + '</li>' +
             '</ul>';
 
@@ -139,6 +154,7 @@ class BattleManager extends Component {
             }
             else {
                 _killCount++;
+                _player.addXp(2);
             }
         }
     }
