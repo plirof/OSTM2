@@ -24,6 +24,11 @@ class MapGenerator extends Component {
     var _moveTimer :Float = 0;
     var _movePath :Array<MapNode> = null;
 
+    var _hints = [
+        { x: 4, y: -1, level: 0 },
+        { x: 8, y: -2, level: 5 },
+    ];
+
     public static var instance(default, null) :MapGenerator;
 
     public override function init() :Void {
@@ -87,8 +92,17 @@ class MapGenerator extends Component {
         _start.isGoldPath = true;
         selectedNode = _start;
 
-        for (i in 1...3) {
+        for (i in 1...10) {
             addLayer();
+        }
+
+        for (hint in _hints) {
+            if (hint.x < _generated.length) {
+                var node = _generated[hint.x].get(hint.y);
+                if (node != null) {
+                    node._hintLevel = hint.level;
+                }
+            }
         }
 
         _start.setOccupied();
@@ -122,7 +136,11 @@ class MapGenerator extends Component {
                 selectedNode.setOccupied();
                 BattleManager.instance.resetKillCount();
 
-                // centerCurrentNode();
+                forAllNodes(function (node) {
+                    if (node.isHint()) {
+                        node.markDirty();
+                    }
+                });
 
                 _movePath.remove(next);
                 if (_movePath.length <= 1) {
@@ -143,7 +161,7 @@ class MapGenerator extends Component {
         _generated.push(new Map<Int, MapNode>());
         var i = _generated.length - 1;
         var p = i - 1;
-        _rand.setSeed(35613 * i + 273);
+        _rand.setSeed(35613 * i + 281);
 
         var hMin = _generated.length * 11;
         var hMax = -hMin;

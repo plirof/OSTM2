@@ -31,6 +31,7 @@ class MapNode extends Component {
     var _highlightedPath :Array<MapNode> = null;
     var _isOccupied :Bool = false;
     var _dirtyFlag :Bool = true;
+    var _hintLevel :Int = -1;
 
     var _lineWidth :Float = 3;
     var _highlightedLineWidth :Float = 8;
@@ -38,6 +39,8 @@ class MapNode extends Component {
     static var kMaxRegions = 12;
     static var kMaxVisibleRegion = 4;
     static var kLaunchRegions = 4;
+
+    static var _highestVisited = 0;
 
     function new(gen :MapGenerator, d :Int, h :Int, par :MapNode) {
         map = gen;
@@ -77,7 +80,6 @@ class MapNode extends Component {
         elem.style.zIndex = cast 1;
 
         elem.style.textAlign = 'center';
-        elem.style.fontSize = '2.25em';
         elem.style.color = '#ffffff';
 
         elem.onmouseover = onMouseOver;
@@ -155,13 +157,21 @@ class MapNode extends Component {
             else if (_selectedPath != null) { borderColor = '#00ff00'; }
             else if (hasUnseenNeighbors()) { borderColor = '#008888'; }
             else { isHighlighted = false; }
-            // var borderWidth = isHighlighted ? _highlightedLineWidth : _lineWidth;
             var borderWidth = _lineWidth;
 
             elem.style.background = color;
             elem.style.border = borderWidth + 'px solid ' + borderColor;
             elem.style.display = hasSeen() ? '' : 'none';
-            elem.innerText = cast areaLevel();
+
+            if (isHintVisible() && !hasVisited()) {
+                elem.innerText = '?';
+                elem.style.fontSize = '2.25em';
+            }
+            else {
+                var lev = areaLevel();
+                elem.innerText = cast lev;
+                elem.style.fontSize = lev < 100 ? '2.25em' : '1.5em';
+            }
 
             var size = getComponent(HtmlRenderer).size;
             var pos = getTransform().pos;
@@ -258,6 +268,7 @@ class MapNode extends Component {
         _isVisible = true;
         _isVisited = true;
         _isOccupied = true;
+        _highestVisited = Util.intMax(_highestVisited, depth);
         markDirty();
 
         var bg = Browser.document.getElementById('battle-screen');
@@ -289,7 +300,7 @@ class MapNode extends Component {
     }
 
     public function hasSeen() :Bool {
-        return _isVisible && canBeSeen();
+        return _isVisible && canBeSeen() || isHintVisible();
     }
     public function hasVisited() :Bool {
         return _isVisited && canBeSeen();
@@ -317,10 +328,13 @@ class MapNode extends Component {
     }
 
     public function areaLevel() :Int {
-        return depth + Math.floor(height / 2) + 1;
+        return depth + Math.floor(Math.abs(height) / 2) + 1;
     }
 
-    public function posString() :String {
-        return '(' + depth + ', ' + height + ')';
+    public function isHint() :Bool {
+        return _hintLevel >= 0;
+    }
+    public function isHintVisible() :Bool {
+        return isHint() && _highestVisited >= _hintLevel;
     }
 }

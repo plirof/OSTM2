@@ -5,9 +5,9 @@ import haxe.Timer;
 class Time {
     public static var dt(default, null): Float;
     public static var elapsed(default, null): Float;
+    public static var timeMultiplier :Float = 15;
     static var _lastTime: Float;
     static var _startTime: Float;
-
 
     public static function init() :Void {
         dt = 0;
@@ -20,7 +20,7 @@ class Time {
     public static function update() :Void {
         var curTime: Float = Timer.stamp();
 
-        dt = curTime - _lastTime;
+        dt = (curTime - _lastTime) * timeMultiplier;
         elapsed = curTime - _startTime;
 
         _lastTime = curTime;
