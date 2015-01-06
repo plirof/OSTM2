@@ -17,7 +17,7 @@ class BattleManager extends Component {
     var _enemySpawnTimer :Float = 0;
     var _isPlayerDead :Bool = false;
     var _killCount :Int = 0;
-    static inline var kEnemySpawnTime :Float = 1;
+    static inline var kEnemySpawnTime :Float = 2;
     static inline var kPlayerDeathTime :Float = 5;
     static inline var kMaxInventoryCount :Int = 10;
 
@@ -121,10 +121,6 @@ class BattleManager extends Component {
     }
 
     public override function update() :Void {
-        var statHtml = 'Player: ' + _player.statHtml() + 'Enemy: ' + _enemy.statHtml();
-        var stats = Browser.document.getElementById('stats');
-        stats.innerHTML = statHtml;
-
         var hasEnemySpawned = isInBattle();
         _enemy.elem.style.display = hasEnemySpawned ? '' : 'none';
         if (!hasEnemySpawned) {
@@ -198,6 +194,7 @@ class BattleManager extends Component {
         var barSize = new Vec2(150, 20);
         var barX = (size.x - barSize.x) / 2;
         var system = entity.getSystem();
+        var bat = new BattleMember();
         var ent = new Entity([
             new Transform(pos),
             new HtmlRenderer({
@@ -208,10 +205,11 @@ class BattleManager extends Component {
                     'border' => '2px solid black',
                 ],
             }),
+            new StatRenderer(bat),
         ]);
         system.addEntity(ent);
 
-        var bat = new BattleMember(ent);
+        bat.entity = ent;
         bat.elem = ent.getComponent(HtmlRenderer).getElement();
 
         var hpBar = new Entity([

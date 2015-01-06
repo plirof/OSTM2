@@ -5,7 +5,7 @@ import haxe.Timer;
 class Time {
     public static var dt(default, null): Float;
     public static var elapsed(default, null): Float;
-    public static var timeMultiplier :Float = 15;
+    public static var timeMultiplier :Float = 1;
     static var _lastTime: Float;
     static var _startTime: Float;
 

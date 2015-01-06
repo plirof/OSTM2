@@ -11,7 +11,7 @@ class BattleMember {
     public var elem :Element;
     public var isPlayer :Bool = false;
 
-    public var equipment :Map<ItemSlot, Item> = new Map<ItemSlot, Item>();
+    public var equipment = new Map<ItemSlot, Item>();
 
     public var level :Int;
     public var attackSpeed :Float;
@@ -20,13 +20,11 @@ class BattleMember {
     public var baseDefense :Int;
 
     public var xp :Int = 0;
-    public var health :Int;
+    public var health :Int = 0;
     public var healthPartial :Float = 0;
     public var attackTimer :Float = 0;
 
-    public function new(entity :Entity) {
-        this.entity = entity;
-
+    public function new() {
         for (k in ItemSlot.createAll()) {
             equipment[k] = null;
         }
@@ -73,26 +71,5 @@ class BattleMember {
 
     public function equip(item :Item) :Void {
         equipment[item.type.slot] = item;
-    }
-
-    public function statHtml() :String {
-        var html = '<ul>' +
-                '<li>Level: ' + level + '</li>' +
-                '<li>XP: ' + xp + ' / ' + xpToNextLevel() + '</li>' +
-                '<li>HP: ' + health + ' / ' + maxHealth() + '</li>' +
-                '<li>Damage: ' + damage() + '</li>' +
-                '<li>Defense: ' + defense() + '</li>' +
-            '</ul>';
-
-        if (isPlayer) {
-            html += '<ul>';
-            for (k in equipment.keys()) {
-                var item = equipment[k];
-                var desc = item != null ? item.name() : '(none)';
-                html += '<li>' + k + ': ' + desc + '</li>';
-            }
-            html += '</ul>';
-        }
-        return html;
     }
 }

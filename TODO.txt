@@ -6,6 +6,9 @@ Battle
 - more-real stat scaling
 - abilities
 
+Items
+- Magic affixes
+
 Overall
 - saving
 - screen switching architecture
