@@ -1,0 +1,11 @@
+Classes
+
+Purpose
+    The class system lets players build up a character and carve out an identity, that persists across rebirths.
+
+Summary
+    The player character can choose what class to play as. Each class has its own stat modifiers, passive skill tree, and learnable active skills.
+
+Rebirth
+    Changing from class A to class B will reset the player's current level to 1.
+    //TODO: more detail, move this to its own file

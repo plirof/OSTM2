@@ -1,0 +1,14 @@
+Active Skills
+
+Acquisition
+    Each class has a number of active skills that can only be learned while playing that class.
+    Skills are purchased with currency (gems?).
+    Skills are generally locked until the previous skill reaches a certain level.
+
+Slots
+    Players can equip up to five active skills for use in battle at a time. Skills can only be changed when in town.
+
+Leveling
+    Using an active skill gives xp for that skill, which will level up when xp is high enough. (xp gained per use is tuned proportional to how spammable the skill is; cost, cooldown, situationalness, etc are factors to consider)
+    When a skill levels up, its power increases in skill-specific ways (higher attack power, bonus crit chance, lower cooldown, etc)
+    Skills soft-cap at level 10, but continue to level much more slowly, gaining smaller amounts of power, until level 20. (level 30 skills are roughly equivalent to a level 12 skill, before diminishing gains)

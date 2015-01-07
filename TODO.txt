@@ -4,10 +4,13 @@ Map
 
 Battle
 - more-real stat scaling
+- Skill trees
 - abilities
 
 Items
 - Magic affixes
+- Upgrading
+- Enchanting
 
 Overall
 - saving
@@ -15,3 +18,9 @@ Overall
 - htmlrenderer improvements
     - %-based pos (i.e., left 25%)
     - anchor point (center, topleft; set by vec2)
+
+Refactors
+- MapGenerator <-> MapNode separation of concerns
+
+Engine
+- Singleton class w/ autobuild macro

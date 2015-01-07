@@ -1,0 +1,16 @@
+Runes
+
+Summary
+    Runes give flat bonuses to base stats, and can be combined to give higher bonuses.
+
+Slots
+    Player starts with 1 active rune slot, and can get more with gold. Cost increases by a large exponent per slot.
+    Runes have no required level to equip.
+    There is no limit to unequipped rune storage.
+
+Scaling
+    Runes can be combined at a ratio of 3:1 to the next level. A rune one level higher gives twice the stat bonus.
+        - or some repeating progression like: 5 8 14 26 50 80 140 260 500 ...
+
+Acquisition
+    Runes are found very rarely from enemies, at a random level between 1 and log(enemy level)
