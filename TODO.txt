@@ -1,5 +1,6 @@
 Map
 - discover connections, not nodes
+- center view on start node
 - towns
 
 Battle

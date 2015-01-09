@@ -62,4 +62,12 @@ abstract Vec2(Vec2_Impl) to Vec2_Impl from Vec2_Impl {
     public static function unit(radians :Float) :Vec2 {
         return new Vec2(Math.cos(radians), Math.sin(radians));
     }
+
+    public function angle() :Float {
+        return Math.atan2(this.y, this.x);
+    }
+
+    public function rotate(ang :Float) :Vec2 {
+        return unit(ang + angle()) * this.length();
+    }
 }

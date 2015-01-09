@@ -93,6 +93,10 @@ class BattleManager extends Component {
             var li = Browser.document.createLIElement();
             inventory.appendChild(li);
             
+            var name = Browser.document.createSpanElement();
+            name.innerText = item.name();
+            li.appendChild(name);
+
             var equip = Browser.document.createButtonElement();
             equip.innerText = 'Equip';
             equip.onclick = function (event) {
@@ -106,10 +110,6 @@ class BattleManager extends Component {
             };
             li.appendChild(equip);
             
-            var name = Browser.document.createSpanElement();
-            name.innerText = item.name();
-            li.appendChild(name);
-
             var discard = Browser.document.createButtonElement();
             discard.innerText = 'Discard';
             discard.onclick = function (event) {
@@ -117,6 +117,9 @@ class BattleManager extends Component {
                 updateInventoryHtml();
             };
             li.appendChild(discard);
+
+            var body = item.bodyHtml();
+            li.appendChild(body);
         }
     }
 

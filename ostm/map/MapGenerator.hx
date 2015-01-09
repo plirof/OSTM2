@@ -111,6 +111,7 @@ class MapGenerator extends Component {
         }
 
         _start.setOccupied();
+        centerCurrentNode();
     }
 
     public override function update() {
