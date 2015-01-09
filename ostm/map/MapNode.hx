@@ -13,17 +13,17 @@ typedef MapLine = {
     var offset :Vec2;
 };
 
-@:allow(ostm.map.MapGenerator)
 class MapNode extends Component {
-    var lines :Array<MapLine>;
+    var lines = new Array<MapLine>();
     var map :MapGenerator;
-    var neighbors :Array<MapNode>;
+    public var neighbors(default, null) = new Array<MapNode>();
     public var depth(default, null) :Int;
     public var height(default, null) :Int;
-    var region :Int = 0;
-    var isGoldPath :Bool = false;
+    public var region(default, null) :Int = 0;
+    public var isGoldPath(default, null) :Bool = false;
+    var _parent :MapNode;
 
-    var elem :Element;
+    public var elem(default, null) :Element;
 
     var _isVisible :Bool = false;
     var _isVisited :Bool = false;
@@ -36,9 +36,9 @@ class MapNode extends Component {
     var _lineWidth :Float = 3;
     var _highlightedLineWidth :Float = 8;
 
-    static var kMaxRegions = 12;
-    static var kMaxVisibleRegion = 4;
-    static var kLaunchRegions = 4;
+    public static inline var kMaxRegions = 12;
+    public static inline var kMaxVisibleRegion = 4;
+    public static inline var kLaunchRegions = 4;
 
     static var _highestVisited = 0;
 
@@ -46,11 +46,15 @@ class MapNode extends Component {
         map = gen;
         depth = d;
         height = h;
-        lines = [];
-        neighbors = new Array<MapNode>();
         if (par != null) {
-            neighbors.push(par);
+            _parent = par;
+            region = _parent.region;
+            addNeighbor(par);
         }
+    }
+
+    public function setHint(hint) :Void {
+        _hintLevel = hint.level;
     }
 
     public function addNeighbor(node :MapNode) :Void {
@@ -66,7 +70,7 @@ class MapNode extends Component {
         node.neighbors.remove(this);
     }
 
-    function getRandomRegion(rand :MapRandom) :Int {
+    function getRandomRegion(rand :StaticRandom) :Int {
         var d = rand.randomElement([-1, 1, 1, 2]);
         var max = isGoldPath ? kLaunchRegions : kMaxRegions;
         return (region + max + d) % max;
@@ -286,6 +290,9 @@ class MapNode extends Component {
         _highlightedPath = null;
         markDirty();
     }
+    public function setGoldPath() :Void {
+        isGoldPath = true;
+    }
     public function markNeighborsVisible() :Void {
         for (node in neighbors) {
             node.setVisible();
@@ -336,5 +343,9 @@ class MapNode extends Component {
     }
     public function isHintVisible() :Bool {
         return isHint() && _highestVisited >= _hintLevel;
+    }
+
+    public function setNewRegion(parent :MapNode, rand :StaticRandom) :Void {
+        region = parent.getRandomRegion(rand);
     }
 }

@@ -1,6 +1,6 @@
 package ostm.map;
 
-class MapRandom {
+class StaticRandom {
     var seed :Int = 0;
 
     static var kRandMax :Int = 19001;

@@ -7,13 +7,19 @@ import jengine.*;
 import jengine.util.*;
 import ostm.battle.*;
 
+typedef MapHint = {
+    x :Int,
+    y :Int,
+    level :Int,
+}
+
 class MapGenerator extends Component {
     public var selectedNode(default, null) :MapNode;
     
     var _generated :Array<Map<Int, MapNode>>;
     var _start :MapNode;
 
-    var _rand :MapRandom;
+    var _rand = new StaticRandom();
 
     var _scrollHelper :Entity;
 
@@ -24,7 +30,7 @@ class MapGenerator extends Component {
     var _moveTimer :Float = 0;
     var _movePath :Array<MapNode> = null;
 
-    var _hints = [
+    var _hints :Array<MapHint> = [
         { x: 4, y: -1, level: 0 },
         { x: 8, y: -2, level: 5 },
     ];
@@ -36,7 +42,6 @@ class MapGenerator extends Component {
     }
 
     public override function start() :Void {
-        _rand = new MapRandom();
         _generated = new Array<Map<Int, MapNode>>();
         _generated.push(new Map<Int, MapNode>());
         
@@ -89,7 +94,7 @@ class MapGenerator extends Component {
         ]));
 
         _start = addNode(null, 0, 0);
-        _start.isGoldPath = true;
+        _start.setGoldPath();
         selectedNode = _start;
 
         for (i in 1...10) {
@@ -100,7 +105,7 @@ class MapGenerator extends Component {
             if (hint.x < _generated.length) {
                 var node = _generated[hint.x].get(hint.y);
                 if (node != null) {
-                    node._hintLevel = hint.level;
+                    node.setHint(hint);
                 }
             }
         }
@@ -189,11 +194,12 @@ class MapGenerator extends Component {
                 var node = _generated[i].get(j);
                 if (node == null) {
                     node = addNode(parent, i, j);
-                    node.region = parent.region;
                     if (_rand.randomBool(kNewRegionChance)) {
-                        node.region = parent.getRandomRegion(_rand);
+                        node.setNewRegion(parent, _rand);
                     }
-                    node.isGoldPath = shouldSetGold;
+                    if (shouldSetGold) {
+                        node.setGoldPath();
+                    }
                     didAddPath = true;
                     shouldSetGold = false;
                 }
@@ -202,10 +208,10 @@ class MapGenerator extends Component {
                     node.addNeighbor(parent);
                     if (shouldSetGold &&
                         (_rand.randomBool(kNewRegionChance) || node.region >= MapNode.kLaunchRegions)) {
-                        node.region = parent.getRandomRegion(_rand);
+                        node.setNewRegion(parent, _rand);
                     }
                     if (shouldSetGold) {
-                        node.isGoldPath = true;
+                        node.setGoldPath();
                     }
                     didAddPath = true;
                     shouldSetGold = false;
@@ -240,9 +246,6 @@ class MapGenerator extends Component {
             node,
         ]);
         entity.getSystem().addEntity(ent);
-        if (parent != null) {
-            parent.neighbors.push(node);
-        }
 
         _generated[i][j] = node;
         return node;
