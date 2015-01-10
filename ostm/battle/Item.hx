@@ -36,7 +36,7 @@ class ItemAffix {
     }
 
     public function text() :String {
-        return description + ' +' + level;
+        return '+' + level + ' ' + description;
     }
 }
 
@@ -50,7 +50,7 @@ class Item {
         this.type = type;
         this.level = level;
 
-        var nAffixes = Random.randomIntRange(0, 3);
+        var nAffixes = Random.randomIntRange(0, 4);
         while (nAffixes > 0) {
             var desc = Random.randomElement(['Attack', 'Defense', 'HP', 'Speed', 'Boop', 'Bap']);
             var lev = Random.randomIntRange(1, level + 1);
@@ -62,6 +62,57 @@ class Item {
 
     public function name() :String {
         return 'L' + level + ' ' + type.name;
+    }
+
+    public function equip(event) {
+        var player = BattleManager.instance.getPlayer();
+        var cur = player.equipment[type.slot];
+        if (cur != null) {
+            Inventory.instance.push(cur);
+        }
+        player.equip(this);
+        Inventory.instance.remove(this);
+
+        Inventory.instance.updateInventoryHtml();
+    }
+
+    public function discard(event) {
+        Inventory.instance.remove(this);
+
+        Inventory.instance.updateInventoryHtml();
+    }
+
+    function getColor() :String {
+        switch (affixes.length) {
+            case 3: return '#ff4400';
+            case 2: return '#0044ff';
+            case 1: return '#22ff22';
+            default: return '#000000';
+        }
+    }
+
+    public function createElement() :Element {
+        var li = Browser.document.createLIElement();
+        
+        var name = Browser.document.createSpanElement();
+        name.innerText = this.name();
+        name.style.color = getColor();
+        li.appendChild(name);
+
+        var equip = Browser.document.createButtonElement();
+        equip.innerText = 'Equip';
+        equip.onclick = this.equip;
+        li.appendChild(equip);
+        
+        var discard = Browser.document.createButtonElement();
+        discard.innerText = 'Discard';
+        discard.onclick = this.discard;
+        li.appendChild(discard);
+
+        var body = bodyHtml();
+        li.appendChild(body);
+
+        return li;
     }
 
     public function bodyHtml() :Element {
@@ -78,6 +129,7 @@ class Item {
         for (affix in affixes) {
             var aff = Browser.document.createLIElement();
             aff.innerText = affix.text();
+            aff.style.fontStyle = 'italic';
             list.appendChild(aff);
         }
 

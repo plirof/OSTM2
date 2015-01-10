@@ -24,12 +24,9 @@ class GameMain extends JEngineMain {
 
 	public function new() {
 		var entityList = [
-            new Entity([
-                new MapGenerator(),
-            ]),
-            new Entity([
-                new BattleManager(),
-            ]),
+            new Entity([ new MapGenerator() ]),
+            new Entity([ new BattleManager() ]),
+            new Entity([ new Inventory() ]),
         ];
 
         // for (i in 0...5) {
