@@ -94,22 +94,31 @@ class Item {
     public function createElement() :Element {
         var li = Browser.document.createLIElement();
         
-        var name = Browser.document.createSpanElement();
-        name.innerText = this.name();
-        name.style.color = getColor();
-        li.appendChild(name);
-
         var equip = Browser.document.createButtonElement();
         equip.innerText = 'Equip';
         equip.onclick = this.equip;
-        li.appendChild(equip);
         
         var discard = Browser.document.createButtonElement();
         discard.innerText = 'Discard';
         discard.onclick = this.discard;
-        li.appendChild(discard);
+
+        var name = Browser.document.createSpanElement();
+        name.innerText = this.name();
+        name.style.color = getColor();
 
         var body = bodyHtml();
+
+        body.style.display = 'none';
+        li.onmouseover = function(event) {
+            body.style.display = '';
+        };
+        li.onmouseout = function(event) {
+            body.style.display = 'none';
+        };
+
+        body.appendChild(equip);
+        body.appendChild(discard);
+        li.appendChild(name);
         li.appendChild(body);
 
         return li;
