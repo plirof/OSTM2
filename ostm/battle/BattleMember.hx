@@ -72,4 +72,7 @@ class BattleMember {
     public function equip(item :Item) :Void {
         equipment[item.type.slot] = item;
     }
+    public function unequip(item :Item) :Void {
+        equipment[item.type.slot] = null;
+    }
 }

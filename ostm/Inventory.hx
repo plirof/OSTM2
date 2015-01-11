@@ -18,6 +18,7 @@ class Inventory extends Component {
         new ItemType('Boots', Boots, 0, 1),
     ];
     var _inventory :Array<Item> = [];
+
     static inline var kMaxInventoryCount :Int = 10;
 
     public static var instance(default, null) :Inventory;
@@ -36,8 +37,8 @@ class Inventory extends Component {
 
     public function updateInventoryHtml() :Void {
         var inventory = Browser.document.getElementById('inventory');
-        while (inventory.children.length > 0) {
-            inventory.removeChild(inventory.children[0]);
+        while (inventory.childElementCount > 0) {
+            inventory.removeChild(inventory.firstChild);
         }
 
         var count = Browser.document.createLIElement();
@@ -51,7 +52,7 @@ class Inventory extends Component {
 
     function appendItemHtml(item :Item) {
         var inventory = Browser.document.getElementById('inventory');
-        var li = item.createElement();
+        var li = item.createElement('li', false);
         inventory.appendChild(li);
     }
 
@@ -62,13 +63,18 @@ class Inventory extends Component {
         _inventory.remove(item);
     }
 
+    public function hasSpaceForItem() :Bool {
+        return _inventory.length < kMaxInventoryCount;
+    }
+
     public function tryRewardItem(maxLevel :Int) :Void {
-        if (Random.randomBool(10.35) && _inventory.length < kMaxInventoryCount) {
+        if (Random.randomBool(10.35) && hasSpaceForItem()) {
             var type = Random.randomElement(_itemTypes);
             var level = Random.randomIntRange(1, maxLevel + 1);
             var item = new Item(type, level);
             _inventory.push(item);
-            appendItemHtml(item);
+
+            updateInventoryHtml();
         }
     }
 }

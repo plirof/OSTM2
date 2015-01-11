@@ -64,7 +64,7 @@ class Item {
         return 'L' + level + ' ' + type.name;
     }
 
-    public function equip(event) {
+    function equip(event) {
         var player = BattleManager.instance.getPlayer();
         var cur = player.equipment[type.slot];
         if (cur != null) {
@@ -76,10 +76,21 @@ class Item {
         Inventory.instance.updateInventoryHtml();
     }
 
-    public function discard(event) {
+    function discard(event) {
         Inventory.instance.remove(this);
 
         Inventory.instance.updateInventoryHtml();
+    }
+
+    function unequip(event) {
+        var player = BattleManager.instance.getPlayer();
+        var cur = player.equipment[type.slot];
+        if (cur == this && Inventory.instance.hasSpaceForItem()) {
+            player.unequip(this);
+
+            Inventory.instance.push(this);
+            Inventory.instance.updateInventoryHtml();
+        }
     }
 
     function getColor() :String {
@@ -91,58 +102,59 @@ class Item {
         }
     }
 
-    public function createElement() :Element {
-        var li = Browser.document.createLIElement();
-        
-        var equip = Browser.document.createButtonElement();
-        equip.innerText = 'Equip';
-        equip.onclick = this.equip;
-        
-        var discard = Browser.document.createButtonElement();
-        discard.innerText = 'Discard';
-        discard.onclick = this.discard;
+    public function createElement(elemTag :String, isEquipped :Bool) :Element {
+        var elem = Browser.document.createElement(elemTag);
 
         var name = Browser.document.createSpanElement();
         name.innerText = this.name();
         name.style.color = getColor();
+        elem.appendChild(name);
 
-        var body = bodyHtml();
-
+        var body = Browser.document.createUListElement();
         body.style.display = 'none';
-        li.onmouseover = function(event) {
+        elem.onmouseover = function(event) {
             body.style.display = '';
         };
-        li.onmouseout = function(event) {
+        elem.onmouseout = function(event) {
             body.style.display = 'none';
         };
 
-        body.appendChild(equip);
-        body.appendChild(discard);
-        li.appendChild(name);
-        li.appendChild(body);
-
-        return li;
-    }
-
-    public function bodyHtml() :Element {
-        var list = Browser.document.createUListElement();
-
         var atk = Browser.document.createLIElement();
         atk.innerText = 'Attack: ' + attack();
-        list.appendChild(atk);
+        body.appendChild(atk);
 
         var def = Browser.document.createLIElement();
         def.innerText = 'Defense: ' + defense();
-        list.appendChild(def);
+        body.appendChild(def);
 
         for (affix in affixes) {
             var aff = Browser.document.createLIElement();
             aff.innerText = affix.text();
             aff.style.fontStyle = 'italic';
-            list.appendChild(aff);
+            body.appendChild(aff);
         }
 
-        return list;
+        if (!isEquipped) {
+            var equip = Browser.document.createButtonElement();
+            equip.innerText = 'Equip';
+            equip.onclick = this.equip;
+            body.appendChild(equip);
+
+            var discard = Browser.document.createButtonElement();
+            discard.innerText = 'Discard';
+            discard.onclick = this.discard;
+            body.appendChild(discard);
+        }
+        else {
+            var unequip = Browser.document.createButtonElement();
+            unequip.innerText = 'Unequip';
+            unequip.onclick = this.unequip;
+            body.appendChild(unequip);
+        }
+
+        elem.appendChild(body);
+
+        return elem;
     }
 
     public function attack() :Int {

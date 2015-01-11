@@ -16,6 +16,7 @@ class StatRenderer extends Component {
     var _defense :Element;
 
     var _equipment = new Map<ItemSlot, Element>();
+    var _cachedEquip = new Map<ItemSlot, Item>();
 
     public function new(member) {
         _member = member;
@@ -40,6 +41,7 @@ class StatRenderer extends Component {
             var equip = createAndAddTo('ul', stats);
             for (k in _member.equipment.keys()) {
                 _equipment[k] = createAndAddTo('li', equip);
+                updateEquipSlot(k);
             }
         }
     }
@@ -60,9 +62,33 @@ class StatRenderer extends Component {
         if (_member.isPlayer) {
             for (k in _equipment.keys()) {
                 var item = _member.equipment[k];
-                var desc = item != null ? item.name() : '(none)';
-                _equipment[k].innerText = k + ': ' + desc;
+                if (_cachedEquip[k] != item) {
+                    _cachedEquip[k] = item;
+                    updateEquipSlot(k);
+                }
             }
+        }
+    }
+
+    function updateEquipSlot(slot :ItemSlot) :Void {
+        var item = _member.equipment[slot];
+        var elem = _equipment[slot];
+        while (elem.childElementCount > 0) {
+            elem.removeChild(elem.firstChild);
+        }
+        
+        var slotName = Browser.document.createSpanElement();
+        slotName.innerText = slot + ': ';
+        elem.appendChild(slotName);
+
+        if (item == null) {
+            var nullItem = Browser.document.createSpanElement();
+            nullItem.innerText = '(none)';
+            nullItem.style.fontStyle = 'italic';
+            elem.appendChild(nullItem);
+        }
+        else {
+            elem.appendChild(item.createElement('ul', true));
         }
     }
 }
