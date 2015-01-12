@@ -1,4 +1,4 @@
-package ostm;
+package ostm.item;
 
 import js.*;
 import js.html.*;
@@ -6,7 +6,6 @@ import js.html.*;
 import jengine.Component;
 import jengine.util.Random;
 
-import ostm.battle.Item;
 import ostm.battle.BattleManager;
 
 class Inventory extends Component {

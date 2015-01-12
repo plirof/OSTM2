@@ -4,7 +4,9 @@ import js.*;
 import js.html.*;
 
 import jengine.*;
-import ostm.battle.Item;
+
+import ostm.item.Item;
+import ostm.item.ItemType;
 
 class StatRenderer extends Component {
     var _member :BattleMember;

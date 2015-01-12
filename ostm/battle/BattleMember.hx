@@ -4,7 +4,8 @@ import js.html.Element;
 
 import jengine.Entity;
 
-import ostm.battle.Item;
+import ostm.item.Item;
+import ostm.item.ItemType;
 
 class BattleMember {
     public var entity :Entity;

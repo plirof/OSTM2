@@ -1,30 +1,12 @@
-package ostm.battle;
+package ostm.item;
 
 import js.*;
 import js.html.*;
 
 import jengine.util.*;
 
-enum ItemSlot {
-    Weapon;
-    Body;
-    Helmet;
-    Boots;
-}
-
-class ItemType {
-    public var name :String;
-    public var slot :ItemSlot;
-    public var attack :Float;
-    public var defense :Float;
-
-    public function new(name, slot, attack, defense) {
-        this.name = name;
-        this.slot = slot;
-        this.attack = attack;
-        this.defense = defense;
-    }
-}
+import ostm.battle.BattleManager;
+import ostm.item.ItemType;
 
 class ItemAffix {
     var description :String;

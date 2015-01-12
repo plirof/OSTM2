@@ -7,7 +7,8 @@ import jengine.*;
 import jengine.util.*;
 
 import ostm.map.MapGenerator;
-import ostm.battle.Item;
+import ostm.item.Item;
+import ostm.item.Inventory;
 
 class BattleManager extends Component {
     var _player :BattleMember;
