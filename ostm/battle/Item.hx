@@ -95,10 +95,10 @@ class Item {
 
     function getColor() :String {
         switch (affixes.length) {
-            case 3: return '#ff4400';
-            case 2: return '#0044ff';
+            case 3: return '#ffff00';
+            case 2: return '#0099ff';
             case 1: return '#22ff22';
-            default: return '#000000';
+            default: return '#ffffff';
         }
     }
 
@@ -107,6 +107,7 @@ class Item {
 
         var name = Browser.document.createSpanElement();
         name.innerText = this.name();
+        name.style.fontSize = cast 20;
         name.style.color = getColor();
         elem.appendChild(name);
 

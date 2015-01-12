@@ -2,6 +2,16 @@ body,
 html {
     -webkit-user-select: none;
     -webkit-user-drag: none;
+
+    font-family: 'Myriad Pro', fantasy, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow:
+        1px 0 1px #000000,
+        -1px 0 1px #000000,
+        0 1px 1px #000000,
+        0 -1px 1px #000000;
 }
 
 #game-header {
@@ -58,4 +68,14 @@ div {
 #battle-screen {
     height: 50%;
     top: 50%;
+}
+
+.outlined {
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow:
+        1px 0 1px #000000,
+        -1px 0 1px #000000,
+        0 1px 1px #000000,
+        0 -1px 1px #000000;
 }
