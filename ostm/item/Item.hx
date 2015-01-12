@@ -6,37 +6,22 @@ import js.html.*;
 import jengine.util.*;
 
 import ostm.battle.BattleManager;
-import ostm.item.ItemType;
-
-class ItemAffix {
-    var description :String;
-    var level :Int;
-
-    public function new(desc, lev) {
-        description = desc;
-        level = lev;
-    }
-
-    public function text() :String {
-        return '+' + level + ' ' + description;
-    }
-}
 
 class Item {
     public var type :ItemType;
     public var level :Int;
 
-    public var affixes :Array<ItemAffix> = [];
+    public var affixes :Array<Affix> = [];
 
     public function new(type :ItemType, level :Int) {
         this.type = type;
         this.level = level;
 
         var nAffixes = Random.randomIntRange(0, 4);
-        while (nAffixes > 0) {
-            var desc = Random.randomElement(['Attack', 'Defense', 'HP', 'Speed', 'Boop', 'Bap']);
+        var selectedAffixes = Random.randomElements(Affix.affixTypes, nAffixes);
+        for (type in selectedAffixes) {
             var lev = Random.randomIntRange(1, level + 1);
-            var affix = new ItemAffix(desc, lev);
+            var affix = new Affix(type, lev, this.type.slot);
             affixes.push(affix);
             nAffixes--;
         }

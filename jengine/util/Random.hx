@@ -16,4 +16,20 @@ class Random {
         }
         return null;
     }
+    public static function randomElements<T>(array :Array<T>, count :Int) :Array<T> {
+        var rets = [];
+        var num = Util.intMin(count, array.length);
+        for (n in 0...num) {
+            var startIndex = randomIntRange(0, array.length);
+            for (i in 0...array.length) {
+                var index = (startIndex + i) % array.length;
+                var item = array[index];
+                if (rets.indexOf(item) == -1) {
+                    rets.push(item);
+                    break;
+                }
+            }
+        }
+        return rets;
+    }
 }
