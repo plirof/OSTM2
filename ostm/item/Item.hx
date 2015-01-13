@@ -75,7 +75,6 @@ class Item {
 
         var name = Browser.document.createSpanElement();
         name.innerText = this.name();
-        name.style.fontSize = cast 20;
         name.style.color = getColor();
         elem.appendChild(name);
 

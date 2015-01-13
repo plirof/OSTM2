@@ -33,16 +33,6 @@ class GameMain extends JEngineMain {
             new Entity([ new SaveManager() ]),
         ];
 
-        var toSave :Array<Saveable> = [
-            new SaveTest('first', 'hi ma'),
-            new SaveTest('second', 'yo guy'),
-        ];
-        SaveManager.instance.addItems(toSave);
-        trace(SaveManager.instance.saveString());
-        
-        SaveManager.instance.loadString('first$:what$,second$:maaaaan$,third$:poop');
-        trace(SaveManager.instance.saveString());
-
         MouseManager.init();
 
 		super(entityList);

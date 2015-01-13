@@ -11,24 +11,35 @@ class EntitySystem {
         ent._system = this;
     }
 
+    function forAllComponents(f :Component -> Void) :Void {
+        for (ent in _entities) {
+            ent.forAllComponents(f);
+        }
+    }
+
     public function update() :Void {
         for (ent in _entities) {
             if (!ent._hasStarted) {
                 ent.forAllComponents(function (cmp) {
                     cmp.start();
                 });
+            }
+        }
+        for (ent in _entities) {
+            if (!ent._hasStarted) {
+                ent.forAllComponents(function (cmp) {
+                    cmp.postStart();
+                });
                 ent._hasStarted = true;
             }
-            ent.forAllComponents(function (cmp) {
-                cmp.update();
-            });
         }
 
-        for (ent in _entities) {
-            ent.forAllComponents(function (cmp) {
-                cmp.draw();
-            });
-        }
+        forAllComponents(function (cmp) {
+            cmp.update();
+        });
+        forAllComponents(function (cmp) {
+            cmp.draw();
+        });
     }
 
     public function removeEntity(ent :Entity) :Void {

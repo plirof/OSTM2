@@ -28,11 +28,10 @@ class BattleManager extends Component {
     }
 
     public override function start() :Void {
-        _player = addBattleMember(new Vec2(125, 200));
+        _player = addBattleMember(true, new Vec2(125, 200));
         _player.elem.style.background = '#0088ff';
-        _enemy = addBattleMember(new Vec2(400, 200));
+        _enemy = addBattleMember(false, new Vec2(400, 200));
 
-        _player.isPlayer = true;
         _player.level = 1;
         _player.baseHealth = 100;
         _player.attackSpeed = 1.8;
@@ -131,13 +130,13 @@ class BattleManager extends Component {
         }
     }
 
-    function addBattleMember(pos :Vec2) :BattleMember {
+    function addBattleMember(isPlayer :Bool, pos :Vec2) :BattleMember {
         var id = 'battle-member-' + _battleMembers.length;
         var size = new Vec2(60, 60);
         var barSize = new Vec2(150, 20);
         var barX = (size.x - barSize.x) / 2;
         var system = entity.getSystem();
-        var bat = new BattleMember();
+        var bat = new BattleMember(isPlayer);
         var ent = new Entity([
             new Transform(pos),
             new HtmlRenderer({

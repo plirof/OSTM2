@@ -11,6 +11,7 @@ class Component {
     public function init() :Void { }
     public function deinit() :Void { }
     public function start() :Void { }
+    public function postStart() :Void { }
     public function update() :Void { }
     public function draw() :Void { }
 

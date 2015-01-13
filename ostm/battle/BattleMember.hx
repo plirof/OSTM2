@@ -3,15 +3,18 @@ package ostm.battle;
 import js.html.Element;
 
 import jengine.Entity;
+import jengine.SaveManager;
 
 import ostm.item.Affix;
 import ostm.item.Item;
 import ostm.item.ItemType;
 
-class BattleMember {
+class BattleMember implements Saveable {
+    public var saveId(default, null) :String;
+
     public var entity :Entity;
     public var elem :Element;
-    public var isPlayer :Bool = false;
+    public var isPlayer(default, null) :Bool;
 
     public var equipment = new Map<ItemSlot, Item>();
 
@@ -26,9 +29,15 @@ class BattleMember {
     public var healthPartial :Float = 0;
     public var attackTimer :Float = 0;
 
-    public function new() {
+    public function new(isPlayer :Bool) {
         for (k in ItemSlot.createAll()) {
             equipment[k] = null;
+        }
+
+        this.isPlayer = isPlayer;
+        if (this.isPlayer) {
+            this.saveId = 'player';
+            SaveManager.instance.addItem(this);
         }
     }
 
@@ -89,5 +98,19 @@ class BattleMember {
     }
     public function unequip(item :Item) :Void {
         equipment[item.type.slot] = null;
+    }
+
+    public function serialize() :Dynamic {
+        return {
+            xp: this.xp,
+            level: this.level,
+            health: this.health,
+        };
+    }
+
+    public function deserialize(data :Dynamic) :Void {
+        xp = data.xp;
+        level = data.level;
+        health = data.health;
     }
 }
