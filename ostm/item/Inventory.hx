@@ -27,10 +27,6 @@ class Inventory extends Component {
     }
 
     public override function start() :Void {
-        for (i in 0...5) {
-            tryRewardItem(5);
-        }
-
         updateInventoryHtml();
     }
 
@@ -67,7 +63,7 @@ class Inventory extends Component {
     }
 
     public function tryRewardItem(maxLevel :Int) :Void {
-        if (Random.randomBool(10.35) && hasSpaceForItem()) {
+        if (Random.randomBool(0.35) && hasSpaceForItem()) {
             var type = Random.randomElement(_itemTypes);
             var level = Random.randomIntRange(1, maxLevel + 1);
             var item = new Item(type, level);

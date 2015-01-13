@@ -6,12 +6,13 @@ import js.html.*;
 import jengine.util.*;
 
 import ostm.battle.BattleManager;
+import ostm.item.Affix;
 
 class Item {
-    public var type :ItemType;
-    public var level :Int;
+    public var type(default, null) :ItemType;
+    var level :Int;
 
-    public var affixes :Array<Affix> = [];
+    var affixes :Array<Affix> = [];
 
     public function new(type :ItemType, level :Int) {
         this.type = type;
@@ -125,10 +126,22 @@ class Item {
         return elem;
     }
 
+    public function sumAffixes(?mod :AffixModifier) :AffixModifier {
+        if (mod == null) {
+            mod = new AffixModifier();
+        }
+        for (affix in affixes) {
+            affix.applyModifier(mod);
+        }
+        return mod;
+    }
+
     public function attack() :Int {
-        return Math.round(type.attack * (1 + 0.4 * (level - 1)));
+        var atk = Math.round(type.attack * (1 + 0.4 * (level - 1)));
+        return atk + sumAffixes().flatAttack;
     }
     public function defense() :Int {
-        return Math.round(type.defense * (1 + 0.4 * (level - 1)));
+        var def = Math.round(type.defense * (1 + 0.4 * (level - 1)));
+        return def + sumAffixes().flatDefense;
     }
 }

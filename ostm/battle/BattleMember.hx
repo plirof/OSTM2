@@ -4,6 +4,7 @@ import js.html.Element;
 
 import jengine.Entity;
 
+import ostm.item.Affix;
 import ostm.item.Item;
 import ostm.item.ItemType;
 
@@ -49,8 +50,21 @@ class BattleMember {
     function scaleStat(base :Int, scale :Float) :Int {
         return Math.round(base * (1 + (level - 1) * scale));
     }
+    function sumAffixes() :AffixModifier {
+        var mod = new AffixModifier();
+        for (item in equipment) {
+            if (item != null) {
+                item.sumAffixes(mod);
+            }
+        }
+        return mod;
+    }
     public function maxHealth() :Int {
-        return scaleStat(baseHealth, 0.15);
+        var mod = sumAffixes();
+        var hp = scaleStat(baseHealth, 0.15);
+        hp += mod.flatHealth;
+        hp = Math.floor(hp * (1 + mod.percentHealth / 100));
+        return hp;
     }
     public function damage() :Int {
         var damage = scaleStat(baseDamage, 0.17);

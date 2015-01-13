@@ -169,12 +169,12 @@ class MapNode extends Component {
 
             if (isHintVisible() && !hasVisited()) {
                 elem.innerText = '?';
-                elem.style.fontSize = '2.25em';
+                elem.style.fontSize = '30px';
             }
             else {
                 var lev = areaLevel();
                 elem.innerText = cast lev;
-                elem.style.fontSize = lev < 100 ? '2.25em' : '1.5em';
+                elem.style.fontSize = lev < 100 ? '30px' : '20px';
             }
 
             var size = getComponent(HtmlRenderer).size;
