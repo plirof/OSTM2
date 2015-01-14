@@ -40,6 +40,14 @@ class Inventory extends Component {
         count.innerText = 'Capacity: ' + _inventory.length + ' / ' + kMaxInventoryCount;
         inventory.appendChild(count);
 
+        var clear = Browser.document.createButtonElement();
+        clear.innerText = 'Discard All';
+        clear.onclick = function (event) {
+            _inventory = [];
+            updateInventoryHtml();
+        };
+        inventory.appendChild(clear);
+
         for (item in _inventory) {
             appendItemHtml(item);
         }
