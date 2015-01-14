@@ -348,4 +348,18 @@ class MapNode extends Component {
     public function setNewRegion(parent :MapNode, rand :StaticRandom) :Void {
         region = parent.getRandomRegion(rand);
     }
+
+    public function serialize() :Dynamic {
+        return {
+            x: depth,
+            y: height,
+            visible: _isVisible,
+            visited: _isVisited,
+        };
+    }
+    public function deserialize(data :Dynamic) :Void {
+        _isVisible = data.visible;
+        _isVisited = data.visited;
+        markDirty();
+    }
 }

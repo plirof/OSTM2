@@ -118,15 +118,13 @@ class BattleMember implements Saveable {
         xp = data.xp;
         level = data.level;
         health = data.health;
-        if (data.equipment != null) {
-            for (k in equipment.keys()) {
-                equipment[k] = null;
-            }
-            var equips :Array<Dynamic> = data.equipment;
-            for (d in equips) {
-                var item = Item.loadItem(d);
-                equipment[item.type.slot] = item;
-            }
+        for (k in equipment.keys()) {
+            equipment[k] = null;
+        }
+        var equips :Array<Dynamic> = data.equipment;
+        for (d in equips) {
+            var item = Item.loadItem(d);
+            equipment[item.type.slot] = item;
         }
     }
 }

@@ -4,7 +4,9 @@ import js.*;
 import js.html.Element;
 
 import jengine.*;
+import jengine.SaveManager;
 import jengine.util.*;
+
 import ostm.battle.*;
 
 typedef MapHint = {
@@ -13,7 +15,9 @@ typedef MapHint = {
     level :Int,
 }
 
-class MapGenerator extends Component {
+class MapGenerator extends Component 
+        implements Saveable {
+    public var saveId(default, null) :String = 'map';
     public var selectedNode(default, null) :MapNode;
     
     var _generated :Array<Map<Int, MapNode>>;
@@ -42,6 +46,8 @@ class MapGenerator extends Component {
     }
 
     public override function start() :Void {
+        SaveManager.instance.addItem(this);
+
         _generated = new Array<Map<Int, MapNode>>();
         _generated.push(new Map<Int, MapNode>());
         
@@ -410,5 +416,34 @@ class MapGenerator extends Component {
             function (node :MapNode) {
                 return node == end;
             });
+    }
+
+    public function serialize() :Dynamic {
+        var nodes = [];
+        forAllNodes(function (node) {
+            nodes.push(node.serialize());
+        });
+        return {
+            selected: { x: selectedNode.depth, y: selectedNode.height },
+            nodes: nodes,
+        };
+    }
+    public function deserialize(data :Dynamic) {
+        var nodes :Array<Dynamic> = data.nodes;
+        for (n in nodes) {
+            while (n.x + 1 > _generated.length) {
+                addLayer();
+            }
+            var node = _generated[n.x].get(n.y);
+            if (node != null) {
+                node.deserialize(n);
+            }
+        }
+        var sel = _generated[data.selected.x].get(data.selected.y);
+        if (sel != null) {
+            selectedNode.clearOccupied();
+            selectedNode = sel;
+            sel.setOccupied();
+        }
     }
 }

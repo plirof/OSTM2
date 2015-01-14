@@ -21,8 +21,8 @@ class Item {
         var nAffixes = Random.randomIntRange(0, 4);
         var selectedAffixes = Random.randomElements(Affix.affixTypes, nAffixes);
         for (type in selectedAffixes) {
-            var lev = Random.randomIntRange(1, level + 1);
-            var affix = new Affix(type, lev, this.type.slot);
+            var affix = new Affix(type, this.type.slot);
+            affix.rollItemLevel(level);
             affixes.push(affix);
             nAffixes--;
         }
@@ -78,13 +78,39 @@ class Item {
         name.style.color = getColor();
         elem.appendChild(name);
 
+        var buttons = Browser.document.createSpanElement();
+        elem.appendChild(buttons);
+
+        if (!isEquipped) {
+            var equip = Browser.document.createButtonElement();
+            equip.innerText = 'Equip';
+            equip.onclick = this.equip;
+            buttons.appendChild(equip);
+
+            var discard = Browser.document.createButtonElement();
+            discard.innerText = 'Discard';
+            discard.onclick = this.discard;
+            buttons.appendChild(discard);
+        }
+        else {
+            var unequip = Browser.document.createButtonElement();
+            unequip.innerText = 'Unequip';
+            unequip.onclick = this.unequip;
+            buttons.appendChild(unequip);
+        }
+
         var body = Browser.document.createUListElement();
-        body.style.display = 'none';
+        var setVisible = function (vis) {
+            var str = vis ? '' : 'none';
+            body.style.display = str;
+            buttons.style.display = str;
+        }
+        setVisible(false);
         elem.onmouseover = function(event) {
-            body.style.display = '';
+            setVisible(true);
         };
         elem.onmouseout = function(event) {
-            body.style.display = 'none';
+            setVisible(false);
         };
 
         var atk = Browser.document.createLIElement();
@@ -100,24 +126,6 @@ class Item {
             aff.innerText = affix.text();
             aff.style.fontStyle = 'italic';
             body.appendChild(aff);
-        }
-
-        if (!isEquipped) {
-            var equip = Browser.document.createButtonElement();
-            equip.innerText = 'Equip';
-            equip.onclick = this.equip;
-            body.appendChild(equip);
-
-            var discard = Browser.document.createButtonElement();
-            discard.innerText = 'Discard';
-            discard.onclick = this.discard;
-            body.appendChild(discard);
-        }
-        else {
-            var unequip = Browser.document.createButtonElement();
-            unequip.innerText = 'Unequip';
-            unequip.onclick = this.unequip;
-            body.appendChild(unequip);
         }
 
         elem.appendChild(body);

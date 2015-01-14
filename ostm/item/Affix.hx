@@ -1,5 +1,7 @@
 package ostm.item;
 
+import jengine.util.Random;
+
 import ostm.item.ItemType;
 
 @:allow(ostm.item.Affix)
@@ -9,6 +11,7 @@ class AffixType {
     var baseValue :Float;
     var valuePerLevel :Float;
     var slotMultipliers :Map<ItemSlot, Float>;
+    public static inline var kRollCounts :Int = 10;
 
     public function new(id, description, base, perLevel, multipliers) {
         this.id = id;
@@ -25,7 +28,7 @@ class AffixType {
     }
 
     public function valueForLevel(slot :ItemSlot, level :Int) :Int {
-        var val = baseValue + (level - 1) * valuePerLevel;
+        var val = baseValue + level / kRollCounts * valuePerLevel;
         var mult = multiplierFor(slot);
         return Math.floor(val * mult);
     }
@@ -82,10 +85,13 @@ class Affix {
         new PercentHealthAffixType(),
     ];
 
-    public function new(type :AffixType, level :Int, slot :ItemSlot) {
+    public function new(type :AffixType, slot :ItemSlot) {
         this.type = type;
-        this.level = level;
         this.slot = slot;
+    }
+
+    public function rollItemLevel(itemLevel :Int) {
+        level = Random.randomIntRange(0, itemLevel * AffixType.kRollCounts);
     }
 
     public function text() :String {
@@ -106,7 +112,9 @@ class Affix {
     public static function loadAffix(data :Dynamic) :Affix {
         for (type in affixTypes) {
             if (type.id == data.id) {
-                return new Affix(type, data.level, data.slot);
+                var affix = new Affix(type, data.slot);
+                affix.level = data.level;
+                return affix;
             }
         }
         return null;
