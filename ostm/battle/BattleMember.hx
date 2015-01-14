@@ -101,16 +101,32 @@ class BattleMember implements Saveable {
     }
 
     public function serialize() :Dynamic {
+        var equips = [];
+        for (item in equipment) {
+            if (item != null) {
+                equips.push(item.serialize());
+            }
+        }
         return {
             xp: this.xp,
             level: this.level,
             health: this.health,
+            equipment: equips,
         };
     }
-
     public function deserialize(data :Dynamic) :Void {
         xp = data.xp;
         level = data.level;
         health = data.health;
+        if (data.equipment != null) {
+            for (k in equipment.keys()) {
+                equipment[k] = null;
+            }
+            var equips :Array<Dynamic> = data.equipment;
+            for (d in equips) {
+                var item = Item.loadItem(d);
+                equipment[item.type.slot] = item;
+            }
+        }
     }
 }

@@ -4,17 +4,20 @@ import js.*;
 import js.html.*;
 
 import jengine.Component;
+import jengine.SaveManager;
 import jengine.util.Random;
 
 import ostm.battle.BattleManager;
 
-class Inventory extends Component {
-    var _itemTypes = [
-        new ItemType('Sword', Weapon, 3, 1),
-        new ItemType('Axe', Weapon, 4, 0),
-        new ItemType('Armor', Body, 0, 2),
-        new ItemType('Helm', Helmet, 0, 1),
-        new ItemType('Boots', Boots, 0, 1),
+class Inventory extends Component
+        implements Saveable {
+    public var saveId(default, null) :String = 'inventory';
+    public static var itemTypes = [
+        new ItemType('sword', 'Sword', Weapon, 3, 1),
+        new ItemType('axe', 'Axe', Weapon, 4, 0),
+        new ItemType('armor', 'Armor', Body, 0, 2),
+        new ItemType('helm', 'Helm', Helmet, 0, 1),
+        new ItemType('boots', 'Boots', Boots, 0, 1),
     ];
     var _inventory :Array<Item> = [];
 
@@ -28,6 +31,8 @@ class Inventory extends Component {
 
     public override function start() :Void {
         updateInventoryHtml();
+
+        SaveManager.instance.addItem(this);
     }
 
     public function updateInventoryHtml() :Void {
@@ -72,12 +77,22 @@ class Inventory extends Component {
 
     public function tryRewardItem(maxLevel :Int) :Void {
         if (Random.randomBool(0.35) && hasSpaceForItem()) {
-            var type = Random.randomElement(_itemTypes);
+            var type = Random.randomElement(itemTypes);
             var level = Random.randomIntRange(1, maxLevel + 1);
             var item = new Item(type, level);
             _inventory.push(item);
 
             updateInventoryHtml();
         }
+    }
+
+    public function serialize() :Dynamic {
+        return {
+            items: _inventory.map(function (item) { return item.serialize(); }),
+        };
+    }
+    public function deserialize(data :Dynamic) {
+        _inventory = data.items.map(function (d) { return Item.loadItem(d); });
+        updateInventoryHtml();
     }
 }

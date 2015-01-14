@@ -8,12 +8,14 @@ enum ItemSlot {
 }
 
 class ItemType {
-    public var name :String;
-    public var slot :ItemSlot;
-    public var attack :Float;
-    public var defense :Float;
+    public var id(default, null) :String;
+    public var name(default, null) :String;
+    public var slot(default, null) :ItemSlot;
+    public var attack(default, null) :Float;
+    public var defense(default, null) :Float;
 
-    public function new(name, slot, attack, defense) {
+    public function new(id, name, slot, attack, defense) {
+        this.id = id;
         this.name = name;
         this.slot = slot;
         this.attack = attack;

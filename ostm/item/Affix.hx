@@ -4,12 +4,14 @@ import ostm.item.ItemType;
 
 @:allow(ostm.item.Affix)
 class AffixType {
+    public var id(default, null) :String;
     var description :String;
     var baseValue :Float;
     var valuePerLevel :Float;
     var slotMultipliers :Map<ItemSlot, Float>;
 
-    public function new(description, base, perLevel, multipliers) {
+    public function new(id, description, base, perLevel, multipliers) {
+        this.id = id;
         this.description = description;
         this.baseValue = base;
         this.valuePerLevel = perLevel;
@@ -37,7 +39,7 @@ class AffixType {
 
 class FlatHealthAffixType extends AffixType {
     public function new() {
-        super('HP', 5, 2.5, [ Weapon => 1.0 ]);
+        super('flat-hp', 'HP', 5, 2.5, [ Weapon => 1.0 ]);
     }
     public override function applyModifier(value :Int, mod :AffixModifier) :Void {
         mod.flatHealth += value;
@@ -45,7 +47,7 @@ class FlatHealthAffixType extends AffixType {
 }
 class FlatAttackAffixType extends AffixType {
     public function new() {
-        super('Attack', 2, 1, [ Weapon => 1.0 ]);
+        super('flat-attack', 'Attack', 2, 1, [ Weapon => 1.0 ]);
     }
     public override function applyModifier(value :Int, mod :AffixModifier) :Void {
         mod.flatAttack += value;
@@ -53,7 +55,7 @@ class FlatAttackAffixType extends AffixType {
 }
 class FlatDefenseAffixType extends AffixType {
     public function new() {
-        super('Defense', 1, 0.75, [ Weapon => 1.0 ]);
+        super('flat-defense', 'Defense', 1, 0.75, [ Weapon => 1.0 ]);
     }
     public override function applyModifier(value :Int, mod :AffixModifier) :Void {
         mod.flatDefense += value;
@@ -61,7 +63,7 @@ class FlatDefenseAffixType extends AffixType {
 }
 class PercentHealthAffixType extends AffixType {
     public function new() {
-        super('HP%', 2, 0.5, [ Weapon => 1.0 ]);
+        super('percent-hp', 'HP%', 2, 0.5, [ Weapon => 1.0 ]);
     }
     public override function applyModifier(value :Int, mod :AffixModifier) :Void {
         mod.percentHealth += value;
@@ -92,6 +94,22 @@ class Affix {
 
     public function applyModifier(mod :AffixModifier) :Void {
         type.applyModifier(type.valueForLevel(slot, level), mod);
+    }
+
+    public function serialize() :Dynamic {
+        return {
+            id: type.id,
+            level: level,
+            slot: slot,
+        };
+    }
+    public static function loadAffix(data :Dynamic) :Affix {
+        for (type in affixTypes) {
+            if (type.id == data.id) {
+                return new Affix(type, data.level, data.slot);
+            }
+        }
+        return null;
     }
 }
 

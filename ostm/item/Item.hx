@@ -143,4 +143,22 @@ class Item {
         var def = Math.round(type.defense * (1 + 0.4 * (level - 1)));
         return def + sumAffixes().flatDefense;
     }
+
+    public function serialize() :Dynamic {
+        return {
+            id: type.id,
+            level: level,
+            affixes: affixes.map(function (affix) { return affix.serialize(); }),
+        };
+    }
+    public static function loadItem(data :Dynamic) :Item {
+        for (type in Inventory.itemTypes) {
+            if (data.id == type.id) {
+                var item = new Item(type, data.level);
+                item.affixes = data.affixes.map(function (d) { return Affix.loadAffix(d); });
+                return item;
+            }
+        }
+        return null;
+    }
 }
