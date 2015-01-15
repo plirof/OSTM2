@@ -4,6 +4,7 @@ import js.*;
 import js.html.*;
 
 import jengine.*;
+import jengine.util.Util;
 
 import ostm.item.Item;
 import ostm.item.ItemType;
@@ -54,16 +55,20 @@ class StatRenderer extends Component {
         var list = createAndAddTo('ul', stats);
 
         _elements = [
-            new StatElement(list, 'Level', function() { return cast _member.level; }),
-            new StatElement(list, 'XP', function() { return _member.xp + ' / ' + _member.xpToNextLevel(); }),
-            new StatElement(list, 'HP', function() { return _member.health + ' / ' + _member.maxHealth(); }),
-            new StatElement(list, 'Damage', function() { return cast _member.damage(); }),
-            new StatElement(list, 'Speed', function() { return cast _member.attackSpeed(); }),
-            new StatElement(list, 'Defense', function() { return cast _member.defense(); }),
-            new StatElement(list, 'STR', function() { return cast _member.strength(); }),
-            new StatElement(list, 'VIT', function() { return cast _member.vitality(); }),
-            new StatElement(list, 'END', function() { return cast _member.endurance(); }),
-            new StatElement(list, 'DEX', function() { return cast _member.dexterity(); }),
+            new StatElement(list, 'Level', function() { return Util.format(_member.level); }),
+            new StatElement(list, 'XP', function() {
+                return Util.format(_member.xp) + ' / ' + Util.format(_member.xpToNextLevel());
+            }),
+            new StatElement(list, 'HP', function() {
+                return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
+            }),
+            new StatElement(list, 'Damage', function() { return Util.format(_member.damage()); }),
+            new StatElement(list, 'Speed', function() { return Util.formatFloat(_member.attackSpeed()); }),
+            new StatElement(list, 'Defense', function() { return Util.format(_member.defense()); }),
+            new StatElement(list, 'STR', function() { return Util.format(_member.strength()); }),
+            new StatElement(list, 'VIT', function() { return Util.format(_member.vitality()); }),
+            new StatElement(list, 'END', function() { return Util.format(_member.endurance()); }),
+            new StatElement(list, 'DEX', function() { return Util.format(_member.dexterity()); }),
         ];
 
         if (_member.isPlayer) {

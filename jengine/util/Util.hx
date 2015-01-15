@@ -22,4 +22,36 @@ class Util {
     public static inline function intMin(a :Int, b :Int) :Int {
         return a < b ? a : b;
     }
+
+    public static function format(num :Int) :String {
+        if (num < 0) {
+            return '-' + format(-num);
+        }
+        if (num == 0) {
+            return '0';
+        }
+
+        var str = '';
+        while (num > 0) {
+            var lo :String = cast (num % 1000);
+            var seg :String = cast lo;
+            num = Math.floor(num / 1000);
+            if (num > 0) {
+                while (seg.length < 3) {
+                    seg = '0' + seg;
+                }
+                seg = ',' + seg;
+            }
+            str = seg + str;
+        }
+        return str;
+    }
+
+    public static function formatFloat(num :Float, digits :Int = 2) :String {
+        var mul = Math.pow(10, digits);
+        var int = Math.round(num * mul);
+        var hi = format(Math.floor(int / mul));
+        var lo = int % mul;
+        return hi + '.' + lo;
+    }
 }
