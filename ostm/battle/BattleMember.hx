@@ -94,9 +94,19 @@ class BattleMember implements Saveable {
         return level + 2;
     }
 
-    function scaleStat(base :Int, scale :Float) :Int {
-        return Math.round(base * (1 + (level - 1) * scale));
+    public function strength() :Int {
+        return classType.strength.value(level);
     }
+    public function vitality() :Int {
+        return classType.vitality.value(level);
+    }
+    public function endurance() :Int {
+        return classType.endurance.value(level);
+    }
+    public function dexterity() :Int {
+        return classType.dexterity.value(level);
+    }
+
     function sumAffixes() :AffixModifier {
         var mod = new AffixModifier();
         for (item in equipment) {
@@ -108,27 +118,27 @@ class BattleMember implements Saveable {
     }
     public function maxHealth() :Int {
         var mod = sumAffixes();
-        var hp = classType.vitality.value(level) * 10 + 50;
+        var hp = vitality() * 10 + 50;
         hp += mod.flatHealth;
         hp = Math.floor(hp * (1 + mod.percentHealth / 100));
         return hp;
     }
     public function damage() :Int {
-        var atk = Math.floor(classType.strength.value(level) * 0.65 + 2);
+        var atk = Math.floor(strength() * 0.65 + 2);
         for (item in equipment) {
             atk += item != null ? item.attack() : 0;
         }
         return atk;
     }
     public function defense() :Int {
-        var def = Math.floor(classType.endurance.value(level) * 0.35 + 1);
+        var def = Math.floor(endurance() * 0.35 + 1);
         for (item in equipment) {
             def += item != null ? item.defense() : 0;
         }
         return def;
     }
     public function attackSpeed() :Float {
-        return Math.log(classType.dexterity.value(level)) + 0.8;
+        return Math.log(dexterity()) + 0.8;
     }
     public function healthRegen() :Float {
         return maxHealth() * 0.015;

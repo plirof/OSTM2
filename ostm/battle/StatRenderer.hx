@@ -8,9 +8,28 @@ import jengine.*;
 import ostm.item.Item;
 import ostm.item.ItemType;
 
+class StatElement {
+    var elem :Element;
+    var title :String;
+    var body :Void -> String;
+
+    public function new(parent :Element, title :String, body :Void -> String) {
+        elem = Browser.document.createElement('li');
+        parent.appendChild(elem);
+
+        this.title = title;
+        this.body = body;
+    }
+
+    public function update() :Void {
+        elem.innerText = title + ': ' + body();
+    }
+}
+
 class StatRenderer extends Component {
     var _member :BattleMember;
 
+    var _elements :Array<StatElement>;
     var _level :Element;
     var _xp :Element;
     var _hp :Element;
@@ -33,11 +52,19 @@ class StatRenderer extends Component {
         stats.appendChild(nameSpan);
 
         var list = createAndAddTo('ul', stats);
-        _level = createAndAddTo('li', list);
-        _xp = createAndAddTo('li', list);
-        _hp = createAndAddTo('li', list);
-        _damage = createAndAddTo('li', list);
-        _defense = createAndAddTo('li', list);
+
+        _elements = [
+            new StatElement(list, 'Level', function() { return cast _member.level; }),
+            new StatElement(list, 'XP', function() { return _member.xp + ' / ' + _member.xpToNextLevel(); }),
+            new StatElement(list, 'HP', function() { return _member.health + ' / ' + _member.maxHealth(); }),
+            new StatElement(list, 'Damage', function() { return cast _member.damage(); }),
+            new StatElement(list, 'Speed', function() { return cast _member.attackSpeed(); }),
+            new StatElement(list, 'Defense', function() { return cast _member.defense(); }),
+            new StatElement(list, 'STR', function() { return cast _member.strength(); }),
+            new StatElement(list, 'VIT', function() { return cast _member.vitality(); }),
+            new StatElement(list, 'END', function() { return cast _member.endurance(); }),
+            new StatElement(list, 'DEX', function() { return cast _member.dexterity(); }),
+        ];
 
         if (_member.isPlayer) {
             var equip = createAndAddTo('ul', stats);
@@ -55,11 +82,9 @@ class StatRenderer extends Component {
     }
 
     public override function update() :Void {
-        _level.innerText = 'Level: ' + _member.level;
-        _xp.innerText = 'XP: ' + _member.xp + ' / ' + _member.xpToNextLevel();
-        _hp.innerText = 'HP: ' + _member.health + ' / ' + _member.maxHealth();
-        _damage.innerText = 'Damage: ' + _member.damage();
-        _defense.innerText = 'Defense: ' + _member.defense();
+        for (stat in _elements) {
+            stat.update();
+        }
 
         if (_member.isPlayer) {
             for (k in _equipment.keys()) {
