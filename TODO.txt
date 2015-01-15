@@ -9,12 +9,10 @@ Battle
 - abilities
 
 Items
-- Magic affixes
 - Upgrading
 - Enchanting
 
 Overall
-- saving
 - screen switching architecture
 - htmlrenderer improvements
     - %-based pos (i.e., left 25%)

@@ -9,6 +9,46 @@ import ostm.item.Affix;
 import ostm.item.Item;
 import ostm.item.ItemType;
 
+class StatType {
+    var baseValue :Float;
+    var perLevel :Float;
+
+    public function new(base :Float, perLevel: Float) {
+        this.baseValue = base;
+        this.perLevel = perLevel;
+    }
+    public function value(level :Int) :Int {
+        return Math.floor(baseValue + (level - 1) * perLevel);
+    }
+}
+
+class ClassType {
+    public var strength(default, null) :StatType;
+    public var vitality(default, null) :StatType;
+    public var endurance(default, null) :StatType;
+    public var dexterity(default, null) :StatType;
+
+    public function new(str, vit, end, dex) {
+        strength = str;
+        vitality = vit;
+        endurance = end;
+        dexterity = dex;
+    }
+
+    public static var playerType = new ClassType(
+        new StatType(5, 2.5),
+        new StatType(5, 2.5),
+        new StatType(5, 2.5),
+        new StatType(5, 2.5)
+    );
+    public static var enemyType = new ClassType(
+        new StatType(3, 1.5),
+        new StatType(3, 1.5),
+        new StatType(3, 1.5),
+        new StatType(3, 1.5)
+    );
+}
+
 class BattleMember implements Saveable {
     public var saveId(default, null) :String;
 
@@ -19,17 +59,15 @@ class BattleMember implements Saveable {
     public var equipment = new Map<ItemSlot, Item>();
 
     public var level :Int;
-    public var attackSpeed :Float;
-    public var baseHealth :Int;
-    public var baseDamage :Int;
-    public var baseDefense :Int;
 
     public var xp :Int = 0;
     public var health :Int = 0;
     public var healthPartial :Float = 0;
     public var attackTimer :Float = 0;
+    var classType :ClassType;
 
     public function new(isPlayer :Bool) {
+        classType = isPlayer ? ClassType.playerType : ClassType.enemyType;
         for (k in ItemSlot.createAll()) {
             equipment[k] = null;
         }
@@ -70,24 +108,27 @@ class BattleMember implements Saveable {
     }
     public function maxHealth() :Int {
         var mod = sumAffixes();
-        var hp = scaleStat(baseHealth, 0.15);
+        var hp = classType.vitality.value(level) * 10 + 50;
         hp += mod.flatHealth;
         hp = Math.floor(hp * (1 + mod.percentHealth / 100));
         return hp;
     }
     public function damage() :Int {
-        var damage = scaleStat(baseDamage, 0.17);
+        var atk = Math.floor(classType.strength.value(level) * 0.65 + 2);
         for (item in equipment) {
-            damage += item != null ? item.attack() : 0;
+            atk += item != null ? item.attack() : 0;
         }
-        return damage;
+        return atk;
     }
     public function defense() :Int {
-        var defense = scaleStat(baseDefense, 0.12);
+        var def = Math.floor(classType.endurance.value(level) * 0.35 + 1);
         for (item in equipment) {
-            defense += item != null ? item.defense() : 0;
+            def += item != null ? item.defense() : 0;
         }
-        return defense;
+        return def;
+    }
+    public function attackSpeed() :Float {
+        return Math.log(classType.dexterity.value(level)) + 0.8;
     }
     public function healthRegen() :Float {
         return maxHealth() * 0.015;

@@ -33,16 +33,7 @@ class BattleManager extends Component {
         _enemy = addBattleMember(false, new Vec2(400, 200));
 
         _player.level = 1;
-        _player.baseHealth = 100;
-        _player.attackSpeed = 1.8;
-        _player.baseDamage = 6;
-        _player.baseDefense = 3;
-
         _enemy.level = 1;
-        _enemy.baseHealth = 50;
-        _enemy.attackSpeed = 1.4;
-        _enemy.baseDamage = 5;
-        _enemy.baseDefense = 2;
         
         for (mem in _battleMembers) {
             mem.health = mem.maxHealth();
@@ -98,7 +89,7 @@ class BattleManager extends Component {
 
         for (mem in _battleMembers) {
             mem.attackTimer += Time.dt;
-            var attackTime = 1.0 / mem.attackSpeed;
+            var attackTime = 1.0 / mem.attackSpeed();
             if (mem.attackTimer > attackTime) {
                 mem.attackTimer -= attackTime;
                 var target = mem.isPlayer ? _enemy : _player;
@@ -182,7 +173,7 @@ class BattleManager extends Component {
                 ],
             }),
             new ProgressBar(function() {
-                return bat.attackSpeed * bat.attackTimer;
+                return bat.attackSpeed() * bat.attackTimer;
             }, [
                 'background' => '#00ff00',
             ]),
