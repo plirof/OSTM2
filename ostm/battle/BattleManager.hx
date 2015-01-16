@@ -28,9 +28,32 @@ class BattleManager extends Component {
     }
 
     public override function start() :Void {
-        _player = addBattleMember(true, new Vec2(125, 200));
+        _player = addBattleMember(true, new Vec2(75, 80));
         _player.elem.style.background = '#0088ff';
-        _enemy = addBattleMember(false, new Vec2(400, 200));
+        _enemy = addBattleMember(false, new Vec2(350, 80));
+
+        var nBtns = 0;
+        for (skill in ActiveSkill.skills) {
+            var html = new HtmlRenderer({
+                parent: 'battle-screen',
+                size: new Vec2(80, 80),
+                style: [
+                    'border' => '2px solid black',
+                    'background' => 'white',
+                ],
+            });
+            var btn = new Entity([
+                new Transform(new Vec2(100 * nBtns + 50, 200)),
+                html,
+            ]);
+            var elem = html.getElement();
+            elem.innerText = skill.name;
+            elem.onclick = function (event) {
+                _player.setActiveSkill(skill);
+            };
+            nBtns++;
+            entity.getSystem().addEntity(btn);
+        }
 
         _player.level = 1;
         _enemy.level = 1;
@@ -128,6 +151,7 @@ class BattleManager extends Component {
         var barX = (size.x - barSize.x) / 2;
         var system = entity.getSystem();
         var bat = new BattleMember(isPlayer);
+        var statRenderer = new StatRenderer(bat);
         var ent = new Entity([
             new Transform(pos),
             new HtmlRenderer({
@@ -138,12 +162,13 @@ class BattleManager extends Component {
                     'border' => '2px solid black',
                 ],
             }),
-            new StatRenderer(bat),
+            statRenderer,
         ]);
         system.addEntity(ent);
 
         bat.entity = ent;
         bat.elem = ent.getComponent(HtmlRenderer).getElement();
+        bat.setActiveSkill(ActiveSkill.skills[0]);
 
         var hpBar = new Entity([
             new Transform(new Vec2(barX, -60)),
@@ -165,6 +190,7 @@ class BattleManager extends Component {
         var attackBar = new Entity([
             new Transform(new Vec2(barX, -38)),
             new HtmlRenderer({
+                id: id + '-attack-bar',
                 parent: id,
                 size: barSize,
                 style: [
@@ -179,6 +205,7 @@ class BattleManager extends Component {
             ]),
         ]);
         system.addEntity(attackBar);
+        statRenderer.setBars(hpBar, attackBar);
 
         _battleMembers.push(bat);
         return bat;

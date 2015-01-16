@@ -31,11 +31,9 @@ class StatRenderer extends Component {
     var _member :BattleMember;
 
     var _elements :Array<StatElement>;
-    var _level :Element;
-    var _xp :Element;
-    var _hp :Element;
-    var _damage :Element;
-    var _defense :Element;
+
+    var _hpBar :Element;
+    var _attackBar :Element;
 
     var _equipment = new Map<ItemSlot, Element>();
     var _cachedEquip = new Map<ItemSlot, Item>();
@@ -90,6 +88,7 @@ class StatRenderer extends Component {
         for (stat in _elements) {
             stat.update();
         }
+        _attackBar.firstElementChild.innerText = _member.curSkill.name;
 
         if (_member.isPlayer) {
             for (k in _equipment.keys()) {
@@ -122,5 +121,10 @@ class StatRenderer extends Component {
         else {
             elem.appendChild(item.createElement('ul', true));
         }
+    }
+
+    public function setBars(hpBar :Entity, attackBar :Entity) :Void {
+        _hpBar = hpBar.getComponent(HtmlRenderer).getElement();
+        _attackBar = attackBar.getComponent(HtmlRenderer).getElement();
     }
 }

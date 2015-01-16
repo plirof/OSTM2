@@ -64,6 +64,7 @@ class BattleMember implements Saveable {
     public var health :Int = 0;
     public var healthPartial :Float = 0;
     public var attackTimer :Float = 0;
+    public var curSkill :ActiveSkill;
     var classType :ClassType;
 
     public function new(isPlayer :Bool) {
@@ -128,6 +129,7 @@ class BattleMember implements Saveable {
         for (item in equipment) {
             atk += item != null ? item.attack() : 0;
         }
+        atk = Math.round(atk * curSkill.damage);
         return atk;
     }
     public function defense() :Int {
@@ -138,7 +140,9 @@ class BattleMember implements Saveable {
         return def;
     }
     public function attackSpeed() :Float {
-        return Math.log(dexterity()) + 0.8;
+        var spd = Math.log(dexterity()) + 0.8;
+        spd *= curSkill.speed;
+        return spd;
     }
     public function healthRegen() :Float {
         return maxHealth() * 0.015;
@@ -149,6 +153,11 @@ class BattleMember implements Saveable {
     }
     public function unequip(item :Item) :Void {
         equipment[item.type.slot] = null;
+    }
+
+    public function setActiveSkill(skill :ActiveSkill) :Void {
+        curSkill = skill;
+        attackTimer = 0;
     }
 
     public function serialize() :Dynamic {
