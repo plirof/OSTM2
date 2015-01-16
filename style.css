@@ -82,15 +82,15 @@ div {
 
 #save-button {
     position: absolute;
-    min-width: 100px;
-    min-height: 80px;
+    width: 100px;
+    height: 80px;
     top: 10px;
     right: 120px;
 }
 #save-clear-button {
     position: absolute;
-    min-width: 100px;
-    min-height: 80px;
+    width: 100px;
+    height: 80px;
     top: 10px;
     right: 10px;
 }

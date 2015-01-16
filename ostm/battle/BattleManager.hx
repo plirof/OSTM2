@@ -32,8 +32,9 @@ class BattleManager extends Component {
         _player.elem.style.background = '#0088ff';
         _enemy = addBattleMember(false, new Vec2(350, 80));
 
-        var nBtns = 0;
+        var buttons = [];
         for (skill in ActiveSkill.skills) {
+            var i = buttons.length;
             var html = new HtmlRenderer({
                 parent: 'battle-screen',
                 size: new Vec2(80, 80),
@@ -43,16 +44,22 @@ class BattleManager extends Component {
                 ],
             });
             var btn = new Entity([
-                new Transform(new Vec2(100 * nBtns + 50, 200)),
+                new Transform(new Vec2(100 * i + 50, 200)),
                 html,
             ]);
             var elem = html.getElement();
-            elem.innerText = skill.name;
+            elem.innerText = '(' + (i + 1) + ') ' + skill.name;
             elem.onclick = function (event) {
                 _player.setActiveSkill(skill);
             };
-            nBtns++;
+            buttons.push(elem);
             entity.getSystem().addEntity(btn);
+        }
+        Browser.document.onkeydown = function (event :KeyboardEvent) :Void {
+            var i = event.keyCode - 49; //49 == keycode for '1'
+            if (i >= 0 && i < buttons.length) {
+                buttons[i].onclick(null);
+            }
         }
 
         _player.level = 1;
@@ -117,6 +124,7 @@ class BattleManager extends Component {
                 mem.attackTimer -= attackTime;
                 var target = mem.isPlayer ? _enemy : _player;
                 dealDamage(target, mem.damage());
+                mem.setActiveSkill(ActiveSkill.skills[0]);
             }
         }
     }
@@ -205,7 +213,7 @@ class BattleManager extends Component {
             ]),
         ]);
         system.addEntity(attackBar);
-        statRenderer.setBars(hpBar, attackBar);
+        bat.attackBar = attackBar;
 
         _battleMembers.push(bat);
         return bat;

@@ -53,20 +53,36 @@ class StatRenderer extends Component {
         var list = createAndAddTo('ul', stats);
 
         _elements = [
-            new StatElement(list, 'Level', function() { return Util.format(_member.level); }),
+            new StatElement(list, 'Level', function() {
+                return Util.format(_member.level);
+            }),
             new StatElement(list, 'XP', function() {
                 return Util.format(_member.xp) + ' / ' + Util.format(_member.xpToNextLevel());
             }),
             new StatElement(list, 'HP', function() {
                 return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
             }),
-            new StatElement(list, 'Damage', function() { return Util.format(_member.damage()); }),
-            new StatElement(list, 'Speed', function() { return Util.formatFloat(_member.attackSpeed()); }),
-            new StatElement(list, 'Defense', function() { return Util.format(_member.defense()); }),
-            new StatElement(list, 'STR', function() { return Util.format(_member.strength()); }),
-            new StatElement(list, 'VIT', function() { return Util.format(_member.vitality()); }),
-            new StatElement(list, 'END', function() { return Util.format(_member.endurance()); }),
-            new StatElement(list, 'DEX', function() { return Util.format(_member.dexterity()); }),
+            new StatElement(list, 'Damage', function() {
+                return Util.format(_member.damage());
+            }),
+            new StatElement(list, 'Speed', function() {
+                return Util.formatFloat(_member.attackSpeed());
+            }),
+            new StatElement(list, 'Defense', function() {
+                return Util.format(_member.defense());
+            }),
+            new StatElement(list, 'STR', function() {
+                return Util.format(_member.strength());
+            }),
+            new StatElement(list, 'VIT', function() {
+                return Util.format(_member.vitality());
+            }),
+            new StatElement(list, 'END', function() {
+                return Util.format(_member.endurance());
+            }),
+            new StatElement(list, 'DEX', function() {
+                return Util.format(_member.dexterity());
+            }),
         ];
 
         if (_member.isPlayer) {
@@ -88,8 +104,6 @@ class StatRenderer extends Component {
         for (stat in _elements) {
             stat.update();
         }
-        _attackBar.firstElementChild.innerText = _member.curSkill.name;
-
         if (_member.isPlayer) {
             for (k in _equipment.keys()) {
                 var item = _member.equipment[k];
@@ -99,6 +113,16 @@ class StatRenderer extends Component {
                 }
             }
         }
+
+        if (_attackBar == null) {
+            _attackBar = Browser.document.createSpanElement();
+            _attackBar.style.position = 'absolute';
+            var atkRenderer = _member.attackBar.getComponent(HtmlRenderer);
+            _attackBar.style.width = cast atkRenderer.size.x;
+            _attackBar.style.textAlign = 'center';
+            atkRenderer.getElement().appendChild(_attackBar);
+        }
+        _attackBar.innerText = _member.curSkill.name;
     }
 
     function updateEquipSlot(slot :ItemSlot) :Void {
@@ -121,10 +145,5 @@ class StatRenderer extends Component {
         else {
             elem.appendChild(item.createElement('ul', true));
         }
-    }
-
-    public function setBars(hpBar :Entity, attackBar :Entity) :Void {
-        _hpBar = hpBar.getComponent(HtmlRenderer).getElement();
-        _attackBar = attackBar.getComponent(HtmlRenderer).getElement();
     }
 }

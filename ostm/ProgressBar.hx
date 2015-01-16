@@ -37,4 +37,8 @@ class ProgressBar extends Component {
     public function setFunction(f) :Void {
         _func = f;
     }
+
+    public function getElement() :Element {
+        return _elem;
+    }
 }

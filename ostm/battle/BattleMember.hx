@@ -52,9 +52,10 @@ class ClassType {
 class BattleMember implements Saveable {
     public var saveId(default, null) :String;
 
+    public var isPlayer(default, null) :Bool;
     public var entity :Entity;
     public var elem :Element;
-    public var isPlayer(default, null) :Bool;
+    public var attackBar :Entity;
 
     public var equipment = new Map<ItemSlot, Item>();
 
@@ -156,8 +157,10 @@ class BattleMember implements Saveable {
     }
 
     public function setActiveSkill(skill :ActiveSkill) :Void {
-        curSkill = skill;
-        attackTimer = 0;
+        if (curSkill != skill) {
+            curSkill = skill;
+            attackTimer = 0;
+        }
     }
 
     public function serialize() :Dynamic {
