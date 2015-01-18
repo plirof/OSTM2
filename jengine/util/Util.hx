@@ -33,8 +33,7 @@ class Util {
 
         var str = '';
         while (num > 0) {
-            var lo :String = cast (num % 1000);
-            var seg :String = cast lo;
+            var seg :String = new String(cast num % 1000);
             num = Math.floor(num / 1000);
             if (num > 0) {
                 while (seg.length < 3) {
