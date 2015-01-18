@@ -7,6 +7,7 @@ import jengine.util.*;
 
 import ostm.battle.BattleManager;
 import ostm.item.Affix;
+import ostm.item.ItemType;
 
 class Item {
     public var type(default, null) :ItemType;
@@ -19,7 +20,8 @@ class Item {
         this.level = level;
 
         var nAffixes = Random.randomIntRange(0, 4);
-        var selectedAffixes = Random.randomElements(Affix.affixTypes, nAffixes);
+        var possibleAffixes = Affix.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
+        var selectedAffixes = Random.randomElements(possibleAffixes, nAffixes);
         for (type in selectedAffixes) {
             var affix = new Affix(type, this.type.slot);
             affix.rollItemLevel(level);
@@ -114,11 +116,16 @@ class Item {
         };
 
         var atk = Browser.document.createLIElement();
-        atk.innerText = 'Attack: ' + attack();
+        atk.innerText = 'Attack: ' + Util.format(attack());
         body.appendChild(atk);
 
+        if (Std.is(type, WeaponType)) {
+            var spd = Browser.document.createLIElement();
+            spd.innerText = 'Speed: ' + Util.formatFloat(attackSpeed());
+            body.appendChild(spd);
+        }
         var def = Browser.document.createLIElement();
-        def.innerText = 'Defense: ' + defense();
+        def.innerText = 'Defense: ' + Util.format(defense());
         body.appendChild(def);
 
         for (affix in affixes) {
@@ -146,6 +153,15 @@ class Item {
     public function attack() :Int {
         var atk = Math.round(type.attack * (1 + 0.4 * (level - 1)));
         return atk + sumAffixes().flatAttack;
+    }
+    public function attackSpeed() :Float {
+        if (!Std.is(type, WeaponType)) {
+            return 0;
+        }
+        var wep :WeaponType = cast(type, WeaponType);
+        var spd = wep.attackSpeed;
+        var mod = sumAffixes();
+        return wep.attackSpeed * (1 + mod.localPercentAttackSpeed / 100);
     }
     public function defense() :Int {
         var def = Math.round(type.defense * (1 + 0.4 * (level - 1)));

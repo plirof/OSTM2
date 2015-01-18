@@ -90,10 +90,10 @@ class BattleMember implements Saveable {
         }
     }
     public function xpToNextLevel() :Int {
-        return 10 + 5 * (level - 1);
+        return Math.round(10 + 5 * Math.pow(level - 1, 2.6));
     }
     public function xpReward() :Int {
-        return level + 2;
+        return Math.round(Math.pow(level, 2) + 2);
     }
 
     public function strength() :Int {
@@ -122,15 +122,16 @@ class BattleMember implements Saveable {
         var mod = sumAffixes();
         var hp = vitality() * 10 + 50;
         hp += mod.flatHealth;
-        hp = Math.floor(hp * (1 + mod.percentHealth / 100));
+        hp = Math.round(hp * (1 + mod.percentHealth / 100));
         return hp;
     }
     public function damage() :Int {
+        var mod = sumAffixes();
         var atk = Math.floor(strength() * 0.65 + 2);
         for (item in equipment) {
             atk += item != null ? item.attack() : 0;
         }
-        atk = Math.round(atk * curSkill.damage);
+        atk = Math.round(atk * curSkill.damage * (1 + mod.percentAttack / 100));
         return atk;
     }
     public function defense() :Int {
@@ -141,7 +142,8 @@ class BattleMember implements Saveable {
         return def;
     }
     public function attackSpeed() :Float {
-        var spd = Math.log(dexterity()) + 0.8;
+        var wep = equipment.get(Weapon);
+        var spd = wep != null ? wep.attackSpeed() : 1.5;
         spd *= curSkill.speed;
         return spd;
     }

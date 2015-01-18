@@ -22,3 +22,13 @@ class ItemType {
         this.defense = defense;
     }
 }
+
+class WeaponType extends ItemType {
+    public var attackSpeed(default, null) :Float;
+
+    public function new (id, name, attack, attackSpeed, defense) {
+        super(id, name, Weapon, attack, defense);
+
+        this.attackSpeed = attackSpeed;
+    }
+}

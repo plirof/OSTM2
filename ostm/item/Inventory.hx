@@ -8,13 +8,15 @@ import jengine.SaveManager;
 import jengine.util.Random;
 
 import ostm.battle.BattleManager;
+import ostm.item.ItemType;
 
 class Inventory extends Component
         implements Saveable {
     public var saveId(default, null) :String = 'inventory';
     public static var itemTypes = [
-        new ItemType('sword', 'Sword', Weapon, 3, 1),
-        new ItemType('axe', 'Axe', Weapon, 4, 0),
+        new WeaponType('sword', 'Sword', 3, 1.6, 1),
+        new WeaponType('axe', 'Axe', 4.5, 1.2, 0),
+        new WeaponType('dagger', 'Dagger', 3, 1.85, 0),
         new ItemType('armor', 'Armor', Body, 0, 2),
         new ItemType('helm', 'Helm', Helmet, 0, 1),
         new ItemType('boots', 'Boots', Boots, 0, 1),

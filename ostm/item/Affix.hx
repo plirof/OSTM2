@@ -10,21 +10,22 @@ class AffixType {
     var description :String;
     var baseValue :Float;
     var valuePerLevel :Float;
+    var modifierFunc :Int -> AffixModifier -> Void;
     var slotMultipliers :Map<ItemSlot, Float>;
     public static inline var kRollCounts :Int = 10;
 
-    public function new(id, description, base, perLevel, multipliers) {
+    public function new(id, description, base, perLevel, modifierFunc, multipliers) {
         this.id = id;
         this.description = description;
         this.baseValue = base;
         this.valuePerLevel = perLevel;
+        this.modifierFunc = modifierFunc;
         this.slotMultipliers = multipliers;
     }
 
     inline function multiplierFor(slot :ItemSlot) :Float {
-        return 1;
-        // var mult = slotMultipliers.get(slot);
-        // return mult == null ? 0 : mult;
+        var mult = slotMultipliers.get(slot);
+        return mult == null ? 0 : mult;
     }
 
     public function valueForLevel(slot :ItemSlot, level :Int) :Int {
@@ -37,39 +38,8 @@ class AffixType {
         return multiplierFor(slot) > 0;
     }
 
-    public function applyModifier(value :Int, mod :AffixModifier) :Void { }
-}
-
-class FlatHealthAffixType extends AffixType {
-    public function new() {
-        super('flat-hp', 'HP', 5, 2.5, [ Weapon => 1.0 ]);
-    }
-    public override function applyModifier(value :Int, mod :AffixModifier) :Void {
-        mod.flatHealth += value;
-    }
-}
-class FlatAttackAffixType extends AffixType {
-    public function new() {
-        super('flat-attack', 'Attack', 2, 1, [ Weapon => 1.0 ]);
-    }
-    public override function applyModifier(value :Int, mod :AffixModifier) :Void {
-        mod.flatAttack += value;
-    }
-}
-class FlatDefenseAffixType extends AffixType {
-    public function new() {
-        super('flat-defense', 'Defense', 1, 0.75, [ Weapon => 1.0 ]);
-    }
-    public override function applyModifier(value :Int, mod :AffixModifier) :Void {
-        mod.flatDefense += value;
-    }
-}
-class PercentHealthAffixType extends AffixType {
-    public function new() {
-        super('percent-hp', 'HP%', 2, 0.5, [ Weapon => 1.0 ]);
-    }
-    public override function applyModifier(value :Int, mod :AffixModifier) :Void {
-        mod.percentHealth += value;
+    public function applyModifier(value :Int, mod :AffixModifier) :Void {
+        modifierFunc(value, mod);
     }
 }
 
@@ -79,10 +49,27 @@ class Affix {
     var slot :ItemSlot;
 
     public static var affixTypes = [
-        new FlatAttackAffixType(),
-        new FlatDefenseAffixType(),
-        new FlatHealthAffixType(),
-        new PercentHealthAffixType(),
+        new AffixType('flat-hp', 'HP', 5, 2.5, function(value, mod) {
+            mod.flatHealth += value;
+        }, [ Body => 1.0, Helmet => 0.5 ]),
+        new AffixType('flat-attack', 'Attack', 2, 1, function(value, mod) {
+            mod.flatAttack += value;
+        }, [ Weapon => 1.0 ]),
+        new AffixType('flat-defense', 'Defense', 2, 1.25, function(value, mod) {
+            mod.flatDefense += value;
+        }, [ Body => 1.0, Boots => 0.5, Helmet => 0.5 ]),
+        new AffixType('percent-hp', '% HP', 2, 0.5, function(value, mod) {
+            mod.percentHealth += value;
+        }, [ Helmet => 1.0 ]),
+        new AffixType('percent-attack', '% Attack', 5, 1.5, function(value, mod) {
+            mod.percentAttack += value;
+        }, [ Weapon => 1.0 ]),
+        new AffixType('percent-attack-speed', '% Global Attack Speed', 2, 0.5, function(value, mod) {
+            mod.percentAttackSpeed += value;
+        }, [ Boots => 1.0 ]),
+        new AffixType('local-percent-attack-speed', '% Attack Speed', 5, 1.5, function(value, mod) {
+            mod.localPercentAttackSpeed += value;
+        }, [ Weapon => 1.0 ]),
     ];
 
     public function new(type :AffixType, slot :ItemSlot) {
@@ -125,7 +112,12 @@ class AffixModifier {
     public var flatAttack :Int = 0;
     public var flatDefense :Int = 0;
     public var flatHealth :Int = 0;
+
     public var percentHealth :Int = 0;
+    public var percentAttack :Int = 0;
+    public var percentAttackSpeed :Int = 0;
+
+    public var localPercentAttackSpeed :Int = 0;
 
     public function new() { }
 }
