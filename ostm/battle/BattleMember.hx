@@ -142,7 +142,9 @@ class BattleMember implements Saveable {
     }
     public function attackSpeed() :Float {
         var wep = equipment.get(Weapon);
+        var mod = sumAffixes();
         var spd = wep != null ? wep.attackSpeed() : 1.5;
+        spd *= (1 + mod.percentAttackSpeed / 100);
         spd *= curSkill.speed;
         return spd;
     }

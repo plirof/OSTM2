@@ -91,8 +91,7 @@ class Inventory extends Component
     public function tryRewardItem(maxLevel :Int) :Void {
         if (Random.randomBool(0.35) && hasSpaceForItem()) {
             var type = Random.randomElement(itemTypes);
-            var level = Random.randomIntRange(1, maxLevel + 1);
-            var item = new Item(type, level);
+            var item = new Item(type, maxLevel);
             _inventory.push(item);
 
             updateInventoryHtml();

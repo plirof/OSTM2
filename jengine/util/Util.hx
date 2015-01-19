@@ -47,10 +47,16 @@ class Util {
     }
 
     public static function formatFloat(num :Float, digits :Int = 2) :String {
-        var mul = Math.pow(10, digits);
+        var mul = Math.floor(Math.pow(10, digits));
         var int = Math.round(num * mul);
         var hi = format(Math.floor(int / mul));
-        var lo = int % mul;
+        var lo = new String(cast int % mul);
+        while (lo.length < digits) {
+            lo = '0' + lo;
+        }
+        while (lo.length > 1 && lo.charAt(lo.length - 1) == '0') {
+            lo = lo.substring(0, lo.length - 1);
+        }
         return hi + '.' + lo;
     }
 }

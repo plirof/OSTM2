@@ -11,20 +11,22 @@ import ostm.item.ItemType;
 
 class Item {
     public var type(default, null) :ItemType;
-    var level :Int;
+    var itemLevel :Int; // Level this item spawned at
+    var level :Int; // Level this item rolled
 
     var affixes :Array<Affix> = [];
 
     public function new(type :ItemType, level :Int) {
         this.type = type;
-        this.level = level;
+        this.itemLevel = level;
+        this.level = Random.randomIntRange(1, level + 1);
 
         var nAffixes = Random.randomIntRange(0, 4);
         var possibleAffixes = Affix.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
         var selectedAffixes = Random.randomElements(possibleAffixes, nAffixes);
         for (type in selectedAffixes) {
             var affix = new Affix(type, this.type.slot);
-            affix.rollItemLevel(level);
+            affix.rollItemLevel(this.itemLevel);
             affixes.push(affix);
             nAffixes--;
         }
@@ -115,6 +117,10 @@ class Item {
             setVisible(false);
         };
 
+        var ilvl = Browser.document.createLIElement();
+        ilvl.innerText = 'iLvl: ' + Util.format(itemLevel);
+        body.appendChild(ilvl);
+
         var atk = Browser.document.createLIElement();
         atk.innerText = 'Attack: ' + Util.format(attack());
         body.appendChild(atk);
@@ -171,6 +177,7 @@ class Item {
     public function serialize() :Dynamic {
         return {
             id: type.id,
+            itemLevel: itemLevel,
             level: level,
             affixes: affixes.map(function (affix) { return affix.serialize(); }),
         };
@@ -178,7 +185,9 @@ class Item {
     public static function loadItem(data :Dynamic) :Item {
         for (type in Inventory.itemTypes) {
             if (data.id == type.id) {
-                var item = new Item(type, data.level);
+                var item = new Item(type, 0);
+                item.level = data.level;
+                item.itemLevel = data.itemLevel;
                 item.affixes = data.affixes.map(function (d) { return Affix.loadAffix(d); });
                 return item;
             }
