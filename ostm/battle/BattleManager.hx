@@ -154,12 +154,9 @@ class BattleManager extends Component {
 
     function addBattleMember(isPlayer :Bool, pos :Vec2) :BattleMember {
         var id = 'battle-member-' + _battleMembers.length;
-        var size = new Vec2(60, 60);
-        var barSize = new Vec2(150, 20);
-        var barX = (size.x - barSize.x) / 2;
         var system = entity.getSystem();
+        var size = new Vec2(60, 60);
         var bat = new BattleMember(isPlayer);
-        var statRenderer = new StatRenderer(bat);
         var ent = new Entity([
             new Transform(pos),
             new HtmlRenderer({
@@ -170,50 +167,14 @@ class BattleManager extends Component {
                     'border' => '2px solid black',
                 ],
             }),
-            statRenderer,
+            new StatRenderer(bat),
+            new BattleRenderer(bat),
         ]);
         system.addEntity(ent);
 
         bat.entity = ent;
         bat.elem = ent.getComponent(HtmlRenderer).getElement();
         bat.setActiveSkill(ActiveSkill.skills[0]);
-
-        var hpBar = new Entity([
-            new Transform(new Vec2(barX, -60)),
-            new HtmlRenderer({
-                parent: id,
-                size: barSize,
-                style: [
-                    'background' => '#662222',
-                    'border' => '2px solid black',
-                ],
-            }),
-            new ProgressBar(function() {
-                return bat.health / bat.maxHealth();
-            }, [
-                'background' => '#ff0000',
-            ]),
-        ]);
-        system.addEntity(hpBar);
-        var attackBar = new Entity([
-            new Transform(new Vec2(barX, -38)),
-            new HtmlRenderer({
-                id: id + '-attack-bar',
-                parent: id,
-                size: barSize,
-                style: [
-                    'background' => '#226622',
-                    'border' => '2px solid black',
-                ],
-            }),
-            new ProgressBar(function() {
-                return bat.attackSpeed() * bat.attackTimer;
-            }, [
-                'background' => '#00ff00',
-            ]),
-        ]);
-        system.addEntity(attackBar);
-        bat.attackBar = attackBar;
 
         _battleMembers.push(bat);
         return bat;

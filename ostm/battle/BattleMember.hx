@@ -55,7 +55,6 @@ class BattleMember implements Saveable {
     public var isPlayer(default, null) :Bool;
     public var entity :Entity;
     public var elem :Element;
-    public var attackBar :Entity;
 
     public var equipment = new Map<ItemSlot, Item>();
 

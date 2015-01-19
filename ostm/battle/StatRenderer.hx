@@ -113,16 +113,6 @@ class StatRenderer extends Component {
                 }
             }
         }
-
-        if (_attackBar == null) {
-            _attackBar = Browser.document.createSpanElement();
-            _attackBar.style.position = 'absolute';
-            var atkRenderer = _member.attackBar.getComponent(HtmlRenderer);
-            _attackBar.style.width = cast atkRenderer.size.x;
-            _attackBar.style.textAlign = 'center';
-            atkRenderer.getElement().appendChild(_attackBar);
-        }
-        _attackBar.innerText = _member.curSkill.name;
     }
 
     function updateEquipSlot(slot :ItemSlot) :Void {
