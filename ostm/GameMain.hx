@@ -7,6 +7,7 @@ import jengine.SaveManager;
 import ostm.battle.BattleManager;
 import ostm.item.Inventory;
 import ostm.map.MapGenerator;
+import ostm.SkillTree;
 
 class SaveTest implements Saveable {
     public var saveId(default, null) :String;
@@ -31,6 +32,7 @@ class GameMain extends JEngineMain {
             new Entity([ new BattleManager() ]),
             new Entity([ new Inventory() ]),
             new Entity([ new SaveManager() ]),
+            new Entity([ new SkillTree() ]),
         ];
 
         MouseManager.init();

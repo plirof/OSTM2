@@ -7,73 +7,23 @@ import js.html.MouseEvent;
 import jengine.*;
 import jengine.util.*;
 
-typedef MapLine = {
+typedef NodeLine = {
     var elem :Element;
-    var node :MapNode;
+    var node :GameNode;
     var offset :Vec2;
 };
 
-class MapNode extends Component {
-    var lines = new Array<MapLine>();
-    var map :MapGenerator;
-    public var neighbors(default, null) = new Array<MapNode>();
+class GameNode extends Component {
     public var depth(default, null) :Int;
     public var height(default, null) :Int;
-    public var region(default, null) :Int = 0;
-    public var isGoldPath(default, null) :Bool = false;
-    var _parent :MapNode;
-
+    public var neighbors(default, null) = new Array<GameNode>();
     public var elem(default, null) :Element;
-
-    var _isVisible :Bool = false;
-    var _isVisited :Bool = false;
-    var _selectedPath :Array<MapNode> = null;
-    var _highlightedPath :Array<MapNode> = null;
-    var _isOccupied :Bool = false;
-    var _dirtyFlag :Bool = true;
-    var _hintLevel :Int = -1;
-
+    var lines = new Array<NodeLine>();
     var _lineWidth :Float = 3;
-    var _highlightedLineWidth :Float = 8;
 
-    public static inline var kMaxRegions = 12;
-    public static inline var kMaxVisibleRegion = 4;
-    public static inline var kLaunchRegions = 4;
-
-    static var _highestVisited = 0;
-
-    function new(gen :MapGenerator, d :Int, h :Int, par :MapNode) {
-        map = gen;
-        depth = d;
-        height = h;
-        if (par != null) {
-            _parent = par;
-            region = _parent.region;
-            addNeighbor(par);
-        }
-    }
-
-    public function setHint(hint) :Void {
-        _hintLevel = hint.level;
-    }
-
-    public function addNeighbor(node :MapNode) :Void {
-        if (neighbors.indexOf(node) == -1) {
-            neighbors.push(node);
-        }
-        if (node.neighbors.indexOf(this) == -1) {
-            node.neighbors.push(this);
-        }
-    }
-    public function removeNeighbor(node :MapNode) :Void {
-        neighbors.remove(node);
-        node.neighbors.remove(this);
-    }
-
-    function getRandomRegion(rand :StaticRandom) :Int {
-        var d = rand.randomElement([-1, 1, 1, 2]);
-        var max = isGoldPath ? kLaunchRegions : kMaxRegions;
-        return (region + max + d) % max;
+    function new(depth :Int, height :Int) {
+        this.depth = depth;
+        this.height = height;
     }
 
     public override function start() :Void {
@@ -95,13 +45,22 @@ class MapNode extends Component {
                 lines.push(addLine(node));
             }
         }
-
-        if (_isOccupied) {
-            map.centerCurrentNode();
-        }
     }
 
-    function hasLineTo(node :MapNode) :Bool {
+    public function addNeighbor(node :GameNode) :Void {
+        if (neighbors.indexOf(node) == -1) {
+            neighbors.push(node);
+        }
+        if (node.neighbors.indexOf(this) == -1) {
+            node.neighbors.push(this);
+        }
+    }
+    public function removeNeighbor(node :GameNode) :Void {
+        neighbors.remove(node);
+        node.neighbors.remove(this);
+    }
+
+    function hasLineTo(node :GameNode) :Bool {
         for (line in lines) {
             if (line.node == node) {
                 return true;
@@ -110,7 +69,7 @@ class MapNode extends Component {
         return false;
     }
 
-    function addLine(endPoint :MapNode) :MapLine {
+    function addLine(endPoint :GameNode) :NodeLine {
         var renderer = getComponent(HtmlRenderer);
         var size = renderer.size;
         var a = getTransform().pos + size / 2;
@@ -139,12 +98,73 @@ class MapNode extends Component {
         };
     }
 
+    public function getOffset() :Vec2 {
+        var spacing :Vec2 = new Vec2(80, 80);
+        return new Vec2(height * spacing.x, depth * spacing.y);
+    }
+
+    function onMouseOver(event :MouseEvent) :Void { }
+    function onMouseOut(event :MouseEvent) :Void { }
+    function onClick(event :MouseEvent) :Void { }
+}
+
+class MapNode extends GameNode {
+    var map :MapGenerator;
+    public var region(default, null) :Int = 0;
+    public var isGoldPath(default, null) :Bool = false;
+    var _parent :MapNode;
+
+    var _isVisible :Bool = false;
+    var _isVisited :Bool = false;
+    var _selectedPath :Array<MapNode> = null;
+    var _highlightedPath :Array<MapNode> = null;
+    var _isOccupied :Bool = false;
+    var _dirtyFlag :Bool = true;
+    var _hintLevel :Int = -1;
+
+    var _highlightedLineWidth :Float = 8;
+
+    public static inline var kMaxRegions = 12;
+    public static inline var kMaxVisibleRegion = 4;
+    public static inline var kLaunchRegions = 4;
+
+    static var _highestVisited = 0;
+
+    function new(gen :MapGenerator, d :Int, h :Int, par :MapNode) {
+        super(d, h);
+
+        map = gen;
+        if (par != null) {
+            _parent = par;
+            region = _parent.region;
+            addNeighbor(par);
+        }
+    }
+
+    public function setHint(hint) :Void {
+        _hintLevel = hint.level;
+    }
+
+    function getRandomRegion(rand :StaticRandom) :Int {
+        var d = rand.randomElement([-1, 1, 1, 2]);
+        var max = isGoldPath ? kLaunchRegions : kMaxRegions;
+        return (region + max + d) % max;
+    }
+
+    public override function start() :Void {
+        super.start();
+
+        if (_isOccupied) {
+            map.centerCurrentNode();
+        }
+    }
+
     public function isPathVisible(node :MapNode) :Bool {
         return (hasSeen() && node.hasVisited()) || (hasVisited() && node.hasSeen());
     }
 
-    public function isLinePartOfPath(line :MapLine, path :Array<MapNode>) :Bool {
-        var node = line.node;
+    public function isLinePartOfPath(line :NodeLine, path :Array<MapNode>) :Bool {
+        var node = cast (line.node, MapNode);
         return (path.indexOf(this) != -1 ||
             path.indexOf(node) != -1) &&
             (node._highlightedPath == path || node._selectedPath == path);
@@ -180,7 +200,7 @@ class MapNode extends Component {
             var size = getComponent(HtmlRenderer).size;
             var pos = getTransform().pos;
             for (line in lines) {
-                var disp = isPathVisible(line.node);
+                var disp = isPathVisible(cast (line.node, MapNode));
                 line.elem.style.display = disp ? '' : 'none';
                 if (!disp) {
                     continue;
@@ -241,19 +261,14 @@ class MapNode extends Component {
         _dirtyFlag = true;
     }
 
-    function onMouseOver(event :MouseEvent) :Void {
+    override function onMouseOver(event :MouseEvent) :Void {
         map.hover(this);
     }
-    function onMouseOut(event :MouseEvent) :Void {
+    override function onMouseOut(event :MouseEvent) :Void {
         map.hoverOver(this);
     }
-    function onClick(event :MouseEvent) :Void {
+    override function onClick(event :MouseEvent) :Void {
         map.click(this);
-    }
-
-    public function getOffset() :Vec2 {
-        var spacing :Vec2 = new Vec2(80, -80);
-        return new Vec2(height * spacing.x, depth * spacing.y);
     }
 
     public function setVisible() :Void {
@@ -295,7 +310,7 @@ class MapNode extends Component {
     }
     public function markNeighborsVisible() :Void {
         for (node in neighbors) {
-            node.setVisible();
+            cast (node, MapNode).setVisible();
         }
     }
 
@@ -315,7 +330,7 @@ class MapNode extends Component {
 
     public function hasUnseenNeighbors() :Bool {
         for (node in neighbors) {
-            if (node.canMarkSeen()) {
+            if (cast(node, MapNode).canMarkSeen()) {
                 return true;
             }
         }
@@ -323,10 +338,10 @@ class MapNode extends Component {
     }
 
     public function unlockRandomNeighbor() :Void {
-        var unseen = neighbors.filter(function (node) { return node.canMarkSeen(); });
+        var unseen = neighbors.filter(function (node) { return cast (node, MapNode).canMarkSeen(); });
         if (unseen.length > 0) {
             var node = Random.randomElement(unseen);
-            node.setVisible();
+            cast (node, MapNode).setVisible();
             markDirty();
         }
         else {

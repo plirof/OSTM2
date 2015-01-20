@@ -394,7 +394,8 @@ class MapGenerator extends Component
             var node = openSet[0];
             openSet.remove(node);
 
-            for (n in node.neighbors) {
+            for (m in node.neighbors) {
+                var n :MapNode = cast m;
                 var canVisit = node.hasVisited();
                 if (canVisit) {
                     if (closedSet.get(n) == null) {
