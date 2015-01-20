@@ -153,6 +153,11 @@ class BattleMember implements Saveable {
     }
 
     public function equip(item :Item) :Void {
+        var oldItem = equipment[item.type.slot];
+        if (oldItem != null) {
+            oldItem.cleanupElement();
+        }
+        
         equipment[item.type.slot] = item;
     }
     public function unequip(item :Item) :Void {

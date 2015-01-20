@@ -38,6 +38,10 @@ class Inventory extends Component
     }
 
     public function updateInventoryHtml() :Void {
+        for (item in _inventory) {
+            item.cleanupElement();
+        }
+
         var inventory = Browser.document.getElementById('inventory');
         while (inventory.childElementCount > 0) {
             inventory.removeChild(inventory.firstChild);

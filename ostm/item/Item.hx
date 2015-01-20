@@ -17,6 +17,7 @@ class Item {
 
     var affixes :Array<Affix> = [];
 
+    var _elem :Element;
     var _body :Element;
     var _buttons :Element;
 
@@ -49,12 +50,14 @@ class Item {
         player.equip(this);
         Inventory.instance.remove(this);
 
+        cleanupElement();
         Inventory.instance.updateInventoryHtml();
     }
 
     function discard(event) {
         Inventory.instance.remove(this);
 
+        cleanupElement();
         Inventory.instance.updateInventoryHtml();
     }
 
@@ -83,15 +86,18 @@ class Item {
         var equipped = player.equipment.get(type.slot);
         var isEquipped = this == equipped;
 
-        var elem = Browser.document.createElement(elemTag);
+        _elem = Browser.document.createElement(elemTag);
 
-        var name = Browser.document.createSpanElement();
-        name.innerText = this.name();
-        name.style.color = getColor();
-        elem.appendChild(name);
+        var makeNameElem = function() {
+            var name = Browser.document.createSpanElement();
+            name.innerText = this.name();
+            name.style.color = getColor();
+            return name;
+        }
+        _elem.appendChild(makeNameElem());
 
         _buttons = Browser.document.createSpanElement();
-        elem.appendChild(_buttons);
+        _elem.appendChild(_buttons);
 
         if (!isEquipped) {
             var equip = Browser.document.createButtonElement();
@@ -112,23 +118,24 @@ class Item {
         }
 
         _body = Browser.document.createUListElement();
+        _body.appendChild(makeNameElem());
         hideBody();
         _buttons.style.display = 'none';
 
-        elem.onmouseover = function(event :MouseEvent) {
+        _elem.onmouseover = function(event :MouseEvent) {
             _buttons.style.display = '';
             var pos = new Vec2(event.layerX, event.layerY);
             showBody(pos);
 
-            if (!isEquipped) {
+            if (equipped != null && !isEquipped) {
                 equipped.showBody(pos + new Vec2(_body.clientWidth + 50, 0));
             }
         };
-        elem.onmouseout = function(event) {
+        _elem.onmouseout = function(event) {
             _buttons.style.display = 'none';
             hideBody();
 
-            if (!isEquipped) {
+            if (equipped != null && !isEquipped) {
                 equipped.hideBody();
             }
         };
@@ -163,10 +170,15 @@ class Item {
             _body.appendChild(aff);
         }
 
-        // elem.appendChild(_body);
         Browser.document.getElementById('popup-container').appendChild(_body);
 
-        return elem;
+        return _elem;
+    }
+
+    public function cleanupElement() :Void {
+        if (_body != null) {
+            _body.remove();
+        }
     }
 
     function showBody(atPos :Vec2) :Void {
