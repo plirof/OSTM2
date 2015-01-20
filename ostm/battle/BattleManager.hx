@@ -167,9 +167,11 @@ class BattleManager extends Component {
                     'border' => '2px solid black',
                 ],
             }),
-            new StatRenderer(bat),
             new BattleRenderer(bat),
         ]);
+        if (isPlayer) {
+            ent.addComponent(new StatRenderer(bat));
+        }
         system.addEntity(ent);
 
         bat.entity = ent;

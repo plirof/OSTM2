@@ -73,7 +73,7 @@ class Inventory extends Component
 
     function appendItemHtml(item :Item) {
         var inventory = Browser.document.getElementById('inventory');
-        var li = item.createElement('li', false);
+        var li = item.createElement('li');
         inventory.appendChild(li);
     }
 

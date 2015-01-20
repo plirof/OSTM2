@@ -3,6 +3,7 @@ package ostm.item;
 import js.*;
 import js.html.*;
 
+import jengine.Vec2;
 import jengine.util.*;
 
 import ostm.battle.BattleManager;
@@ -15,6 +16,9 @@ class Item {
     var level :Int; // Level this item rolled
 
     var affixes :Array<Affix> = [];
+
+    var _body :Element;
+    var _buttons :Element;
 
     public function new(type :ItemType, level :Int) {
         this.type = type;
@@ -74,7 +78,11 @@ class Item {
         }
     }
 
-    public function createElement(elemTag :String, isEquipped :Bool) :Element {
+    public function createElement(elemTag :String) :Element {
+        var player = BattleManager.instance.getPlayer();
+        var equipped = player.equipment.get(type.slot);
+        var isEquipped = this == equipped;
+
         var elem = Browser.document.createElement(elemTag);
 
         var name = Browser.document.createSpanElement();
@@ -82,68 +90,92 @@ class Item {
         name.style.color = getColor();
         elem.appendChild(name);
 
-        var buttons = Browser.document.createSpanElement();
-        elem.appendChild(buttons);
+        _buttons = Browser.document.createSpanElement();
+        elem.appendChild(_buttons);
 
         if (!isEquipped) {
             var equip = Browser.document.createButtonElement();
             equip.innerText = 'Equip';
             equip.onclick = this.equip;
-            buttons.appendChild(equip);
+            _buttons.appendChild(equip);
 
             var discard = Browser.document.createButtonElement();
             discard.innerText = 'Discard';
             discard.onclick = this.discard;
-            buttons.appendChild(discard);
+            _buttons.appendChild(discard);
         }
         else {
             var unequip = Browser.document.createButtonElement();
             unequip.innerText = 'Unequip';
             unequip.onclick = this.unequip;
-            buttons.appendChild(unequip);
+            _buttons.appendChild(unequip);
         }
 
-        var body = Browser.document.createUListElement();
-        var setVisible = function (vis) {
-            var str = vis ? '' : 'none';
-            body.style.display = str;
-            buttons.style.display = str;
-        }
-        setVisible(false);
-        elem.onmouseover = function(event) {
-            setVisible(true);
+        _body = Browser.document.createUListElement();
+        hideBody();
+        _buttons.style.display = 'none';
+
+        elem.onmouseover = function(event :MouseEvent) {
+            _buttons.style.display = '';
+            var pos = new Vec2(event.layerX, event.layerY);
+            showBody(pos);
+
+            if (!isEquipped) {
+                equipped.showBody(pos + new Vec2(_body.clientWidth + 50, 0));
+            }
         };
         elem.onmouseout = function(event) {
-            setVisible(false);
+            _buttons.style.display = 'none';
+            hideBody();
+
+            if (!isEquipped) {
+                equipped.hideBody();
+            }
         };
+
+        _body.style.position = 'absolute';
+        _body.style.background = '#444444';
+        _body.style.border = '2px solid #000000';
+        _body.style.width = cast 220;
+        _body.style.zIndex = cast 10;
 
         var ilvl = Browser.document.createLIElement();
         ilvl.innerText = 'iLvl: ' + Util.format(itemLevel);
-        body.appendChild(ilvl);
+        _body.appendChild(ilvl);
 
         var atk = Browser.document.createLIElement();
         atk.innerText = 'Attack: ' + Util.format(attack());
-        body.appendChild(atk);
+        _body.appendChild(atk);
 
         if (Std.is(type, WeaponType)) {
             var spd = Browser.document.createLIElement();
             spd.innerText = 'Speed: ' + Util.formatFloat(attackSpeed());
-            body.appendChild(spd);
+            _body.appendChild(spd);
         }
         var def = Browser.document.createLIElement();
         def.innerText = 'Defense: ' + Util.format(defense());
-        body.appendChild(def);
+        _body.appendChild(def);
 
         for (affix in affixes) {
             var aff = Browser.document.createLIElement();
             aff.innerText = affix.text();
             aff.style.fontStyle = 'italic';
-            body.appendChild(aff);
+            _body.appendChild(aff);
         }
 
-        elem.appendChild(body);
+        // elem.appendChild(_body);
+        Browser.document.getElementById('popup-container').appendChild(_body);
 
         return elem;
+    }
+
+    function showBody(atPos :Vec2) :Void {
+        _body.style.display = '';
+        _body.style.left = cast atPos.x;
+        _body.style.top = cast atPos.y;
+    }
+    function hideBody() :Void {
+        _body.style.display = 'none';
     }
 
     public function sumAffixes(?mod :AffixModifier) :AffixModifier {

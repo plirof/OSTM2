@@ -133,7 +133,7 @@ class StatRenderer extends Component {
             elem.appendChild(nullItem);
         }
         else {
-            elem.appendChild(item.createElement('ul', true));
+            elem.appendChild(item.createElement('ul'));
         }
     }
 }
