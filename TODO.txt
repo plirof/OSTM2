@@ -1,3 +1,16 @@
+Current Big Problem: game is boring at start
+
+Why: no meaningful interaction/decision making
+
+Solutions:
+    - manual-spawn enemy w/ click
+        - find Hunter early on who teaches you autobattle
+        - OR early adventurer skill is autobattle; lets you invest in reducing autobattle timer early
+    - skill tree asap
+    - town w/ gear options
+
+---
+
 Map
 - discover connections, not nodes
 - center view on start node
@@ -23,3 +36,15 @@ Refactors
 
 Engine
 - Singleton class w/ autobuild macro
+
+---
+
+Ideas:
+
+- Adventurer class is starting class
+    - passives are general-purpose improvements
+    - one passive is "other classes have their passives improved by X% when active"
+- armor gives flat EHP multiplier per point
+    - EHP increase per point of armor is more effective at lower levels
+    - level scaling is based on attacker's level, i.e. you don't get weaker when leveling up, ever
+    
