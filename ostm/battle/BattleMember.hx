@@ -133,6 +133,19 @@ class BattleMember implements Saveable {
         atk = Math.round(atk * curSkill.damage * (1 + mod.percentAttack / 100));
         return atk;
     }
+    public function attackSpeed() :Float {
+        var wep = equipment.get(Weapon);
+        var mod = sumAffixes();
+        var spd = wep != null ? wep.attackSpeed() : 1.5;
+        spd *= (1 + mod.percentAttackSpeed / 100);
+        spd *= curSkill.speed;
+        return spd;
+    }
+    public function dps() :Float {
+        var atk = damage();
+        var spd = attackSpeed();
+        return atk * spd;
+    }
     public function defense() :Int {
         var def = Math.floor(endurance() * 0.35 + 1);
         for (item in equipment) {
@@ -144,13 +157,10 @@ class BattleMember implements Saveable {
         var def = defense();
         return def / (10 + 2.5 * attackerLevel + def);
     }
-    public function attackSpeed() :Float {
-        var wep = equipment.get(Weapon);
-        var mod = sumAffixes();
-        var spd = wep != null ? wep.attackSpeed() : 1.5;
-        spd *= (1 + mod.percentAttackSpeed / 100);
-        spd *= curSkill.speed;
-        return spd;
+    public function ehp(attackerLevel :Int) :Float {
+        var hp = maxHealth();
+        var mitigated = 1 / (1 - damageReduction(attackerLevel));
+        return hp * mitigated;
     }
     public function healthRegen() :Float {
         return maxHealth() * 0.015;

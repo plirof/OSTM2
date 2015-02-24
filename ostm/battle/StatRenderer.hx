@@ -88,6 +88,13 @@ class StatRenderer extends Component {
             new StatElement(list, 'DEX', function() {
                 return Util.format(_member.dexterity());
             }),
+            new StatElement(list, 'DPS', function() {
+                return Util.formatFloat(_member.dps());
+            }),
+            new StatElement(list, 'EHP', function() {
+                var lev = BattleManager.instance.spawnLevel();
+                return Util.formatFloat(_member.ehp(lev));
+            }),
         ];
 
         if (_member.isPlayer) {

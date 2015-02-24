@@ -14,8 +14,8 @@ class Inventory extends Component
         implements Saveable {
     public var saveId(default, null) :String = 'inventory';
     public static var itemTypes = [
-        new WeaponType('sword', 'Sword', 3, 1.6, 1),
-        new WeaponType('axe', 'Axe', 4.5, 1.2, 0),
+        new WeaponType('sword', 'Sword', 3.5, 1.6, 1),
+        new WeaponType('axe', 'Axe', 4.5, 1.4, 0),
         new WeaponType('dagger', 'Dagger', 3, 1.85, 0),
         new ItemType('armor', 'Armor', Body, 0, 2),
         new ItemType('helm', 'Helm', Helmet, 0, 1),

@@ -134,8 +134,26 @@ class BattleManager extends Component {
 
     function dealDamage(target :BattleMember, attacker :BattleMember) :Void {
         var baseDamage = attacker.damage();
-        var dam = Math.round(baseDamage * (1 - target.damageReduction(attacker.level)));
-        target.health -= dam;
+        var damage = Math.round(baseDamage * (1 - target.damageReduction(attacker.level)));
+        target.health -= damage;
+
+        var elem = target.entity.getComponent(HtmlRenderer).getElement();
+        var rect = elem.getBoundingClientRect();
+        var pos = new Vec2(rect.left + rect.width / 3, rect.top + rect.height / 4);
+        var numEnt = new Entity([
+            new Transform(pos),
+            new HtmlRenderer({
+                parent: 'popup-container',
+                style: [
+                    'background' => 'none',
+                    'z-index' => '10',
+                    'font-size' => '26px',
+                ],
+            }),
+            new DamageNumber(damage),
+        ]);
+        entity.getSystem().addEntity(numEnt);
+
         if (target.health <= 0) {
             target.health = target.isPlayer ? 0 : target.maxHealth();
             for (mem in _battleMembers) {
