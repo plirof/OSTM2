@@ -140,6 +140,10 @@ class BattleMember implements Saveable {
         }
         return def;
     }
+    public function damageReduction(attackerLevel :Int) :Float {
+        var def = defense();
+        return def / (10 + 2.5 * attackerLevel + def);
+    }
     public function attackSpeed() :Float {
         var wep = equipment.get(Weapon);
         var mod = sumAffixes();

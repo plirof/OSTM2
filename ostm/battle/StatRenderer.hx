@@ -68,8 +68,13 @@ class StatRenderer extends Component {
             new StatElement(list, 'Speed', function() {
                 return Util.formatFloat(_member.attackSpeed());
             }),
-            new StatElement(list, 'Defense', function() {
+            new StatElement(list, 'Armor', function() {
                 return Util.format(_member.defense());
+            }),
+            new StatElement(list, 'Damage Reduction', function() {
+                var lev = BattleManager.instance.spawnLevel();
+                return Util.formatFloat(_member.damageReduction(lev) * 100) +
+                    '% (against level ' + lev + ' enemies)';
             }),
             new StatElement(list, 'STR', function() {
                 return Util.format(_member.strength());

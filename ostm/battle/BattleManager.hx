@@ -88,6 +88,10 @@ class BattleManager extends Component {
         ]));
     }
 
+    public function spawnLevel() :Int {
+        return MapGenerator.instance.selectedNode.areaLevel();
+    }
+
     public override function update() :Void {
         var hasEnemySpawned = isInBattle();
         _enemy.elem.style.display = hasEnemySpawned ? '' : 'none';
@@ -95,8 +99,7 @@ class BattleManager extends Component {
             _enemySpawnTimer += Time.dt;
 
             if (_enemySpawnTimer >= kEnemySpawnTime) {
-                var node = MapGenerator.instance.selectedNode;
-                _enemy.level = node.areaLevel();
+                _enemy.level = spawnLevel();
                 _enemy.health = _enemy.maxHealth();
             }
 
@@ -123,14 +126,15 @@ class BattleManager extends Component {
             if (mem.attackTimer > attackTime) {
                 mem.attackTimer -= attackTime;
                 var target = mem.isPlayer ? _enemy : _player;
-                dealDamage(target, mem.damage());
+                dealDamage(target, mem);
                 mem.setActiveSkill(ActiveSkill.skills[0]);
             }
         }
     }
 
-    function dealDamage(target :BattleMember, damage :Int) :Void {
-        var dam = Util.intMax(damage - target.defense(), 0);
+    function dealDamage(target :BattleMember, attacker :BattleMember) :Void {
+        var baseDamage = attacker.damage();
+        var dam = Math.round(baseDamage * (1 - target.damageReduction(attacker.level)));
         target.health -= dam;
         if (target.health <= 0) {
             target.health = target.isPlayer ? 0 : target.maxHealth();
