@@ -141,11 +141,19 @@ class BattleMember implements Saveable {
         spd *= curSkill.speed;
         return spd;
     }
+    public function critChance() :Float {
+        return 0.15;
+    }
+    public function critDamage() :Float {
+        return 1.5;
+    }
     public function dps() :Float {
         var atk = damage();
         var spd = attackSpeed();
-        return atk * spd;
+        var crits = 1 + critChance() * (critDamage() - 1);
+        return atk * spd * crits;
     }
+
     public function defense() :Int {
         var def = Math.floor(endurance() * 0.35 + 1);
         for (item in equipment) {

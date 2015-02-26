@@ -135,6 +135,10 @@ class BattleManager extends Component {
     function dealDamage(target :BattleMember, attacker :BattleMember) :Void {
         var baseDamage = attacker.damage();
         var damage = Math.round(baseDamage * (1 - target.damageReduction(attacker.level)));
+        var isCrit = Random.randomBool(attacker.critChance());
+        if (isCrit) {
+            damage = Math.round(damage * attacker.critDamage());
+        }
         target.health -= damage;
 
         var elem = target.entity.getComponent(HtmlRenderer).getElement();
@@ -144,13 +148,8 @@ class BattleManager extends Component {
             new Transform(pos),
             new HtmlRenderer({
                 parent: 'popup-container',
-                style: [
-                    'background' => 'none',
-                    'z-index' => '10',
-                    'font-size' => '26px',
-                ],
             }),
-            new DamageNumber(damage),
+            new DamageNumber(damage, isCrit, target.isPlayer),
         ]);
         entity.getSystem().addEntity(numEnt);
 

@@ -47,6 +47,9 @@ class Util {
     }
 
     public static function formatFloat(num :Float, digits :Int = 2) :String {
+        if (digits <= 0) {
+            return format(Math.round(num));
+        }
         var mul = Math.floor(Math.pow(10, digits));
         var int = Math.round(num * mul);
         var hi = format(Math.floor(int / mul));
