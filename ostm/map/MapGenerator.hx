@@ -27,9 +27,9 @@ class MapGenerator extends Component
 
     var _scrollHelper :Entity;
 
-    static inline var kMoveTime :Float = 10.0;
+    static inline var kMoveTime :Float = 15.0;
     static inline var kMoveBarWidth :Float = 500;
-    static inline var kKillsToUnlock :Int = 2;
+    static inline var kKillsToUnlock :Int = 3;
     var _moveBar :Element;
     var _moveTimer :Float = 0;
     var _movePath :Array<MapNode> = null;
@@ -137,22 +137,8 @@ class MapGenerator extends Component
             if (_moveTimer > kMoveTime && !BattleManager.instance.isInBattle()) {
                 _moveTimer = 0;
                 
-                selectedNode.clearPath();
-                selectedNode.clearOccupied();
-                
                 var next = _movePath[1];
-                selectedNode = next;
-                while (selectedNode.depth + 2 >= _generated.length) {
-                    addLayer();
-                }
-                selectedNode.setOccupied();
-                BattleManager.instance.resetKillCount();
-
-                forAllNodes(function (node) {
-                    if (node.isHint()) {
-                        node.markDirty();
-                    }
-                });
+                setSelected(next);
 
                 _movePath.remove(next);
                 if (_movePath.length <= 1) {
@@ -161,6 +147,24 @@ class MapGenerator extends Component
                 }
             }
         }
+    }
+
+    function setSelected(next :MapNode) {
+        selectedNode.clearPath();
+        selectedNode.clearOccupied();
+
+        selectedNode = next;
+        while (selectedNode.depth + 2 >= _generated.length) {
+            addLayer();
+        }
+        selectedNode.setOccupied();
+        BattleManager.instance.resetKillCount();
+
+        forAllNodes(function (node) {
+            if (node.isHint()) {
+                node.markDirty();
+            }
+        });
     }
 
     function addLayer() :Void {
@@ -417,6 +421,17 @@ class MapGenerator extends Component
             function (node :MapNode) {
                 return node == end;
             });
+    }
+
+    public function returnToStart() {
+        setSelected(_start);
+
+        if (_movePath != null) {
+            for (n in _movePath) {
+                n.clearPath();
+            }
+            _movePath = null;
+        }
     }
 
     public function serialize() :Dynamic {

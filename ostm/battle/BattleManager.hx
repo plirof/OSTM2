@@ -18,7 +18,7 @@ class BattleManager extends Component {
     var _enemySpawnTimer :Float = 0;
     var _isPlayerDead :Bool = false;
     var _killCount :Int = 0;
-    static inline var kEnemySpawnTime :Float = 2;
+    static inline var kEnemySpawnTime :Float = 4;
     static inline var kPlayerDeathTime :Float = 5;
 
     public static var instance(default, null) :BattleManager;
@@ -162,6 +162,8 @@ class BattleManager extends Component {
 
             if (target.isPlayer) {
                 _isPlayerDead = true;
+                MapGenerator.instance.returnToStart();
+                _enemy.level = spawnLevel();
                 _enemy.health = _enemy.maxHealth();
             }
             else {
