@@ -124,7 +124,7 @@ class Item {
 
         _elem.onmouseover = function(event :MouseEvent) {
             _buttons.style.display = '';
-            var pos = new Vec2(event.layerX, event.layerY);
+            var pos = new Vec2(event.x, event.y);
             showBody(pos);
 
             if (equipped != null && !isEquipped) {
