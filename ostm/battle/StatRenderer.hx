@@ -66,7 +66,7 @@ class StatRenderer extends Component {
                 return Util.format(_member.damage());
             }),
             new StatElement(list, 'Speed', function() {
-                return Util.formatFloat(_member.attackSpeed());
+                return Util.formatFloat(_member.attackSpeed()) + '/s';
             }),
             new StatElement(list, 'Crit Chance', function() {
                 return Util.formatFloat(100 * _member.critChance(), 0) + '%';

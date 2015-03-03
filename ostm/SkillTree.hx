@@ -6,34 +6,16 @@ import js.html.*;
 import jengine.*;
 import jengine.SaveManager;
 
+import ostm.battle.PassiveSkill;
 import ostm.map.MapNode;
-
-class PassiveSkill {
-    public var description(default, null) :String;
-    public var level(default, null) :Int = 0;
-    public var requirements(default, null) :Array<PassiveSkill> = [];
-
-    public function new(desc :String) {
-        description = desc;
-    }
-
-    public function addRequirement(req :PassiveSkill) :Void {
-        if (requirements.indexOf(req) == -1) {
-            requirements.push(req);
-        }
-    }
-
-    public function levelUp() :Void {
-        level++;
-    }
-}
 
 class SkillTree extends Component
         implements Saveable {
     public var saveId(default, null) :String = 'skill-tree';
 
     public static var instance(default, null) :SkillTree;
-    var _skills = new Array<SkillNode>();
+    public var skills(default, null) = new Array<PassiveSkill>();
+    var _skillNodes = new Array<SkillNode>();
 
     public override function init() :Void {
         instance = this;
@@ -42,10 +24,10 @@ class SkillTree extends Component
     public override function start() :Void {
         SaveManager.instance.addItem(this);
 
-        var str = new PassiveSkill("Strength+");
-        var vit = new PassiveSkill("Vitality+");
-        var spd = new PassiveSkill("Speed+");
-        var crit = new PassiveSkill("Crit Chance+");
+        var str = new PassiveSkill('STR+', 'Strength+');
+        var vit = new PassiveSkill('VIT+', 'Vitality+');
+        var spd = new PassiveSkill('SPD+', 'Speed+');
+        var crit = new PassiveSkill('CCH+', 'Crit Chance+');
 
         vit.addRequirement(str);
         spd.addRequirement(str);
@@ -60,7 +42,7 @@ class SkillTree extends Component
     }
 
     function addNode(skill :PassiveSkill, y :Int, x :Int) :SkillNode {
-        var size :Vec2 = new Vec2(40, 40);
+        var size :Vec2 = new Vec2(50, 50);
 
         var node = new SkillNode(y, x, skill);
         var ent = new Entity([
@@ -72,7 +54,7 @@ class SkillTree extends Component
             node,
         ]);
         for (req in skill.requirements) {
-            for (n in _skills) {
+            for (n in _skillNodes) {
                 if (n.skill == req) {
                     node.addNeighbor(n);
                 }
@@ -80,7 +62,8 @@ class SkillTree extends Component
         }
         entity.getSystem().addEntity(ent);
 
-        _skills.push(node);
+        skills.push(skill);
+        _skillNodes.push(node);
         return node;
     }
 
@@ -88,12 +71,12 @@ class SkillTree extends Component
         var topLeft = new Vec2(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
         var origin :Vec2 = new Vec2(100, 100);
-        for (node in _skills) {
+        for (node in _skillNodes) {
             var pos = node.getOffset();
             topLeft = Vec2.min(topLeft, pos);
         }
 
-        for (node in _skills) {
+        for (node in _skillNodes) {
             var pos = origin + node.getOffset() - topLeft;
             node.getTransform().pos = pos;
             botRight = Vec2.max(botRight, pos);
@@ -110,6 +93,7 @@ class SkillTree extends Component
 class SkillNode extends GameNode {
     public var skill(default, null) :PassiveSkill;
     var _description :Element;
+    var _count :Element;
 
     public function new(x :Int, y :Int, skill :PassiveSkill) {
         super(x, y);
@@ -118,6 +102,13 @@ class SkillNode extends GameNode {
 
     public override function start() :Void {
         super.start();
+
+        var name = Browser.document.createSpanElement();
+        name.innerText = skill.abbreviation;
+        elem.appendChild(name);
+        elem.appendChild(Browser.document.createBRElement());
+        _count = Browser.document.createSpanElement();
+        elem.appendChild(_count);
 
         _description = Browser.document.createUListElement();
         var descText = Browser.document.createSpanElement();
@@ -135,7 +126,7 @@ class SkillNode extends GameNode {
     }
 
     public override function update() :Void {
-        elem.innerText = cast skill.level;
+        _count.innerText = cast skill.level;
     }
 
     public override function onMouseOver(event :MouseEvent) :Void {
