@@ -108,8 +108,8 @@ class BattleMember implements Saveable {
         return classType.dexterity.value(level);
     }
 
-    function sumAffixes() :AffixModifier {
-        var mod = new AffixModifier();
+    function sumAffixes() :StatModifier {
+        var mod = new StatModifier();
         for (item in equipment) {
             if (item != null) {
                 item.sumAffixes(mod);

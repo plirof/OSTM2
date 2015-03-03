@@ -2,6 +2,7 @@ package ostm.item;
 
 import jengine.util.Random;
 
+import ostm.battle.StatModifier;
 import ostm.item.ItemType;
 
 @:allow(ostm.item.Affix)
@@ -10,7 +11,7 @@ class AffixType {
     var description :String;
     var baseValue :Float;
     var valuePerLevel :Float;
-    var modifierFunc :Int -> AffixModifier -> Void;
+    var modifierFunc :Int -> StatModifier -> Void;
     var slotMultipliers :Map<ItemSlot, Float>;
     public static inline var kRollCounts :Int = 10;
 
@@ -38,7 +39,7 @@ class AffixType {
         return multiplierFor(slot) > 0;
     }
 
-    public function applyModifier(value :Int, mod :AffixModifier) :Void {
+    public function applyModifier(value :Int, mod :StatModifier) :Void {
         modifierFunc(value, mod);
     }
 }
@@ -57,13 +58,16 @@ class Affix {
         }, [ Weapon => 1.0 ]),
         new AffixType('flat-defense', 'Defense', 2, 1.25, function(value, mod) {
             mod.flatDefense += value;
-        }, [ Body => 1.0, Boots => 0.5, Helmet => 0.5 ]),
+        }, [ Body => 1.0, Boots => 0.5, Helmet => 1.0 ]),
         new AffixType('percent-hp', '% HP', 2, 0.5, function(value, mod) {
             mod.percentHealth += value;
         }, [ Helmet => 1.0 ]),
         new AffixType('percent-attack', '% Attack', 5, 1.5, function(value, mod) {
             mod.percentAttack += value;
         }, [ Weapon => 1.0 ]),
+        new AffixType('percent-defense', '% Defense', 10, 5, function(value, mod) {
+            mod.percentDefense += value;
+        }, [ Body => 1.0, Helmet => 1.0, Boots => 0.5 ]),
         new AffixType('percent-attack-speed', '% Global Attack Speed', 2, 0.5, function(value, mod) {
             mod.percentAttackSpeed += value;
         }, [ Boots => 1.0 ]),
@@ -85,7 +89,7 @@ class Affix {
         return '+' + type.valueForLevel(slot, level) + ' ' + type.description;
     }
 
-    public function applyModifier(mod :AffixModifier) :Void {
+    public function applyModifier(mod :StatModifier) :Void {
         type.applyModifier(type.valueForLevel(slot, level), mod);
     }
 
@@ -106,18 +110,4 @@ class Affix {
         }
         return null;
     }
-}
-
-class AffixModifier {
-    public var flatAttack :Int = 0;
-    public var flatDefense :Int = 0;
-    public var flatHealth :Int = 0;
-
-    public var percentHealth :Int = 0;
-    public var percentAttack :Int = 0;
-    public var percentAttackSpeed :Int = 0;
-
-    public var localPercentAttackSpeed :Int = 0;
-
-    public function new() { }
 }

@@ -1,0 +1,16 @@
+package ostm.battle;
+
+class StatModifier {
+    public var flatAttack :Int = 0;
+    public var flatDefense :Int = 0;
+    public var flatHealth :Int = 0;
+
+    public var percentHealth :Int = 0;
+    public var percentDefense :Int = 0;
+    public var percentAttack :Int = 0;
+    public var percentAttackSpeed :Int = 0;
+
+    public var localPercentAttackSpeed :Int = 0;
+
+    public function new() { }
+}

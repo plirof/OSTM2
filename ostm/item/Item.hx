@@ -7,6 +7,7 @@ import jengine.Vec2;
 import jengine.util.*;
 
 import ostm.battle.BattleManager;
+import ostm.battle.StatModifier;
 import ostm.item.Affix;
 import ostm.item.ItemType;
 
@@ -124,7 +125,7 @@ class Item {
 
         _elem.onmouseover = function(event :MouseEvent) {
             _buttons.style.display = '';
-            var pos = new Vec2(event.x, event.y);
+            var pos = new Vec2(event.x + 20, event.y);
             showBody(pos);
 
             if (equipped != null && !isEquipped) {
@@ -190,9 +191,9 @@ class Item {
         _body.style.display = 'none';
     }
 
-    public function sumAffixes(?mod :AffixModifier) :AffixModifier {
+    public function sumAffixes(?mod :StatModifier) :StatModifier {
         if (mod == null) {
-            mod = new AffixModifier();
+            mod = new StatModifier();
         }
         for (affix in affixes) {
             affix.applyModifier(mod);
