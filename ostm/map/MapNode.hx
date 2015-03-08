@@ -99,7 +99,7 @@ class GameNode extends Component {
     }
 
     public function getOffset() :Vec2 {
-        var spacing :Vec2 = new Vec2(80, 80);
+        var spacing :Vec2 = new Vec2(60, 60);
         return new Vec2(height * spacing.x, depth * spacing.y);
     }
 

@@ -17,8 +17,11 @@ class StatType {
         this.baseValue = base;
         this.perLevel = perLevel;
     }
-    public function value(level :Int) :Int {
-        return Math.floor(baseValue + (level - 1) * perLevel);
+    public function value(level :Int, isPlayer :Bool) :Int {
+        var v = baseValue;
+        var e = isPlayer ? 1 : 1.8;
+        v += perLevel * Math.pow(level - 1, e);
+        return Math.floor(v);
     }
 }
 
@@ -96,16 +99,16 @@ class BattleMember implements Saveable {
     }
 
     public function strength() :Int {
-        return classType.strength.value(level);
+        return classType.strength.value(level, isPlayer);
     }
     public function vitality() :Int {
-        return classType.vitality.value(level);
+        return classType.vitality.value(level, isPlayer);
     }
     public function endurance() :Int {
-        return classType.endurance.value(level);
+        return classType.endurance.value(level, isPlayer);
     }
     public function dexterity() :Int {
-        return classType.dexterity.value(level);
+        return classType.dexterity.value(level, isPlayer);
     }
 
     function sumAffixes() :StatModifier {
@@ -119,19 +122,24 @@ class BattleMember implements Saveable {
     }
     public function maxHealth() :Int {
         var mod = sumAffixes();
-        var hp = vitality() * 10 + 50;
+        var hp = vitality() * 10;
+        if (isPlayer) {
+            hp += 50;
+        }
         hp += mod.flatHealth;
         hp = Math.round(hp * (1 + mod.percentHealth / 100));
         return hp;
     }
     public function damage() :Int {
         var mod = sumAffixes();
-        var atk = Math.floor(strength() * 0.65 + 2);
+        var atk :Float = equipment.get(Weapon) != null ? 0 : 2;
         for (item in equipment) {
             atk += item != null ? item.attack() : 0;
         }
-        atk = Math.round(atk * curSkill.damage * (1 + mod.percentAttack / 100));
-        return atk;
+        atk *= curSkill.damage;
+        atk *= 1 + strength() * 0.02;
+        atk *= 1 + mod.percentAttack / 100;
+        return Math.round(atk);
     }
     public function attackSpeed() :Float {
         var wep = equipment.get(Weapon);
@@ -155,11 +163,12 @@ class BattleMember implements Saveable {
     }
 
     public function defense() :Int {
-        var def = Math.floor(endurance() * 0.35 + 1);
+        var def :Float = 0;
         for (item in equipment) {
             def += item != null ? item.defense() : 0;
         }
-        return def;
+        def *= 1 + endurance() * 0.02;
+        return Math.round(def);
     }
     public function damageReduction(attackerLevel :Int) :Float {
         var def = defense();

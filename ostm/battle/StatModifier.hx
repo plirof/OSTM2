@@ -6,10 +6,12 @@ class StatModifier {
     public var flatHealth :Int = 0;
 
     public var percentHealth :Int = 0;
-    public var percentDefense :Int = 0;
     public var percentAttack :Int = 0;
+    public var percentDefense :Int = 0;
     public var percentAttackSpeed :Int = 0;
 
+    public var localPercentAttack :Int = 0;
+    public var localPercentDefense :Int = 0;
     public var localPercentAttackSpeed :Int = 0;
 
     public function new() { }

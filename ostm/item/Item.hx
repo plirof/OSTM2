@@ -16,16 +16,21 @@ class Item {
     var itemLevel :Int; // Level this item spawned at
     var level :Int; // Level this item rolled
 
+    var tier :Int;
+
     var affixes :Array<Affix> = [];
 
     var _elem :Element;
     var _body :Element;
     var _buttons :Element;
 
+    static inline var kTierLevels :Int = 5;
+
     public function new(type :ItemType, level :Int) {
         this.type = type;
         this.itemLevel = level;
         this.level = Random.randomIntRange(1, level + 1);
+        this.tier = Math.floor(level / kTierLevels);
 
         var nAffixes = Random.randomIntRange(0, 4);
         var possibleAffixes = Affix.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
@@ -39,7 +44,12 @@ class Item {
     }
 
     public function name() :String {
-        return 'L' + level + ' ' + type.name;
+        var t = Math.floor(tier / type.names.length) + 1;
+        var name = type.names[tier % type.names.length];
+        if (t > 1) {
+            name = 'T' + t + ' ' + name;
+        }
+        return name;
     }
 
     function equip(event) {
@@ -202,21 +212,30 @@ class Item {
     }
 
     public function attack() :Int {
-        var atk = Math.round(type.attack * (1 + 0.4 * (level - 1)));
-        return atk + sumAffixes().flatAttack;
+        var mod = sumAffixes();
+        var atk = type.attack;
+        atk *= 1 + kTierLevels * 0.4 * tier;
+        atk += mod.flatAttack;
+        atk *= 1 + mod.percentAttack / 100;
+        return Math.round(atk);
     }
     public function attackSpeed() :Float {
         if (!Std.is(type, WeaponType)) {
             return 0;
         }
         var wep :WeaponType = cast(type, WeaponType);
-        var spd = wep.attackSpeed;
         var mod = sumAffixes();
-        return wep.attackSpeed * (1 + mod.localPercentAttackSpeed / 100);
+        var spd = wep.attackSpeed;
+        spd *= 1 + mod.localPercentAttackSpeed / 100;        
+        return spd;
     }
     public function defense() :Int {
-        var def = Math.round(type.defense * (1 + 0.4 * (level - 1)));
-        return def + sumAffixes().flatDefense;
+        var mod = sumAffixes();
+        var def = type.defense;
+        def *= 1 + kTierLevels * 0.4 * tier;
+        def += mod.flatDefense;
+        def *= 1 + mod.percentDefense / 100;
+        return Math.round(def);
     }
 
     public function serialize() :Dynamic {
@@ -228,11 +247,12 @@ class Item {
         };
     }
     public static function loadItem(data :Dynamic) :Item {
-        for (type in Inventory.itemTypes) {
+        for (type in ItemData.types) {
             if (data.id == type.id) {
                 var item = new Item(type, 0);
                 item.level = data.level;
                 item.itemLevel = data.itemLevel;
+                item.tier = Math.floor(data.level / kTierLevels);
                 item.affixes = data.affixes.map(function (d) { return Affix.loadAffix(d); });
                 return item;
             }

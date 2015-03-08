@@ -13,14 +13,6 @@ import ostm.item.ItemType;
 class Inventory extends Component
         implements Saveable {
     public var saveId(default, null) :String = 'inventory';
-    public static var itemTypes = [
-        new WeaponType('sword', 'Sword', 3.5, 1.6, 1),
-        new WeaponType('axe', 'Axe', 4.5, 1.4, 0),
-        new WeaponType('dagger', 'Dagger', 3, 1.85, 0),
-        new ItemType('armor', 'Armor', Body, 0, 2),
-        new ItemType('helm', 'Helm', Helmet, 0, 1),
-        new ItemType('boots', 'Boots', Boots, 0, 1),
-    ];
     var _inventory :Array<Item> = [];
 
     static inline var kMaxInventoryCount :Int = 10;
@@ -94,7 +86,7 @@ class Inventory extends Component
 
     public function tryRewardItem(maxLevel :Int) :Void {
         if (Random.randomBool(0.35) && hasSpaceForItem()) {
-            var type = Random.randomElement(itemTypes);
+            var type = Random.randomElement(ItemData.types);
             var item = new Item(type, maxLevel);
             _inventory.push(item);
 
