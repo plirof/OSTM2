@@ -216,7 +216,7 @@ class Item {
         var atk = type.attack;
         atk *= 1 + kTierLevels * 0.4 * tier;
         atk += mod.flatAttack;
-        atk *= 1 + mod.percentAttack / 100;
+        atk *= 1 + mod.localPercentAttack / 100;
         return Math.round(atk);
     }
     public function attackSpeed() :Float {
@@ -234,7 +234,7 @@ class Item {
         var def = type.defense;
         def *= 1 + kTierLevels * 0.4 * tier;
         def += mod.flatDefense;
-        def *= 1 + mod.percentDefense / 100;
+        def *= 1 + mod.localPercentDefense / 100;
         return Math.round(def);
     }
 

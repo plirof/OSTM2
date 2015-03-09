@@ -99,16 +99,28 @@ class BattleMember implements Saveable {
     }
 
     public function strength() :Int {
-        return classType.strength.value(level, isPlayer);
+        var mod = sumAffixes();
+        var val = classType.strength.value(level, isPlayer);
+        val += mod.flatStrength;
+        return Math.round(val);
     }
     public function vitality() :Int {
-        return classType.vitality.value(level, isPlayer);
+        var mod = sumAffixes();
+        var val = classType.vitality.value(level, isPlayer);
+        val += mod.flatVitality;
+        return Math.round(val);
     }
     public function endurance() :Int {
-        return classType.endurance.value(level, isPlayer);
+        var mod = sumAffixes();
+        var val = classType.endurance.value(level, isPlayer);
+        val += mod.flatEndurance;
+        return Math.round(val);
     }
     public function dexterity() :Int {
-        return classType.dexterity.value(level, isPlayer);
+        var mod = sumAffixes();
+        var val = classType.dexterity.value(level, isPlayer);
+        val += mod.flatDexterity;
+        return Math.round(val);
     }
 
     function sumAffixes() :StatModifier {
@@ -117,6 +129,9 @@ class BattleMember implements Saveable {
             if (item != null) {
                 item.sumAffixes(mod);
             }
+        }
+        for (passive in SkillTree.instance.skills) {
+            passive.sumAffixes(mod);
         }
         return mod;
     }

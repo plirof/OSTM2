@@ -24,10 +24,18 @@ class SkillTree extends Component
     public override function start() :Void {
         SaveManager.instance.addItem(this);
 
-        var str = new PassiveSkill('STR+', 'Strength+');
-        var vit = new PassiveSkill('VIT+', 'Vitality+');
-        var spd = new PassiveSkill('SPD+', 'Speed+');
-        var crit = new PassiveSkill('CCH+', 'Crit Chance+');
+        var str = new PassiveSkill('STR+', 'Strength+', function(value, mod) {
+            mod.flatStrength += value;
+        });
+        var vit = new PassiveSkill('VIT+', 'Vitality+', function(value, mod) {
+            mod.flatVitality += value;
+        });
+        var spd = new PassiveSkill('SPD+', 'Speed+', function(value, mod) {
+            mod.percentMoveSpeed += value;
+        });
+        var crit = new PassiveSkill('CCH+', 'Crit Chance+', function(value, mod) {
+            mod.percentCritChance += value;
+        });
 
         vit.addRequirement(str);
         spd.addRequirement(str);

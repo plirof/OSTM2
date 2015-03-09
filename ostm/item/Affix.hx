@@ -68,7 +68,7 @@ class Affix {
         new AffixType('local-percent-defense', '% Defense', 10, 5, function(value, mod) {
             mod.localPercentDefense += value;
         }, [ Body => 1.0, Helmet => 1.0, Boots => 0.5 ]),
-        new AffixType('percent-attack-speed', '% Global Attack Speed', 2, 0.5, function(value, mod) {
+        new AffixType('percent-attack-speed', '% Global Attack Speed', 4, 2, function(value, mod) {
             mod.percentAttackSpeed += value;
         }, [ Boots => 1.0 ]),
         new AffixType('local-percent-attack-speed', '% Attack Speed', 5, 1.5, function(value, mod) {
