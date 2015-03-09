@@ -132,7 +132,8 @@ class MapGenerator extends Component
             BattleManager.instance.resetKillCount();
         }
 
-        _moveTimer += Time.dt;
+        var player = BattleManager.instance.getPlayer();
+        _moveTimer += Time.dt * player.moveSpeed();
         if (_movePath != null) {
             if (_moveTimer > kMoveTime && !BattleManager.instance.isInBattle()) {
                 _moveTimer = 0;

@@ -30,7 +30,7 @@ class Item {
         this.type = type;
         this.itemLevel = level;
         this.level = Random.randomIntRange(1, level + 1);
-        this.tier = Math.floor(level / kTierLevels);
+        this.tier = Math.floor(this.level / kTierLevels);
 
         var nAffixes = Random.randomIntRange(0, 4);
         var possibleAffixes = Affix.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
@@ -52,7 +52,7 @@ class Item {
         return name;
     }
 
-    function equip(event) {
+    function equip() {
         var player = BattleManager.instance.getPlayer();
         var cur = player.equipment[type.slot];
         if (cur != null) {
@@ -65,14 +65,14 @@ class Item {
         Inventory.instance.updateInventoryHtml();
     }
 
-    function discard(event) {
+    function discard() {
         Inventory.instance.remove(this);
 
         cleanupElement();
         Inventory.instance.updateInventoryHtml();
     }
 
-    function unequip(event) {
+    function unequip() {
         var player = BattleManager.instance.getPlayer();
         var cur = player.equipment[type.slot];
         if (cur == this && Inventory.instance.hasSpaceForItem()) {
@@ -110,21 +110,38 @@ class Item {
         _buttons = Browser.document.createSpanElement();
         _elem.appendChild(_buttons);
 
+        var hideBodies = function() {
+            hideBody();
+
+            if (equipped != null && !isEquipped) {
+                equipped.hideBody();
+            }
+        };
+
         if (!isEquipped) {
             var equip = Browser.document.createButtonElement();
             equip.innerText = 'Equip';
-            equip.onclick = this.equip;
+            equip.onclick = function(event) {
+                this.equip();
+                hideBodies();
+            }
             _buttons.appendChild(equip);
 
             var discard = Browser.document.createButtonElement();
             discard.innerText = 'Discard';
-            discard.onclick = this.discard;
+            discard.onclick = function(event) {
+                this.discard();
+                hideBodies();
+            }
             _buttons.appendChild(discard);
         }
         else {
             var unequip = Browser.document.createButtonElement();
             unequip.innerText = 'Unequip';
-            unequip.onclick = this.unequip;
+            unequip.onclick = function(event) {
+                this.unequip();
+                hideBodies();
+            }
             _buttons.appendChild(unequip);
         }
 
@@ -144,11 +161,7 @@ class Item {
         };
         _elem.onmouseout = function(event) {
             _buttons.style.display = 'none';
-            hideBody();
-
-            if (equipped != null && !isEquipped) {
-                equipped.hideBody();
-            }
+            hideBodies();
         };
 
         _body.style.position = 'absolute';
@@ -252,7 +265,7 @@ class Item {
                 var item = new Item(type, 0);
                 item.level = data.level;
                 item.itemLevel = data.itemLevel;
-                item.tier = Math.floor(data.level / kTierLevels);
+                item.tier = Math.floor(item.level / kTierLevels);
                 item.affixes = data.affixes.map(function (d) { return Affix.loadAffix(d); });
                 return item;
             }

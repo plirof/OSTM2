@@ -27,6 +27,6 @@ class PassiveSkill {
     }
 
     public function sumAffixes(mod :StatModifier) {
-        modify(level, mod);
+        modify(5 * level, mod);
     }
 }

@@ -74,6 +74,9 @@ class Affix {
         new AffixType('local-percent-attack-speed', '% Attack Speed', 5, 1.5, function(value, mod) {
             mod.localPercentAttackSpeed += value;
         }, [ Weapon => 1.0 ]),
+        new AffixType('percent-move-speed', '% Move Speed', 10, 2.5, function(value, mod) {
+            mod.percentMoveSpeed += value;
+        }, [ Boots => 1.0 ]),
     ];
 
     public function new(type :AffixType, slot :ItemSlot) {

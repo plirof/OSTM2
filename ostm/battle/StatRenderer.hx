@@ -62,10 +62,13 @@ class StatRenderer extends Component {
             new StatElement(list, 'HP', function() {
                 return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
             }),
+            new StatElement(list, 'Health Regen (out of combat)', function() {
+                return Util.formatFloat(_member.healthRegen()) + '/s';
+            }),
             new StatElement(list, 'Damage', function() {
                 return Util.format(_member.damage());
             }),
-            new StatElement(list, 'Speed', function() {
+            new StatElement(list, 'Attack Speed', function() {
                 return Util.formatFloat(_member.attackSpeed()) + '/s';
             }),
             new StatElement(list, 'Crit Chance', function() {
@@ -81,6 +84,9 @@ class StatRenderer extends Component {
                 var lev = BattleManager.instance.spawnLevel();
                 return Util.formatFloat(_member.damageReduction(lev) * 100) +
                     '% (against level ' + lev + ' enemies)';
+            }),
+            new StatElement(list, 'Move Speed', function() {
+                return '+' + Util.formatFloat(100 * (_member.moveSpeed() - 1), 0) + '%';
             }),
             new StatElement(list, 'STR', function() {
                 return Util.format(_member.strength());

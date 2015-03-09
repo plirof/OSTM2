@@ -18,9 +18,12 @@ class StatType {
         this.perLevel = perLevel;
     }
     public function value(level :Int, isPlayer :Bool) :Int {
+        var l = level - 1;
         var v = baseValue;
-        var e = isPlayer ? 1 : 1.8;
-        v += perLevel * Math.pow(level - 1, e);
+        v += perLevel * l;
+        if (!isPlayer) {
+            v += 0.1 * perLevel * Math.pow(l, 1.75);
+        }
         return Math.floor(v);
     }
 }
@@ -148,6 +151,9 @@ class BattleMember implements Saveable {
     public function damage() :Int {
         var mod = sumAffixes();
         var atk :Float = equipment.get(Weapon) != null ? 0 : 2;
+        if (!isPlayer) {
+            atk += level;
+        }
         for (item in equipment) {
             atk += item != null ? item.attack() : 0;
         }
@@ -195,7 +201,13 @@ class BattleMember implements Saveable {
         return hp * mitigated;
     }
     public function healthRegen() :Float {
-        return maxHealth() * 0.015;
+        return maxHealth() * 0.025;
+    }
+    public function moveSpeed() :Float {
+        var mod = sumAffixes();
+        var spd :Float = 1;
+        spd *= 1 + mod.percentMoveSpeed / 100;
+        return spd;
     }
 
     public function equip(item :Item) :Void {

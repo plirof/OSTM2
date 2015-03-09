@@ -288,6 +288,7 @@ class MapNode extends GameNode {
         _isVisited = true;
         _isOccupied = true;
         _highestVisited = Util.intMax(_highestVisited, depth);
+        markNeighborsVisible();
         markDirty();
 
         var bg = Browser.document.getElementById('battle-screen');
