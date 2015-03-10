@@ -20,7 +20,8 @@ class MapGenerator extends Component
     public var saveId(default, null) :String = 'map';
     public var selectedNode(default, null) :MapNode;
     
-    var _generated :Array<Map<Int, MapNode>>;
+    var _generated = new Map<Int, Map<Int, MapNode>>();
+    var _gridGeneratedFlags = new Map<Int, Map<Int, Bool>>();
     var _start :MapNode;
 
     var _rand = new StaticRandom();
@@ -33,6 +34,9 @@ class MapGenerator extends Component
     var _moveBar :Element;
     var _moveTimer :Float = 0;
     var _movePath :Array<MapNode> = null;
+
+    static inline var kGridSize :Int = 8;
+    static var kHalfGrid :Int = Math.floor(kGridSize / 2);
 
     var _hints :Array<MapHint> = [
         { x: 4, y: -1, level: 0 },
@@ -48,8 +52,7 @@ class MapGenerator extends Component
     public override function start() :Void {
         SaveManager.instance.addItem(this);
 
-        _generated = new Array<Map<Int, MapNode>>();
-        _generated.push(new Map<Int, MapNode>());
+        // _generated.push(new Map<Int, MapNode>());
         
         _scrollHelper = new Entity([
             new HtmlRenderer({
@@ -103,18 +106,26 @@ class MapGenerator extends Component
         _start.setGoldPath();
         selectedNode = _start;
 
-        for (i in 1...10) {
-            addLayer();
-        }
+        // generateGridCell(0, 0);
+        // generateSurroundingCells(0, 0);
 
-        for (hint in _hints) {
-            if (hint.x < _generated.length) {
-                var node = _generated[hint.x].get(hint.y);
-                if (node != null) {
-                    node.setHint(hint);
-                }
+        var baseGen = 4;
+        for (i in -baseGen...(baseGen + 1)) {
+            for (j in -baseGen...(baseGen + 1)) {
+                generateGridCell(i, j);
             }
         }
+
+        debugPrintNodeCount();
+
+        // for (hint in _hints) {
+        //     if (hint.x < _generated.length) {
+        //         var node = _generated[hint.x].get(hint.y);
+        //         if (node != null) {
+        //             node.setHint(hint);
+        //         }
+        //     }
+        // }
 
         _start.setOccupied();
         centerCurrentNode();
@@ -150,14 +161,32 @@ class MapGenerator extends Component
         }
     }
 
+    function debugPrintNodeCount() {
+        var nodeCount = 0;
+        forAllNodes(function (node) { nodeCount++; });
+        trace('Map Nodes: ' + nodeCount);
+    }
+
+    function getGridCoord(i :Int, j :Int) {
+        return {
+            x: Math.floor(i / kGridSize + 0.5),
+            y: Math.floor(j / kGridSize + 0.5),
+        };
+    }
+
+    function getCenterPosForGridCoord(x :Int, y :Int) {
+        return {
+            i: x * kGridSize,
+            j: y * kGridSize,
+        };
+    }
+
     function setSelected(next :MapNode) {
         selectedNode.clearPath();
         selectedNode.clearOccupied();
 
         selectedNode = next;
-        while (selectedNode.depth + 2 >= _generated.length) {
-            addLayer();
-        }
+        generateSurroundingCells(next.depth, next.height);
         selectedNode.setOccupied();
         BattleManager.instance.resetKillCount();
 
@@ -168,81 +197,129 @@ class MapGenerator extends Component
         });
     }
 
-    function addLayer() :Void {
-        var kBackPathChance = 0.15;
-        var kSidePathChance = 0.1;
-        var kNewRegionChance = 0.15;
-        var kChildCountPossibles = [1, 2, 3];
-        var kHeightChangePossibles = [-1, 0, 0, 0, 1];
+    function generateSurroundingCells(x :Int, y :Int) :Void {
+        var p = getGridCoord(x, y);
+        var xs = [0, -1, 1, 0, 0];
+        var ys = [0, 0, 0, -1, 1];
+        for (i in 0...xs.length) {
+            generateGridCell(x + xs[i], y + ys[i]);
+        }
+    }
 
-        _generated.push(new Map<Int, MapNode>());
-        var i = _generated.length - 1;
-        var p = i - 1;
-        _rand.setSeed(35613 * i + 281);
+    // function addLayer() :Void {
+    //     var kBackPathChance = 0.15;
+    //     var kSidePathChance = 0.1;
+    //     var kNewRegionChance = 0.15;
+    //     var kChildCountPossibles = [1, 2, 3];
+    //     var kHeightChangePossibles = [-1, 0, 0, 0, 1];
 
-        var hMin = _generated.length * 11;
-        var hMax = -hMin;
-        for (parent in _generated[p]) {
-            var nChildren = _rand.randomElement(kChildCountPossibles);
-            var didAddPath = false;
-            var possibles = kHeightChangePossibles.copy();
-            while (possibles.length > nChildren) {
-                possibles.remove(_rand.randomElement(possibles));
-            }
-            var k = 0;
-            while (k < possibles.length) {
-                var n = possibles[k];
-                k++;
-                if (possibles.indexOf(n, k + 1) != -1) {
-                    possibles.remove(n);
-                    k = 0;
-                }
-            }
-            var shouldSetGold = parent.isGoldPath;
-            while (possibles.length > 0) {
-                var j = _rand.randomElement(possibles);
-                possibles.remove(j);
-                j += parent.height;
-                var node = _generated[i].get(j);
-                if (node == null) {
-                    node = addNode(parent, i, j);
-                    if (_rand.randomBool(kNewRegionChance)) {
-                        node.setNewRegion(parent, _rand);
-                    }
-                    if (shouldSetGold) {
-                        node.setGoldPath();
-                    }
-                    didAddPath = true;
-                    shouldSetGold = false;
-                }
-                else if (_rand.randomBool(kBackPathChance) ||
-                        (possibles.length == 0 && !didAddPath)) {
-                    node.addNeighbor(parent);
-                    if (shouldSetGold &&
-                        (_rand.randomBool(kNewRegionChance) || node.region >= MapNode.kLaunchRegions)) {
-                        node.setNewRegion(parent, _rand);
-                    }
-                    if (shouldSetGold) {
-                        node.setGoldPath();
-                    }
-                    didAddPath = true;
-                    shouldSetGold = false;
-                }
-            }
+    //     _generated.push(new Map<Int, MapNode>());
+    //     var i = _generated.length - 1;
+    //     var p = i - 1;
+    //     _rand.setSeed(35613 * i + 281);
+
+    //     var hMin = _generated.length * 11;
+    //     var hMax = -hMin;
+    //     for (parent in _generated[p]) {
+    //         var nChildren = _rand.randomElement(kChildCountPossibles);
+    //         var didAddPath = false;
+    //         var possibles = kHeightChangePossibles.copy();
+    //         while (possibles.length > nChildren) {
+    //             possibles.remove(_rand.randomElement(possibles));
+    //         }
+    //         var k = 0;
+    //         while (k < possibles.length) {
+    //             var n = possibles[k];
+    //             k++;
+    //             if (possibles.indexOf(n, k + 1) != -1) {
+    //                 possibles.remove(n);
+    //                 k = 0;
+    //             }
+    //         }
+    //         var shouldSetGold = parent.isGoldPath;
+    //         while (possibles.length > 0) {
+    //             var j = _rand.randomElement(possibles);
+    //             possibles.remove(j);
+    //             j += parent.height;
+    //             var node = _generated[i].get(j);
+    //             if (node == null) {
+    //                 node = addNode(parent, i, j);
+    //                 if (_rand.randomBool(kNewRegionChance)) {
+    //                     node.setNewRegion(parent, _rand);
+    //                 }
+    //                 if (shouldSetGold) {
+    //                     node.setGoldPath();
+    //                 }
+    //                 didAddPath = true;
+    //                 shouldSetGold = false;
+    //             }
+    //             else if (_rand.randomBool(kBackPathChance) ||
+    //                     (possibles.length == 0 && !didAddPath)) {
+    //                 node.addNeighbor(parent);
+    //                 if (shouldSetGold &&
+    //                     (_rand.randomBool(kNewRegionChance) || node.region >= MapNode.kLaunchRegions)) {
+    //                     node.setNewRegion(parent, _rand);
+    //                 }
+    //                 if (shouldSetGold) {
+    //                     node.setGoldPath();
+    //                 }
+    //                 didAddPath = true;
+    //                 shouldSetGold = false;
+    //             }
+    //         }
+    //     }
+
+    //     for (node in _generated[i]) {
+    //         tryUncross(node.depth, node.height);
+    //         var prev = _generated[i].get(node.height - 1);
+    //         if (prev != null && _rand.randomBool(kSidePathChance)) {
+    //             node.addNeighbor(prev);
+    //         }
+    //     }
+    //     forAllNodes(function(node) {
+    //         node.markDirty();
+    //     });
+
+    //     updateScrollBounds();
+    // }
+
+    function generateGridCell(x :Int, y :Int) :Void {
+        if (_gridGeneratedFlags.get(x) != null && _gridGeneratedFlags.get(x).get(y) != null) {
+            return;
         }
 
-        for (node in _generated[i]) {
-            tryUncross(node.depth, node.height);
-            var prev = _generated[i].get(node.height - 1);
-            if (prev != null && _rand.randomBool(kSidePathChance)) {
-                node.addNeighbor(prev);
+        var center = getCenterPosForGridCoord(x, y);
+        for (i in 0...kGridSize) {
+            var x1 = center.i + i - kHalfGrid;
+            var y1 = center.j;
+            var node1 = getNode(x1, y1);
+            if (node1 == null) {
+                node1 = addNode(null, x1, y1);
             }
+            node1.addNeighbor(getNode(x1 - 1, y1));
+            node1.addNeighbor(getNode(x1 + 1, y1));
+
+            var x2 = center.i;
+            var y2 = center.j + i - kHalfGrid;
+            var node2 = getNode(x2, y2);
+            if (node2 == null) {
+                node2 = addNode(null, x2, y2);
+            }
+            node2.addNeighbor(getNode(x2, y2 - 1));
+            node2.addNeighbor(getNode(x2, y2 + 1));
         }
+
         forAllNodes(function(node) {
             node.markDirty();
         });
-
         updateScrollBounds();
+    }
+
+    function getNode(i :Int, j :Int) :MapNode {
+        if (_generated.get(i) != null && _generated.get(i).get(j) != null) {
+            return _generated[i][j];
+        }
+        return null;
     }
 
     function addNode(parent :MapNode, i :Int, j :Int) :MapNode {
@@ -259,32 +336,35 @@ class MapGenerator extends Component
         ]);
         entity.getSystem().addEntity(ent);
 
+        if (_generated.get(i) == null) {
+            _generated[i] = new Map<Int, MapNode>();
+        }
         _generated[i][j] = node;
         return node;
     }
 
-    function tryUncross(i :Int, j :Int) :Void {
-        if (i > 0) {
-            var ul = _generated[i - 1].get(j - 1);
-            var ur = _generated[i].get(j - 1);
-            var dl = _generated[i - 1].get(j);
-            var dr = _generated[i].get(j);
-            if (ul != null && ur != null &&
-                dl != null && dr != null &&
-                isAdjacent(ul, dr) && isAdjacent(ur, dl)) {
-                if ((_rand.randomBool() &&
-                    !(ul.isGoldPath && dr.isGoldPath)) ||
-                    (ur.isGoldPath && dl.isGoldPath)) {
-                    ul.removeNeighbor(dr);
-                }
-                else {
-                    ur.removeNeighbor(dl);
-                }
-                ul.addNeighbor(ur);
-                dl.addNeighbor(dr);
-            }
-        }
-    }
+    // function tryUncross(i :Int, j :Int) :Void {
+    //     if (i > 0) {
+    //         var ul = _generated[i - 1].get(j - 1);
+    //         var ur = _generated[i].get(j - 1);
+    //         var dl = _generated[i - 1].get(j);
+    //         var dr = _generated[i].get(j);
+    //         if (ul != null && ur != null &&
+    //             dl != null && dr != null &&
+    //             isAdjacent(ul, dr) && isAdjacent(ur, dl)) {
+    //             if ((_rand.randomBool() &&
+    //                 !(ul.isGoldPath && dr.isGoldPath)) ||
+    //                 (ur.isGoldPath && dl.isGoldPath)) {
+    //                 ul.removeNeighbor(dr);
+    //             }
+    //             else {
+    //                 ur.removeNeighbor(dl);
+    //             }
+    //             ul.addNeighbor(ur);
+    //             dl.addNeighbor(dr);
+    //         }
+    //     }
+    // }
 
     function setPath(path :Array<MapNode>) :Void {
         _movePath = path;
@@ -446,21 +526,20 @@ class MapGenerator extends Component
         };
     }
     public function deserialize(data :Dynamic) {
-        var nodes :Array<Dynamic> = data.nodes;
-        for (n in nodes) {
-            while (n.x + 1 > _generated.length) {
-                addLayer();
-            }
-            var node = _generated[n.x].get(n.y);
-            if (node != null) {
-                node.deserialize(n);
-            }
-        }
-        var sel = _generated[data.selected.x].get(data.selected.y);
-        if (sel != null) {
-            selectedNode.clearOccupied();
-            selectedNode = sel;
-            sel.setOccupied();
-        }
+        // var nodes :Array<Dynamic> = data.nodes;
+        // for (n in nodes) {
+        //     var p = getGridCoord(n.depth, n.height);
+        //     generateSurroundingCells(p.x, p.y);
+        //     var node = _generated[n.x].get(n.y);
+        //     if (node != null) {
+        //         node.deserialize(n);
+        //     }
+        // }
+        // var sel = _generated[data.selected.x].get(data.selected.y);
+        // if (sel != null) {
+        //     selectedNode.clearOccupied();
+        //     selectedNode = sel;
+        //     sel.setOccupied();
+        // }
     }
 }

@@ -62,18 +62,18 @@ div {
     background: #aaffaa;
 }
 #map-screen {
-    height: 50%;
+    height: 80%;
     background: #aaaaaa;
 }
 #battle-screen {
-    height: 50%;
+    height: 20%;
     width: 50%;
-    top: 50%;
+    top: 80%;
 }
 #skill-screen {
-    height: 50%;
+    height: 20%;
     width: 50%;
-    top: 50%;
+    top: 80%;
     left: 50%;
     background: #ddff77;
 }

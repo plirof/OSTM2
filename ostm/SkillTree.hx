@@ -141,8 +141,6 @@ class SkillNode extends GameNode {
         _description.style.display = '';
         _description.style.left = cast event.x;
         _description.style.top = cast event.y;
-        trace(event.x, event.pageX, event.layerX, event.clientX, event.offsetX, event.screenX, event.movementX);
-        trace(event.y, event.pageY, event.layerY, event.clientY, event.offsetY, event.screenY, event.movementY);
     }
 
     public override function onMouseOut(event :MouseEvent) :Void {

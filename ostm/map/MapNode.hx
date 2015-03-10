@@ -19,7 +19,7 @@ class GameNode extends Component {
     public var neighbors(default, null) = new Array<GameNode>();
     public var elem(default, null) :Element;
     var lines = new Array<NodeLine>();
-    var _lineWidth :Float = 3;
+    var _lineWidth :Float = 5;
 
     function new(depth :Int, height :Int) {
         this.depth = depth;
@@ -48,6 +48,10 @@ class GameNode extends Component {
     }
 
     public function addNeighbor(node :GameNode) :Void {
+        if (node == null) {
+            return;
+        }
+        
         if (neighbors.indexOf(node) == -1) {
             neighbors.push(node);
         }
@@ -114,8 +118,8 @@ class MapNode extends GameNode {
     public var isGoldPath(default, null) :Bool = false;
     var _parent :MapNode;
 
-    var _isVisible :Bool = false;
-    var _isVisited :Bool = false;
+    var _isVisible :Bool = true; //false;
+    var _isVisited :Bool = true; //false;
     var _selectedPath :Array<MapNode> = null;
     var _highlightedPath :Array<MapNode> = null;
     var _isOccupied :Bool = false;
@@ -125,7 +129,7 @@ class MapNode extends GameNode {
     var _highlightedLineWidth :Float = 8;
 
     public static inline var kMaxRegions = 12;
-    public static inline var kMaxVisibleRegion = 4;
+    public static inline var kMaxVisibleRegion = 12; //4;
     public static inline var kLaunchRegions = 4;
 
     static var _highestVisited = 0;
