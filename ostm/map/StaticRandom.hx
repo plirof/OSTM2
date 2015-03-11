@@ -6,8 +6,9 @@ class StaticRandom {
     static var kRandMax :Int = 19001;
     static var kRandBoolPrecision :Int = 1000;
 
-    public function setSeed(s :Int) :Void {
+    public function setSeed(s :Int) :StaticRandom {
         seed = s;
+        return this;
     }
 
     public function randomInt(?max :Int) :Int {
