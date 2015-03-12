@@ -6,6 +6,8 @@ class Time {
     public static var dt(default, null): Float;
     public static var elapsed(default, null): Float;
     public static var timeMultiplier :Float = 1;
+    public static var raw(get, null) :Float;
+
     static var _lastTime: Float;
     static var _startTime: Float;
 
@@ -24,5 +26,9 @@ class Time {
         elapsed = curTime - _startTime;
 
         _lastTime = curTime;
+    }
+
+    static function get_raw() :Float {
+        return Timer.stamp();
     }
 }

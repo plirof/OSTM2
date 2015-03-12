@@ -355,7 +355,8 @@ class MapNode extends GameNode {
     }
 
     public function areaLevel() :Int {
-        return depth + Math.floor(Math.abs(height) / 2) + 1;
+        // return depth + Math.floor(Math.abs(height) / 2) + 1;
+        return 1;
     }
 
     public function isHint() :Bool {

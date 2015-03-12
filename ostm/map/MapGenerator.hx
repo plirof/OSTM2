@@ -28,14 +28,14 @@ class MapGenerator extends Component
 
     var _scrollHelper :Entity;
 
-    static inline var kMoveTime :Float = 15.0;
+    static inline var kMoveTime :Float = 1.0;
     static inline var kMoveBarWidth :Float = 500;
     static inline var kKillsToUnlock :Int = 3;
     var _moveBar :Element;
     var _moveTimer :Float = 0;
     var _movePath :Array<MapNode> = null;
 
-    static inline var kGridSize :Int = 8;
+    static inline var kGridSize :Int = 5;
     static var kHalfGrid :Int = Math.floor(kGridSize / 2);
 
     var _hints :Array<MapHint> = [
@@ -106,26 +106,23 @@ class MapGenerator extends Component
         _start.setGoldPath();
         selectedNode = _start;
 
-        // generateGridCell(0, 0);
-        // generateSurroundingCells(0, 0);
+        var startTime = Time.raw;
 
-        var baseGen = 5;
+        // generateGridCell(0, 0);
+        generateSurroundingCells(0, 0);
+
+        var baseGen = 3;
         for (i in -baseGen...(baseGen + 1)) {
             for (j in -baseGen...(baseGen + 1)) {
                 generateGridCell(i, j);
             }
         }
 
-        debugPrintNodeCount();
-
-        // for (hint in _hints) {
-        //     if (hint.x < _generated.length) {
-        //         var node = _generated[hint.x].get(hint.y);
-        //         if (node != null) {
-        //             node.setHint(hint);
-        //         }
-        //     }
-        // }
+        var nodeCount = debugNodeCount();
+        var elapsed = Time.raw - startTime;
+        var rate = nodeCount / elapsed;
+        trace('Map Nodes: ' + nodeCount);
+        trace('Time to generate: ' + elapsed + ' s (' + rate + ' nodes/s)');
 
         _start.setOccupied();
         centerCurrentNode();
@@ -161,10 +158,10 @@ class MapGenerator extends Component
         }
     }
 
-    function debugPrintNodeCount() {
+    function debugNodeCount() {
         var nodeCount = 0;
         forAllNodes(function (node) { nodeCount++; });
-        trace('Map Nodes: ' + nodeCount);
+        return nodeCount;
     }
 
     function getGridCoord(i :Int, j :Int) {
@@ -197,12 +194,12 @@ class MapGenerator extends Component
         });
     }
 
-    function generateSurroundingCells(x :Int, y :Int) :Void {
-        var p = getGridCoord(x, y);
+    function generateSurroundingCells(i :Int, j :Int) :Void {
+        var p = getGridCoord(i, j);
         var xs = [0, -1, 1, 0, 0];
         var ys = [0, 0, 0, -1, 1];
         for (i in 0...xs.length) {
-            generateGridCell(x + xs[i], y + ys[i]);
+            generateGridCell(p.x + xs[i], p.y + ys[i]);
         }
     }
 
@@ -211,9 +208,13 @@ class MapGenerator extends Component
     }
 
     function generateGridCell(x :Int, y :Int) :Void {
-        if (_gridGeneratedFlags.get(x) != null && _gridGeneratedFlags.get(x).get(y) != null) {
+        if (_gridGeneratedFlags.get(x) == null) {
+            _gridGeneratedFlags[x] = new Map<Int, Bool>();
+        }
+        if (_gridGeneratedFlags[x].get(y) != null) {
             return;
         }
+        _gridGeneratedFlags[x][y] = true;
 
         var pos = getPosForGridCoord(x, y);
         var seed = cellSeed(x, y);
@@ -228,35 +229,68 @@ class MapGenerator extends Component
         var downX = _rand.setSeed(seed + downSeed).randomInt(kGridSize);
         var upX = _rand.setSeed(seed + upSeed).randomInt(kGridSize);
 
+        _rand.setSeed(seed);
+        if (_rand.randomBool(0.11)) {
+            return;
+        }
+
         var left = addNode(null, pos.i, pos.j + leftY);
         var right = addNode(null, pos.i + kGridSize, pos.j + rightY);
         var down = addNode(null, pos.i + downX, pos.j);
         var up = addNode(null, pos.i + upX, pos.j + kGridSize);
 
-        left.addNeighbor(down);
-        right.addNeighbor(down);
-        up.addNeighbor(right);
+        var cellNodes = [left, right, down, up];
 
+        var findPathWithinCell = function(start :MapNode, end :MapNode) {
+            return bfsPath(start,
+                function (node :MapNode) {
+                    return node == end;
+                },
+                function (node :MapNode) {
+                    return cellNodes.indexOf(node) != -1;
+                });
+        };
 
-        // for (i in 0...kGridSize) {
-        //     var x1 = center.i + i - kHalfGrid;
-        //     var y1 = center.j;
-        //     var node1 = getNode(x1, y1);
-        //     if (node1 == null) {
-        //         node1 = addNode(null, x1, y1);
-        //     }
-        //     node1.addNeighbor(getNode(x1 - 1, y1));
-        //     node1.addNeighbor(getNode(x1 + 1, y1));
+        var attempts = 0;
+        var isDone = function() {
+            return findPathWithinCell(left, right) != null
+                && findPathWithinCell(left, up) != null
+                && findPathWithinCell(left, down) != null
+                || attempts > 10000;
+        };
 
-        //     var x2 = center.i;
-        //     var y2 = center.j + i - kHalfGrid;
-        //     var node2 = getNode(x2, y2);
-        //     if (node2 == null) {
-        //         node2 = addNode(null, x2, y2);
-        //     }
-        //     node2.addNeighbor(getNode(x2, y2 - 1));
-        //     node2.addNeighbor(getNode(x2, y2 + 1));
-        // }
+        var xs = [-1, 1, 0, 0, 1, 1, -1, -1];
+        var ys = [0, 0, -1, 1, 1, -1, 1, -1];
+        while (!isDone()) {
+            var node = _rand.randomElement(cellNodes);
+            var k = _rand.randomInt(xs.length);
+            var i = node.depth + xs[k];
+            var j = node.height + ys[k];
+            if (i >= pos.i && i < pos.i + kGridSize && j >= pos.j && j < pos.j + kGridSize) {
+                var n = getNode(i, j);
+                if (n == null) {
+                    n = addNode(node, i, j);
+                    cellNodes.push(n);
+                } else if (_rand.randomBool(0.1)) {
+                    n.addNeighbor(node);
+                }
+            }
+            attempts++;
+        }
+
+        var startNodes = [left, right, up, down];
+        var canTrim = function(node :MapNode) {
+            return startNodes.indexOf(node) == -1 && node.neighbors.length == 1;
+        };
+        var trimmable = function() {
+            return cellNodes.filter(canTrim);
+        };
+        while (trimmable().length > 0) {
+            var toTrim = trimmable();
+            for (node in toTrim) {
+                removeNode(node.depth, node.height);
+            }
+        }
 
         forAllNodes(function(node) {
             node.markDirty();
@@ -273,7 +307,6 @@ class MapGenerator extends Component
 
     function addNode(parent :MapNode, i :Int, j :Int) :MapNode {
         if (getNode(i, j) != null) {
-            Log.log('Tried to add node (' + i + ', ' + j + ') that already exists');
             return getNode(i, j);
         }
         var size :Vec2 = new Vec2(40, 40);
@@ -294,6 +327,20 @@ class MapGenerator extends Component
         }
         _generated[i][j] = node;
         return node;
+    }
+
+    function removeNode(i :Int, j :Int) :Void {
+        var node = getNode(i, j);
+        if (node == null) {
+            return;
+        }
+
+        for (n in node.neighbors) {
+            n.removeNeighbor(node);
+        }
+
+        entity.getSystem().removeEntity(node.entity);
+        _generated[i].remove(j);
     }
 
     // function tryUncross(i :Int, j :Int) :Void {
@@ -410,7 +457,9 @@ class MapGenerator extends Component
         return a.neighbors.indexOf(b) != -1;
     }
 
-    function bfsPath(start :MapNode, endFunction :MapNode -> Bool) :Array<MapNode> {
+    function bfsPath(start :MapNode, 
+            endFunction :MapNode -> Bool,
+            allowedFunction :MapNode -> Bool) :Array<MapNode> {
         var openSet = new Array<MapNode>();
         var closedSet = new Map<MapNode, MapNode>(); //key: item, val: parent
         openSet.push(start);
@@ -434,7 +483,7 @@ class MapGenerator extends Component
 
             for (m in node.neighbors) {
                 var n :MapNode = cast m;
-                var canVisit = node.hasVisited();
+                var canVisit = node.hasVisited() && allowedFunction(n);
                 if (canVisit) {
                     if (closedSet.get(n) == null) {
                         openSet.push(n);
@@ -454,6 +503,9 @@ class MapGenerator extends Component
         return bfsPath(start,
             function (node :MapNode) {
                 return node == end;
+            },
+            function (node :MapNode) {
+                return true;
             });
     }
 
@@ -481,8 +533,7 @@ class MapGenerator extends Component
     public function deserialize(data :Dynamic) {
         // var nodes :Array<Dynamic> = data.nodes;
         // for (n in nodes) {
-        //     var p = getGridCoord(n.depth, n.height);
-        //     generateSurroundingCells(p.x, p.y);
+        //     generateSurroundingCells(n.depth, n.height);
         //     var node = _generated[n.x].get(n.y);
         //     if (node != null) {
         //         node.deserialize(n);
