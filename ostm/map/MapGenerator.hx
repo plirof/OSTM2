@@ -102,14 +102,12 @@ class MapGenerator extends Component
             ]),
         ]));
 
-        _start = addNode(null, 0, 1); // TODO: do this programmatically
-        _start.setGoldPath();
-        selectedNode = _start;
-
         var startTime = Time.raw;
 
         // generateGridCell(0, 0);
         generateSurroundingCells(0, 0);
+        selectedNode = _start; // _start is generated as part of generateGridCell(0, 0)
+
 
         var baseGen = 3;
         for (i in -baseGen...(baseGen + 1)) {
@@ -216,6 +214,8 @@ class MapGenerator extends Component
         }
         _gridGeneratedFlags[x][y] = true;
 
+        var isOriginCell = x == 0 && y == 0;
+
         var pos = getPosForGridCoord(x, y);
         var seed = cellSeed(x, y);
 
@@ -230,7 +230,7 @@ class MapGenerator extends Component
         var upX = _rand.setSeed(seed + upSeed).randomInt(kGridSize);
 
         _rand.setSeed(seed);
-        if (_rand.randomBool(0.11)) {
+        if (_rand.randomBool(0.11) && !isOriginCell) {
             return;
         }
 
@@ -289,7 +289,27 @@ class MapGenerator extends Component
             var toTrim = trimmable();
             for (node in toTrim) {
                 removeNode(node.depth, node.height);
+                cellNodes.remove(node);
             }
+        }
+
+        var distToOrigin = Math.floor(Math.abs(x) + Math.abs(y));
+        var cellRegion = _rand.randomInt(Util.clampInt(distToOrigin, 2, MapNode.kMaxRegions - 1));
+        var cellLevel = distToOrigin * 5;
+        if (isOriginCell) {
+            cellRegion = 0;
+        }
+        var minLevelNode :MapNode = null;
+        for (node in cellNodes) {
+            node.region = cellRegion;
+            node.level = cellLevel + _rand.randomInt(5) + 1;
+            if (minLevelNode == null || minLevelNode.level > node.level) {
+                minLevelNode = node;
+            }
+        }
+
+        if (isOriginCell) {
+            _start = minLevelNode;
         }
 
         forAllNodes(function(node) {
@@ -343,28 +363,30 @@ class MapGenerator extends Component
         _generated[i].remove(j);
     }
 
-    // function tryUncross(i :Int, j :Int) :Void {
-    //     if (i > 0) {
-    //         var ul = _generated[i - 1].get(j - 1);
-    //         var ur = _generated[i].get(j - 1);
-    //         var dl = _generated[i - 1].get(j);
-    //         var dr = _generated[i].get(j);
-    //         if (ul != null && ur != null &&
-    //             dl != null && dr != null &&
-    //             isAdjacent(ul, dr) && isAdjacent(ur, dl)) {
-    //             if ((_rand.randomBool() &&
-    //                 !(ul.isGoldPath && dr.isGoldPath)) ||
-    //                 (ur.isGoldPath && dl.isGoldPath)) {
-    //                 ul.removeNeighbor(dr);
-    //             }
-    //             else {
-    //                 ur.removeNeighbor(dl);
-    //             }
-    //             ul.addNeighbor(ur);
-    //             dl.addNeighbor(dr);
-    //         }
-    //     }
-    // }
+    function tryUncross(i :Int, j :Int) :Void {
+        if (_generated.get(i) == null || _generated.get(i - 1) == null) {
+            return;
+        }
+
+        var ul = _generated[i - 1].get(j - 1);
+        var ur = _generated[i].get(j - 1);
+        var dl = _generated[i - 1].get(j);
+        var dr = _generated[i].get(j);
+        if (ul != null && ur != null &&
+            dl != null && dr != null &&
+            isAdjacent(ul, dr) && isAdjacent(ur, dl)) {
+            if ((_rand.randomBool() &&
+                !(ul.isGoldPath && dr.isGoldPath)) ||
+                (ur.isGoldPath && dl.isGoldPath)) {
+                ul.removeNeighbor(dr);
+            }
+            else {
+                ur.removeNeighbor(dl);
+            }
+            ul.addNeighbor(ur);
+            dl.addNeighbor(dr);
+        }
+    }
 
     function setPath(path :Array<MapNode>) :Void {
         _movePath = path;

@@ -114,7 +114,8 @@ class GameNode extends Component {
 
 class MapNode extends GameNode {
     var map :MapGenerator;
-    public var region(default, null) :Int = 0;
+    public var region :Int = 0;
+    public var level :Int = 0;
     public var isGoldPath(default, null) :Bool = false;
     var _parent :MapNode;
 
@@ -140,7 +141,6 @@ class MapNode extends GameNode {
         map = gen;
         if (par != null) {
             _parent = par;
-            region = _parent.region;
             addNeighbor(par);
         }
     }
@@ -356,7 +356,7 @@ class MapNode extends GameNode {
 
     public function areaLevel() :Int {
         // return depth + Math.floor(Math.abs(height) / 2) + 1;
-        return 1;
+        return level;
     }
 
     public function isHint() :Bool {
