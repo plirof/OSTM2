@@ -152,7 +152,7 @@ class BattleMember implements Saveable {
         var mod = sumAffixes();
         var atk :Float = equipment.get(Weapon) != null ? 0 : 2;
         if (!isPlayer) {
-            atk += level;
+            atk = 1 + level;
         }
         for (item in equipment) {
             atk += item != null ? item.attack() : 0;

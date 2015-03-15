@@ -30,7 +30,7 @@ class GameNode extends Component {
         var renderer = getComponent(HtmlRenderer);
         elem = renderer.getElement();
 
-        elem.style.borderRadius = cast 18;
+        elem.style.borderRadius = '18px';
         elem.style.zIndex = cast 1;
 
         elem.style.textAlign = 'center';
@@ -119,8 +119,8 @@ class MapNode extends GameNode {
     public var isGoldPath(default, null) :Bool = false;
     var _parent :MapNode;
 
-    var _isVisible :Bool = true; //false;
-    var _isVisited :Bool = true; //false;
+    var _isVisible :Bool = true;
+    var _isVisited :Bool = true;
     var _selectedPath :Array<MapNode> = null;
     var _highlightedPath :Array<MapNode> = null;
     var _isOccupied :Bool = false;
@@ -183,7 +183,7 @@ class MapNode extends GameNode {
             if (_isOccupied) { borderColor = '#ffff00'; }
             else if (_highlightedPath != null) { borderColor = '#00ffff'; }
             else if (_selectedPath != null) { borderColor = '#00ff00'; }
-            else if (hasUnseenNeighbors()) { borderColor = '#008888'; }
+            else if (!hasVisited()) { borderColor = '#888888'; }
             else { isHighlighted = false; }
             var borderWidth = _lineWidth;
 
@@ -372,8 +372,8 @@ class MapNode extends GameNode {
 
     public function serialize() :Dynamic {
         return {
-            x: depth,
-            y: height,
+            i: depth,
+            j: height,
             visible: _isVisible,
             visited: _isVisited,
         };

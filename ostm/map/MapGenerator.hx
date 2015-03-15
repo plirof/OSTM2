@@ -28,7 +28,7 @@ class MapGenerator extends Component
 
     var _scrollHelper :Entity;
 
-    static inline var kMoveTime :Float = 1.0;
+    static inline var kMoveTime :Float = 20.0;
     static inline var kMoveBarWidth :Float = 500;
     static inline var kKillsToUnlock :Int = 3;
     var _moveBar :Element;
@@ -102,25 +102,24 @@ class MapGenerator extends Component
             ]),
         ]));
 
-        var startTime = Time.raw;
+        // var startTime = Time.raw;
 
-        // generateGridCell(0, 0);
         generateSurroundingCells(0, 0);
         selectedNode = _start; // _start is generated as part of generateGridCell(0, 0)
 
 
-        var baseGen = 3;
-        for (i in -baseGen...(baseGen + 1)) {
-            for (j in -baseGen...(baseGen + 1)) {
-                generateGridCell(i, j);
-            }
-        }
+        // var baseGen = 3;
+        // for (i in -baseGen...(baseGen + 1)) {
+        //     for (j in -baseGen...(baseGen + 1)) {
+        //         generateGridCell(i, j);
+        //     }
+        // }
 
-        var nodeCount = debugNodeCount();
-        var elapsed = Time.raw - startTime;
-        var rate = nodeCount / elapsed;
-        trace('Map Nodes: ' + nodeCount);
-        trace('Time to generate: ' + elapsed + ' s (' + rate + ' nodes/s)');
+        // var nodeCount = debugNodeCount();
+        // var elapsed = Time.raw - startTime;
+        // var rate = nodeCount / elapsed;
+        // trace('Map Nodes: ' + nodeCount);
+        // trace('Time to generate: ' + elapsed + ' s (' + rate + ' nodes/s)');
 
         _start.setOccupied();
         centerCurrentNode();
@@ -239,7 +238,8 @@ class MapGenerator extends Component
         var down = addNode(null, pos.i + downX, pos.j);
         var up = addNode(null, pos.i + upX, pos.j + kGridSize);
 
-        var cellNodes = [left, right, down, up];
+        var startNodes = [left, right, up, down];
+        var cellNodes = startNodes.copy(); //[left, right, up, down];
 
         var findPathWithinCell = function(start :MapNode, end :MapNode) {
             return bfsPath(start,
@@ -259,8 +259,8 @@ class MapGenerator extends Component
                 || attempts > 10000;
         };
 
-        var xs = [-1, 1, 0, 0, 1, 1, -1, -1];
-        var ys = [0, 0, -1, 1, 1, -1, 1, -1];
+        var xs = [-1, 1, 0, 0];//, 1, 1, -1, -1];
+        var ys = [0, 0, -1, 1];//, 1, -1, 1, -1];
         while (!isDone()) {
             var node = _rand.randomElement(cellNodes);
             var k = _rand.randomInt(xs.length);
@@ -278,7 +278,6 @@ class MapGenerator extends Component
             attempts++;
         }
 
-        var startNodes = [left, right, up, down];
         var canTrim = function(node :MapNode) {
             return startNodes.indexOf(node) == -1 && node.neighbors.length == 1;
         };
@@ -301,8 +300,20 @@ class MapGenerator extends Component
         }
         var minLevelNode :MapNode = null;
         for (node in cellNodes) {
-            node.region = cellRegion;
-            node.level = cellLevel + _rand.randomInt(5) + 1;
+            var rolledLevel = cellLevel + _rand.randomInt(5) + 1;
+            if (startNodes.indexOf(node) != -1) {
+                rolledLevel = cellLevel + 1;
+            }
+            
+            if (node.level != 0) {
+                node.level = Util.intMin(node.level, rolledLevel);
+                node.region = Util.intMin(node.region, cellRegion);
+        }
+            else {
+                node.level = rolledLevel;
+                node.region = cellRegion;
+            }
+
             if (minLevelNode == null || minLevelNode.level > node.level) {
                 minLevelNode = node;
             }
@@ -547,25 +558,39 @@ class MapGenerator extends Component
         forAllNodes(function (node) {
             nodes.push(node.serialize());
         });
+        var cells = [];
+        for (x in _gridGeneratedFlags.keys()) {
+            for (y in _gridGeneratedFlags[x].keys()) {
+                cells.push({ x: x, y: y});
+            }
+        }
         return {
-            selected: { x: selectedNode.depth, y: selectedNode.height },
+            selected: { i: selectedNode.depth, j: selectedNode.height },
+            cells: cells,
             nodes: nodes,
         };
     }
     public function deserialize(data :Dynamic) {
-        // var nodes :Array<Dynamic> = data.nodes;
-        // for (n in nodes) {
-        //     generateSurroundingCells(n.depth, n.height);
-        //     var node = _generated[n.x].get(n.y);
-        //     if (node != null) {
-        //         node.deserialize(n);
-        //     }
-        // }
-        // var sel = _generated[data.selected.x].get(data.selected.y);
-        // if (sel != null) {
-        //     selectedNode.clearOccupied();
-        //     selectedNode = sel;
-        //     sel.setOccupied();
-        // }
+        var nodes :Array<Dynamic> = data.nodes;
+        var cells :Array<Dynamic> = data.cells;
+        for (c in cells) {
+            generateGridCell(c.x, c.y);
+        }
+        for (n in nodes) {
+            var arr = _generated.get(n.i);
+            var node = null;
+            if (arr != null) {
+                node = arr.get(n.j);
+            }
+            if (node != null) {
+                node.deserialize(n);
+            }
+        }
+        var sel = _generated[data.selected.i].get(data.selected.j);
+        if (sel != null) {
+            selectedNode.clearOccupied();
+            selectedNode = sel;
+            sel.setOccupied();
+        }
     }
 }
