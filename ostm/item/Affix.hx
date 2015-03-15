@@ -50,31 +50,43 @@ class Affix {
     var slot :ItemSlot;
 
     public static var affixTypes = [
-        new AffixType('flat-hp', 'HP', 5, 2.5, function(value, mod) {
-            mod.flatHealth += value;
-        }, [ Body => 1.0, Helmet => 0.5 ]),
         new AffixType('flat-attack', 'Attack', 2, 1, function(value, mod) {
             mod.flatAttack += value;
+        }, [ Weapon => 1.0, Gloves => 0.5, Ring => 0.5 ]),
+        new AffixType('local-percent-attack-speed', '% Attack Speed', 5, 1, function(value, mod) {
+            mod.localPercentAttackSpeed += value;
+        }, [ Weapon => 1.0 ]),
+        new AffixType('local-percent-crit-chance', '% Crit Chance', 5, 1, function(value, mod) {
+            mod.localPercentCritChance += value;
+        }, [ Weapon => 1.0 ]),
+        new AffixType('local-percent-attack', '% Attack', 5, 1.5, function(value, mod) {
+            mod.localPercentAttack += value;
         }, [ Weapon => 1.0 ]),
         new AffixType('flat-defense', 'Defense', 2, 1.25, function(value, mod) {
             mod.flatDefense += value;
         }, [ Body => 1.0, Boots => 0.5, Helmet => 1.0 ]),
+        new AffixType('flat-hp', 'HP', 5, 2.5, function(value, mod) {
+            mod.flatHealth += value;
+        }, [ Body => 1.0, Helmet => 0.5, Ring => 0.5, Boots => 0.5, Gloves => 0.5 ]),
+        new AffixType('flat-hp-regen', 'HP Regen', 1, 0.35, function(value, mod) {
+            mod.flatHealthRegen += value;
+        }, [ Body => 1.0, Ring => 0.5 ]),
         new AffixType('percent-hp', '% HP', 2, 0.5, function(value, mod) {
             mod.percentHealth += value;
         }, [ Helmet => 1.0 ]),
-        new AffixType('local-percent-attack', '% Attack', 5, 1.5, function(value, mod) {
-            mod.localPercentAttack += value;
-        }, [ Weapon => 1.0 ]),
         new AffixType('local-percent-defense', '% Defense', 10, 5, function(value, mod) {
             mod.localPercentDefense += value;
-        }, [ Body => 1.0, Helmet => 1.0, Boots => 0.5 ]),
-        new AffixType('percent-attack-speed', '% Global Attack Speed', 4, 2, function(value, mod) {
+        }, [ Body => 1.0, Helmet => 1.0, Boots => 0.5, Gloves => 0.5 ]),
+        new AffixType('percent-attack-speed', '% Global Attack Speed', 3, 1, function(value, mod) {
             mod.percentAttackSpeed += value;
-        }, [ Boots => 1.0 ]),
-        new AffixType('local-percent-attack-speed', '% Attack Speed', 5, 1.5, function(value, mod) {
-            mod.localPercentAttackSpeed += value;
-        }, [ Weapon => 1.0 ]),
-        new AffixType('percent-move-speed', '% Move Speed', 10, 2.5, function(value, mod) {
+        }, [ Gloves => 1.0, Ring => 0.5 ]),
+        new AffixType('percent-crit-chance', '% Global Crit Chance', 2, 1, function(value, mod) {
+            mod.percentCritChance += value;
+        }, [ Weapon => 1.0, Ring => 0.5 ]),
+        new AffixType('percent-crit-damage', '% Crit Damage', 10, 2, function(value, mod) {
+            mod.percentCritDamage += value;
+        }, [ Weapon => 1.0, Ring => 0.5 ]),
+        new AffixType('percent-move-speed', '% Move Speed', 10, 2, function(value, mod) {
             mod.percentMoveSpeed += value;
         }, [ Boots => 1.0 ]),
     ];

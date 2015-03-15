@@ -92,29 +92,43 @@ class BattleManager extends Component {
         return MapGenerator.instance.selectedNode.areaLevel();
     }
 
+    function playerRegenUpdate() :Void {
+        var regen;
+        if (_isPlayerDead) {
+            regen = _player.maxHealth() / kPlayerDeathTime;
+        }
+        else if (isInBattle()) {
+            regen = _player.healthRegenInCombat();
+        }
+        else {
+            regen = _player.healthRegenOutOfCombat();
+        }
+        _player.healthPartial += regen * Time.dt;
+        var dHealth = Math.floor(_player.healthPartial);
+        _player.health += dHealth;
+        _player.healthPartial -= dHealth;
+        if (_player.health >= _player.maxHealth()) {
+            _player.health = _player.maxHealth();
+
+            if (_isPlayerDead) {
+                _isPlayerDead = false;
+                _enemySpawnTimer = 0;
+            }
+        }
+    }
+
     public override function update() :Void {
         var hasEnemySpawned = isInBattle();
         _enemy.elem.style.display = hasEnemySpawned ? '' : 'none';
+
+        playerRegenUpdate();
+
         if (!hasEnemySpawned) {
             _enemySpawnTimer += Time.dt;
 
             if (_enemySpawnTimer >= kEnemySpawnTime) {
                 _enemy.level = spawnLevel();
                 _enemy.health = _enemy.maxHealth();
-            }
-
-            var regen = _isPlayerDead ? _player.maxHealth() / kPlayerDeathTime : _player.healthRegen();
-            _player.healthPartial += regen * Time.dt;
-            var dHealth = Math.floor(_player.healthPartial);
-            _player.health += dHealth;
-            _player.healthPartial -= dHealth;
-            if (_player.health >= _player.maxHealth()) {
-                _player.health = _player.maxHealth();
-
-                if (_isPlayerDead) {
-                    _isPlayerDead = false;
-                    _enemySpawnTimer = 0;
-                }
             }
 
             return;
@@ -168,7 +182,16 @@ class BattleManager extends Component {
             }
             else {
                 _killCount++;
-                _player.addXp(_enemy.xpReward());
+                var xp = _enemy.xpReward();
+                _player.addXp(xp);
+                var xpStr = Util.format(xp) + ' XP';
+                entity.getSystem().addEntity(new Entity([
+                    new Transform(pos),
+                    new HtmlRenderer({
+                        parent: 'popup-container',
+                    }),
+                    new PopupNumber(xpStr, '#33ff33', 22, 170, 2.5),
+                ]));
 
                 Inventory.instance.tryRewardItem(_enemy.level);
             }

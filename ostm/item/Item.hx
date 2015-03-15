@@ -32,7 +32,7 @@ class Item {
         this.level = Random.randomIntRange(1, level + 1);
         this.tier = Math.floor(this.level / kTierLevels);
 
-        var nAffixes = Random.randomIntRange(0, 4);
+        var nAffixes = Random.randomIntRange(0, 5);
         var possibleAffixes = Affix.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
         var selectedAffixes = Random.randomElements(possibleAffixes, nAffixes);
         for (type in selectedAffixes) {
@@ -46,7 +46,7 @@ class Item {
     public function name() :String {
         var t = Math.floor(tier / type.names.length) + 1;
         var name = type.names[tier % type.names.length];
-        if (t > 1) {
+        if (t > 1 && type.names.length > 1) {
             name = 'T' + t + ' ' + name;
         }
         return name;
@@ -56,10 +56,12 @@ class Item {
         var player = BattleManager.instance.getPlayer();
         var cur = player.equipment[type.slot];
         if (cur != null) {
-            Inventory.instance.push(cur);
+            Inventory.instance.swap(this, cur);
+        }
+        else {
+            Inventory.instance.remove(this);
         }
         player.equip(this);
-        Inventory.instance.remove(this);
 
         cleanupElement();
         Inventory.instance.updateInventoryHtml();
@@ -84,12 +86,13 @@ class Item {
     }
 
     function getColor() :String {
-        switch (affixes.length) {
-            case 3: return '#ffff00';
-            case 2: return '#0099ff';
-            case 1: return '#22ff22';
-            default: return '#ffffff';
+        if (affixes.length > 2) {
+            return '#ffff00';
         }
+        if (affixes.length > 0) {
+            return '#0099ff';
+        }
+        return '#ffffff';
     }
 
     public function createElement(elemTag :String) :Element {
@@ -152,7 +155,7 @@ class Item {
 
         _elem.onmouseover = function(event :MouseEvent) {
             _buttons.style.display = '';
-            var pos = new Vec2(event.x + 20, event.y);
+            var pos = new Vec2(event.x + 20, event.y - 180);
             showBody(pos);
 
             if (equipped != null && !isEquipped) {
@@ -180,8 +183,12 @@ class Item {
 
         if (Std.is(type, WeaponType)) {
             var spd = Browser.document.createLIElement();
-            spd.innerText = 'Speed: ' + Util.formatFloat(attackSpeed());
+            spd.innerText = 'Speed: ' + Util.formatFloat(attackSpeed()) + '/s';
             _body.appendChild(spd);
+
+            var crt = js.Browser.document.createLIElement();
+            crt.innerText = 'Crit chance: ' + Util.formatFloat(100 * critChance()) + '%';
+            _body.appendChild(crt);
         }
         var def = Browser.document.createLIElement();
         def.innerText = 'Defense: ' + Util.format(defense());
@@ -241,6 +248,16 @@ class Item {
         var spd = wep.attackSpeed;
         spd *= 1 + mod.localPercentAttackSpeed / 100;        
         return spd;
+    }
+    public function critChance() :Float {
+        if (!Std.is(type, WeaponType)) {
+            return 0;
+        }
+        var wep :WeaponType = cast(type, WeaponType);
+        var mod = sumAffixes();
+        var crt = wep.crit / 100;
+        crt *= 1 + mod.localPercentCritChance / 100;        
+        return crt;
     }
     public function defense() :Int {
         var mod = sumAffixes();

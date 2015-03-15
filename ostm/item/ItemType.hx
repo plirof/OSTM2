@@ -5,6 +5,8 @@ enum ItemSlot {
     Body;
     Helmet;
     Boots;
+    Gloves;
+    Ring;
 }
 
 class ItemType {

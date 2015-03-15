@@ -171,10 +171,17 @@ class BattleMember implements Saveable {
         return spd;
     }
     public function critChance() :Float {
-        return 0.15;
+        var wep = equipment.get(Weapon);
+        var mod = sumAffixes();
+        var crt = wep != null ? wep.critChance() : 0.05;
+        crt *= (1 + mod.percentCritChance / 100);
+        return crt;
     }
     public function critDamage() :Float {
-        return 1.5;
+        var mod = sumAffixes();
+        var dam = 1.5;
+        dam += mod.percentCritDamage / 100;
+        return dam;
     }
     public function dps() :Float {
         var atk = damage();
@@ -200,8 +207,15 @@ class BattleMember implements Saveable {
         var mitigated = 1 / (1 - damageReduction(attackerLevel));
         return hp * mitigated;
     }
-    public function healthRegen() :Float {
-        return maxHealth() * 0.025;
+    public function healthRegenInCombat() :Float {
+        var mod = sumAffixes();
+        return mod.flatHealthRegen;
+    }
+    public function healthRegenOutOfCombat() :Float {
+        var inCombat = healthRegenInCombat();
+        var out = maxHealth() * 0.025;
+        out += inCombat;
+        return out;
     }
     public function moveSpeed() :Float {
         var mod = sumAffixes();

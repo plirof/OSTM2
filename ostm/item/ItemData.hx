@@ -10,9 +10,10 @@ class ItemData {
                 'Short Sword',
                 'Long Sword',
             ],
-            attack: 3.5,
-            attackSpeed: 1.6,
-            defense: 1,
+            attack: 3.75,
+            attackSpeed: 1.55,
+            crit: 5,
+            defense: 0,
         }),
         new WeaponType({
             id: 'axe',
@@ -22,8 +23,9 @@ class ItemData {
                 'Tomahawk',
                 'Battle Axe',
             ],
-            attack: 4.5,
-            attackSpeed: 1.4,
+            attack: 5,
+            attackSpeed: 1.35,
+            crit: 5,
             defense: 0,
         }),
         new WeaponType({
@@ -34,8 +36,9 @@ class ItemData {
                 'Dagger',
                 'Kris',
             ],
-            attack: 3,
-            attackSpeed: 1.85,
+            attack: 2.7,
+            attackSpeed: 1.75,
+            crit: 7,
             defense: 0,
         }),
         new ItemType({
@@ -73,6 +76,27 @@ class ItemData {
             slot: Boots,
             attack: 0,
             defense: 1,
+        }),
+        new ItemType({
+            id: 'gloves',
+            names: [
+                'Cuffs',
+                'Wool Gloves',
+                'Leather Gloves',
+                'Studded Gloves',
+            ],
+            slot: Gloves,
+            attack: 0,
+            defense: 1,
+        }),
+        new ItemType({
+            id: 'ring',
+            names: [
+                'Ring',
+            ],
+            slot: Ring,
+            attack: 0,
+            defense: 0,
         }),
     ];
 }

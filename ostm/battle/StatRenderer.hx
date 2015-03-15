@@ -62,8 +62,11 @@ class StatRenderer extends Component {
             new StatElement(list, 'HP', function() {
                 return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
             }),
+            new StatElement(list, 'Health Regen (in combat)', function() {
+                return Util.formatFloat(_member.healthRegenInCombat()) + '/s';
+            }),
             new StatElement(list, 'Health Regen (out of combat)', function() {
-                return Util.formatFloat(_member.healthRegen()) + '/s';
+                return Util.formatFloat(_member.healthRegenOutOfCombat()) + '/s';
             }),
             new StatElement(list, 'Damage', function() {
                 return Util.format(_member.damage());
@@ -72,7 +75,7 @@ class StatRenderer extends Component {
                 return Util.formatFloat(_member.attackSpeed()) + '/s';
             }),
             new StatElement(list, 'Crit Chance', function() {
-                return Util.formatFloat(100 * _member.critChance(), 0) + '%';
+                return Util.formatFloat(100 * _member.critChance()) + '%';
             }),
             new StatElement(list, 'Crit Damage', function() {
                 return '+' + Util.formatFloat(100 * (_member.critDamage() - 1), 0) + '%';

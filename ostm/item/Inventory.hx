@@ -62,11 +62,17 @@ class Inventory extends Component
         inventory.appendChild(li);
     }
 
-    public function push(item :Item) {
+    public function push(item :Item) :Void {
         _inventory.push(item);
     }
-    public function remove(item :Item) {
+    public function remove(item :Item) :Void {
         _inventory.remove(item);
+    }
+    public function swap(item :Item, forItem :Item) :Void {
+        var i = _inventory.indexOf(item);
+        if (i >= 0 && i < _inventory.length) {
+            _inventory[i] = forItem;
+        }
     }
 
     public function hasSpaceForItem() :Bool {

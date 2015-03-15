@@ -2,6 +2,7 @@ package ostm.item;
 
 class WeaponType extends ItemType {
     public var attackSpeed(default, null) :Float;
+    public var crit(default, null) :Float;
 
     public function new(data) {
         super({
@@ -13,5 +14,6 @@ class WeaponType extends ItemType {
         });
 
         attackSpeed = data.attackSpeed;
+        crit = data.crit;
     }
 }
