@@ -36,6 +36,7 @@ class MapGenerator extends Component
     var _movePath :Array<MapNode> = null;
 
     static inline var kGridSize :Int = 5;
+    static inline var kLevelsPerCellDist :Int = 5;
     static var kHalfGrid :Int = Math.floor(kGridSize / 2);
 
     var _hints :Array<MapHint> = [
@@ -204,13 +205,18 @@ class MapGenerator extends Component
         return 3724684 + 21487 * x + 54013 * y + 127 * x * y;
     }
 
-    function generateGridCell(x :Int, y :Int) :Void {
+    function didGenerateCell(x :Int, y :Int) :Bool {
         if (_gridGeneratedFlags.get(x) == null) {
             _gridGeneratedFlags[x] = new Map<Int, Bool>();
         }
-        if (_gridGeneratedFlags[x].get(y) != null) {
+        return _gridGeneratedFlags[x].get(y);
+    }
+
+    function generateGridCell(x :Int, y :Int) :Void {
+        if (didGenerateCell(x, y)) {
             return;
         }
+
         _gridGeneratedFlags[x][y] = true;
 
         var isOriginCell = x == 0 && y == 0;
@@ -234,12 +240,28 @@ class MapGenerator extends Component
         }
 
         var left = addNode(null, pos.i, pos.j + leftY);
-        var right = addNode(null, pos.i + kGridSize, pos.j + rightY);
+        var right = addNode(null, pos.i + kGridSize - 1, pos.j + rightY);
         var down = addNode(null, pos.i + downX, pos.j);
-        var up = addNode(null, pos.i + upX, pos.j + kGridSize);
+        var up = addNode(null, pos.i + upX, pos.j + kGridSize - 1);
 
-        var startNodes = [left, right, up, down];
+        var startNodes = [left];
+        if (startNodes.indexOf(right) == -1) { startNodes.push(right); }
+        if (startNodes.indexOf(down) == -1) { startNodes.push(down); }
+        if (startNodes.indexOf(up) == -1) { startNodes.push(up); }
+
         var cellNodes = startNodes.copy(); //[left, right, up, down];
+
+        var distToOrigin = Math.floor(Math.abs(x) + Math.abs(y));
+        var cellLevel = distToOrigin * kLevelsPerCellDist;
+        var cellRegion = _rand.randomInt(Util.clampInt(distToOrigin, 2, MapNode.kMaxRegions - 1));
+        if (isOriginCell) {
+            cellRegion = 0;
+        }
+
+        for (node in startNodes) {
+            node.level = cellLevel + 1;
+            node.region = cellRegion;
+        }
 
         var findPathWithinCell = function(start :MapNode, end :MapNode) {
             return bfsPath(start,
@@ -251,12 +273,14 @@ class MapGenerator extends Component
                 });
         };
 
-        var attempts = 0;
         var isDone = function() {
+            if (cellNodes.length == kGridSize * kGridSize) {
+                trace('boop');
+                return true;
+            }
             return findPathWithinCell(left, right) != null
                 && findPathWithinCell(left, up) != null
-                && findPathWithinCell(left, down) != null
-                || attempts > 10000;
+                && findPathWithinCell(left, down) != null;
         };
 
         var xs = [-1, 1, 0, 0];//, 1, 1, -1, -1];
@@ -270,12 +294,14 @@ class MapGenerator extends Component
                 var n = getNode(i, j);
                 if (n == null) {
                     n = addNode(node, i, j);
+                    var lev = node.level + (_rand.randomBool(0.65) ? 1 : 0);
+                    n.level = Util.intMin(lev, cellLevel + kLevelsPerCellDist);
+                    n.region = node.region;
                     cellNodes.push(n);
                 } else if (_rand.randomBool(0.1)) {
                     n.addNeighbor(node);
                 }
             }
-            attempts++;
         }
 
         var canTrim = function(node :MapNode) {
@@ -292,35 +318,33 @@ class MapGenerator extends Component
             }
         }
 
-        var distToOrigin = Math.floor(Math.abs(x) + Math.abs(y));
-        var cellRegion = _rand.randomInt(Util.clampInt(distToOrigin, 2, MapNode.kMaxRegions - 1));
-        var cellLevel = distToOrigin * 5;
         if (isOriginCell) {
-            cellRegion = 0;
-        }
-        var minLevelNode :MapNode = null;
-        for (node in cellNodes) {
-            var rolledLevel = cellLevel + _rand.randomInt(5) + 1;
-            if (startNodes.indexOf(node) != -1) {
-                rolledLevel = cellLevel + 1;
+            var minLevelNode :MapNode = null;
+            for (node in cellNodes) {            
+                if (minLevelNode == null || minLevelNode.level > node.level) {
+                    minLevelNode = node;
+                }
             }
-            
-            if (node.level != 0) {
-                node.level = Util.intMin(node.level, rolledLevel);
-                node.region = Util.intMin(node.region, cellRegion);
-        }
-            else {
-                node.level = rolledLevel;
-                node.region = cellRegion;
-            }
-
-            if (minLevelNode == null || minLevelNode.level > node.level) {
-                minLevelNode = node;
-            }
-        }
-
-        if (isOriginCell) {
             _start = minLevelNode;
+        }
+
+        var tryConnect = function(i1, j1, i2, j2, force = false) {
+            var a = getNode(i1, j1);
+            var b = getNode(i2, j2);
+            if ((force || _rand.randomBool(0.35)) && a != null && b != null) {
+                a.addNeighbor(b);
+            }
+        };
+        tryConnect(pos.i - 1, pos.j + leftY, left.depth, left.height, true);
+        tryConnect(pos.i + kGridSize, pos.j + rightY, right.depth, right.height, true);
+        tryConnect(pos.i + downX, pos.j - 1, down.depth, down.height, true);
+        tryConnect(pos.i + upX, pos.j + kGridSize, up.depth, up.height, true);
+
+        for (k in 0...kGridSize) {
+            tryConnect(pos.i + k, pos.j, pos.i + k, pos.j - 1);
+            tryConnect(pos.i + k, pos.j + kGridSize - 1, pos.i + k, pos.j + kGridSize);
+            tryConnect(pos.i, pos.j + k, pos.i - 1, pos.j + k);
+            tryConnect(pos.i + kGridSize - 1, pos.j + k, pos.i + kGridSize, pos.j + k);
         }
 
         forAllNodes(function(node) {
@@ -493,6 +517,10 @@ class MapGenerator extends Component
     function bfsPath(start :MapNode, 
             endFunction :MapNode -> Bool,
             allowedFunction :MapNode -> Bool) :Array<MapNode> {
+        if (endFunction(start)) {
+            return [start];
+        }
+
         var openSet = new Array<MapNode>();
         var closedSet = new Map<MapNode, MapNode>(); //key: item, val: parent
         openSet.push(start);
@@ -561,7 +589,9 @@ class MapGenerator extends Component
         var cells = [];
         for (x in _gridGeneratedFlags.keys()) {
             for (y in _gridGeneratedFlags[x].keys()) {
-                cells.push({ x: x, y: y});
+                if (_gridGeneratedFlags[x][y]) {
+                    cells.push({ x: x, y: y});
+                }
             }
         }
         return {

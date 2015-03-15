@@ -119,8 +119,8 @@ class MapNode extends GameNode {
     public var isGoldPath(default, null) :Bool = false;
     var _parent :MapNode;
 
-    var _isVisible :Bool = true;
-    var _isVisited :Bool = true;
+    var _isVisible :Bool = false;
+    var _isVisited :Bool = false;
     var _selectedPath :Array<MapNode> = null;
     var _highlightedPath :Array<MapNode> = null;
     var _isOccupied :Bool = false;

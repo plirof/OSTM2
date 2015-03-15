@@ -51,17 +51,6 @@ class Inventory extends Component
         };
         inventory.appendChild(clear);
 
-        var generate = Browser.document.createButtonElement();
-        generate.innerText = 'Generate All';
-        generate.onclick = function (event) {
-            _inventory = [];
-            while (hasSpaceForItem()) {
-                tryRewardItem(3);
-            }
-            updateInventoryHtml();
-        };
-        inventory.appendChild(generate);
-
         for (item in _inventory) {
             appendItemHtml(item);
         }
