@@ -332,10 +332,13 @@ class MapGenerator extends Component
                 }
             }
             _start = minLevelNode;
+            _start.town = true;
+        }
+        else {
+            var townNode = _rand.randomElement(cellNodes);
+            townNode.town = true;            
         }
 
-        var townNode = _rand.randomElement(cellNodes);
-        townNode.town = true;
 
         var tryConnect = function(i1, j1, i2, j2, force = false) {
             var a = getNode(i1, j1);

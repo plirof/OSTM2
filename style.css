@@ -65,7 +65,7 @@ div {
     height: 65%;
     background: #aaaaaa;
 }
-#battle-screen {
+#battle-screen, #town-screen {
     height: 35%;
     width: 50%;
     top: 65%;

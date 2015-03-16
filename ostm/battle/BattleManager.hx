@@ -129,14 +129,16 @@ class BattleManager extends Component {
 
         playerRegenUpdate();
 
-        if (!hasEnemySpawned) {
+        var inTown = MapGenerator.instance.isInTown();
+        Browser.document.getElementById('battle-screen').style.display = !inTown ? '' : 'none';
+        Browser.document.getElementById('town-screen').style.display = inTown ? '' : 'none';
+        if (inTown) {
+            _enemySpawnTimer = 0;
+            return;
+        }
 
-            if (MapGenerator.instance.isInTown()) {
-                _enemySpawnTimer = 0;
-            }
-            else {
-                _enemySpawnTimer += Time.dt;
-            }
+        if (!hasEnemySpawned) {
+            _enemySpawnTimer += Time.dt;
 
             if (_enemySpawnTimer >= kEnemySpawnTime) {
                 _enemy.level = spawnLevel();
