@@ -23,6 +23,7 @@ class MapGenerator extends Component
     var _generated = new Map<Int, Map<Int, MapNode>>();
     var _gridGeneratedFlags = new Map<Int, Map<Int, Bool>>();
     var _start :MapNode;
+    var _checkpoint :MapNode;
 
     var _rand = new StaticRandom();
 
@@ -107,6 +108,7 @@ class MapGenerator extends Component
 
         generateSurroundingCells(0, 0);
         selectedNode = _start; // _start is generated as part of generateGridCell(0, 0)
+        _checkpoint = _start;
 
 
         // var baseGen = 3;
@@ -184,6 +186,10 @@ class MapGenerator extends Component
         generateSurroundingCells(next.depth, next.height);
         selectedNode.setOccupied();
         BattleManager.instance.resetKillCount();
+
+        if (next.town) {
+            _checkpoint = next;
+        }
 
         forAllNodes(function (node) {
             if (node.isHint()) {
@@ -327,6 +333,9 @@ class MapGenerator extends Component
             }
             _start = minLevelNode;
         }
+
+        var townNode = _rand.randomElement(cellNodes);
+        townNode.town = true;
 
         var tryConnect = function(i1, j1, i2, j2, force = false) {
             var a = getNode(i1, j1);
@@ -570,8 +579,8 @@ class MapGenerator extends Component
             });
     }
 
-    public function returnToStart() {
-        setSelected(_start);
+    public function returnToCheckpoint() {
+        setSelected(_checkpoint);
 
         if (_movePath != null) {
             for (n in _movePath) {
@@ -579,6 +588,10 @@ class MapGenerator extends Component
             }
             _movePath = null;
         }
+    }
+
+    public function isInTown() :Bool {
+        return selectedNode.isTown();
     }
 
     public function serialize() :Dynamic {
@@ -596,6 +609,7 @@ class MapGenerator extends Component
         }
         return {
             selected: { i: selectedNode.depth, j: selectedNode.height },
+            checkpoint: { i: _checkpoint.depth, j: _checkpoint.height },
             cells: cells,
             nodes: nodes,
         };
@@ -616,11 +630,15 @@ class MapGenerator extends Component
                 node.deserialize(n);
             }
         }
-        var sel = _generated[data.selected.i].get(data.selected.j);
+        var sel = getNode(data.selected.i, data.selected.j);
         if (sel != null) {
             selectedNode.clearOccupied();
             selectedNode = sel;
             sel.setOccupied();
+        }
+        var chk = getNode(data.checkpoint.i, data.checkpoint.j);
+        if (chk != null) {
+            _checkpoint = chk;
         }
     }
 }

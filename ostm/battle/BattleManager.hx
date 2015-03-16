@@ -93,6 +93,12 @@ class BattleManager extends Component {
     }
 
     function playerRegenUpdate() :Void {
+        if (MapGenerator.instance.isInTown()) {
+            _player.health = _player.maxHealth();
+            _isPlayerDead = false;
+            return;
+        }
+
         var regen;
         if (_isPlayerDead) {
             regen = _player.maxHealth() / kPlayerDeathTime;
@@ -124,7 +130,13 @@ class BattleManager extends Component {
         playerRegenUpdate();
 
         if (!hasEnemySpawned) {
-            _enemySpawnTimer += Time.dt;
+
+            if (MapGenerator.instance.isInTown()) {
+                _enemySpawnTimer = 0;
+            }
+            else {
+                _enemySpawnTimer += Time.dt;
+            }
 
             if (_enemySpawnTimer >= kEnemySpawnTime) {
                 _enemy.level = spawnLevel();
@@ -176,7 +188,7 @@ class BattleManager extends Component {
 
             if (target.isPlayer) {
                 _isPlayerDead = true;
-                MapGenerator.instance.returnToStart();
+                MapGenerator.instance.returnToCheckpoint();
                 _enemy.level = spawnLevel();
                 _enemy.health = _enemy.maxHealth();
             }
