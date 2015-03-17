@@ -131,7 +131,6 @@ class BattleManager extends Component {
 
         var inTown = MapGenerator.instance.isInTown();
         Browser.document.getElementById('battle-screen').style.display = !inTown ? '' : 'none';
-        Browser.document.getElementById('town-screen').style.display = inTown ? '' : 'none';
         if (inTown) {
             _enemySpawnTimer = 0;
             return;

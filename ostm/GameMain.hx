@@ -33,6 +33,7 @@ class GameMain extends JEngineMain {
             new Entity([ new Inventory() ]),
             new Entity([ new SaveManager() ]),
             new Entity([ new SkillTree() ]),
+            new Entity([ new TownManager() ]),
         ];
 
         MouseManager.init();
