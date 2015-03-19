@@ -29,19 +29,36 @@ class TownManager extends Component {
         if (inTown != _wasInTown) {
             _wasInTown = inTown;
 
-            var shop = Browser.document.getElementById('town-shop');
-            while (shop.childElementCount > 0) { 
-                shop.removeChild(shop.firstChild);
-            }
             _shopItems[mapNode] = [];
 
             var nItems = Random.randomIntRange(4, 6);
             for (i in 0...nItems) {
                 var item = Inventory.instance.randomItem(mapNode.areaLevel());
                 _shopItems[mapNode].push(item);
-
-                shop.appendChild(item.createElement('li'));
             }
+
+            updateShopHtml(mapNode);
+        }
+    }
+
+    function updateShopHtml(mapNode :MapNode) :Void {
+        var shop = Browser.document.getElementById('town-shop');
+        while (shop.childElementCount > 0) {
+            shop.removeChild(shop.firstChild);
+        }
+
+        var items = _shopItems[mapNode];
+        for (item in items) {
+            shop.appendChild(item.createElement([
+                'Buy' => function(event) {
+                    if (Inventory.instance.hasSpaceForItem()) {
+                        items.remove(item);
+                        Inventory.instance.push(item);
+                        Inventory.instance.updateInventoryHtml();
+                        updateShopHtml(mapNode);
+                    }
+                },
+            ]));
         }
     }
 }

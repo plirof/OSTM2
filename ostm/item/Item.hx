@@ -52,7 +52,7 @@ class Item {
         return name;
     }
 
-    function equip() {
+    public function equip() {
         var player = BattleManager.instance.getPlayer();
         var cur = player.equipment[type.slot];
         if (cur != null) {
@@ -63,18 +63,18 @@ class Item {
         }
         player.equip(this);
 
+        hideBothBodies();
         cleanupElement();
-        Inventory.instance.updateInventoryHtml();
     }
 
-    function discard() {
+    public function discard() {
         Inventory.instance.remove(this);
 
+        hideBothBodies();
         cleanupElement();
-        Inventory.instance.updateInventoryHtml();
     }
 
-    function unequip() {
+    public function unequip() {
         var player = BattleManager.instance.getPlayer();
         var cur = player.equipment[type.slot];
         if (cur == this && Inventory.instance.hasSpaceForItem()) {
@@ -95,10 +95,18 @@ class Item {
         return '#ffffff';
     }
 
-    public function createElement(elemTag :String) :Element {
+    function hideBothBodies() {
+        hideBody();
+
         var player = BattleManager.instance.getPlayer();
         var equipped = player.equipment.get(type.slot);
-        var isEquipped = this == equipped;
+        if (equipped != null && equipped != this) {
+            equipped.hideBody();
+        }
+    }
+
+    public function createElement(buttons :Map<String, Event -> Void>) :Element {
+        var player = BattleManager.instance.getPlayer();
 
         var makeNameElem = function() {
             var name = Browser.document.createSpanElement();
@@ -122,39 +130,12 @@ class Item {
         _buttons = Browser.document.createSpanElement();
         _elem.appendChild(_buttons);
 
-        var hideBodies = function() {
-            hideBody();
-
-            if (equipped != null && !isEquipped) {
-                equipped.hideBody();
-            }
-        };
-
-        if (!isEquipped) {
-            var equip = Browser.document.createButtonElement();
-            equip.innerText = 'Equip';
-            equip.onclick = function(event) {
-                this.equip();
-                hideBodies();
-            }
-            _buttons.appendChild(equip);
-
-            var discard = Browser.document.createButtonElement();
-            discard.innerText = 'Discard';
-            discard.onclick = function(event) {
-                this.discard();
-                hideBodies();
-            }
-            _buttons.appendChild(discard);
-        }
-        else {
-            var unequip = Browser.document.createButtonElement();
-            unequip.innerText = 'Unequip';
-            unequip.onclick = function(event) {
-                this.unequip();
-                hideBodies();
-            }
-            _buttons.appendChild(unequip);
+        for (k in buttons.keys()) {
+            var f = buttons[k];
+            var btn = Browser.document.createButtonElement();
+            btn.onclick = f;
+            btn.innerText = k;
+            _buttons.appendChild(btn);
         }
 
         _body = Browser.document.createUListElement();
@@ -167,13 +148,14 @@ class Item {
             var pos = new Vec2(event.x + 20, event.y - 180);
             showBody(pos);
 
-            if (equipped != null && !isEquipped) {
+            var equipped = player.equipment.get(type.slot);
+            if (equipped != null && equipped != this) {
                 equipped.showBody(pos + new Vec2(_body.clientWidth + 50, 0));
             }
         };
         _elem.onmouseout = function(event) {
             _buttons.style.display = 'none';
-            hideBodies();
+            hideBothBodies();
         };
 
         _body.style.position = 'absolute';

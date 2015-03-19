@@ -160,7 +160,11 @@ class StatRenderer extends Component {
             elem.appendChild(nullItem);
         }
         else {
-            elem.appendChild(item.createElement('ul'));
+            elem.appendChild(item.createElement([
+                'Unequip' => function(event) {
+                    item.unequip();
+                },
+            ]));
         }
     }
 }
