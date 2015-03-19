@@ -100,15 +100,24 @@ class Item {
         var equipped = player.equipment.get(type.slot);
         var isEquipped = this == equipped;
 
-        _elem = Browser.document.createElement(elemTag);
-
         var makeNameElem = function() {
             var name = Browser.document.createSpanElement();
             name.innerText = this.name();
             name.style.color = getColor();
             return name;
         }
-        _elem.appendChild(makeNameElem());
+        var _elem = Browser.document.createSpanElement();
+        _elem.style.width = '40px';
+        _elem.style.height = '40px';
+        _elem.style.borderWidth = '2px';
+        _elem.style.borderStyle = 'solid';
+        _elem.style.borderColor = '#000000';
+        _elem.style.background = getColor();
+        _elem.style.textAlign = 'center';
+        _elem.style.display = 'inline-block';
+        var img = Browser.document.createImageElement();
+        img.src = 'img/Sword.png';
+        _elem.appendChild(img);
 
         _buttons = Browser.document.createSpanElement();
         _elem.appendChild(_buttons);
