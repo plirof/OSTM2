@@ -79,11 +79,14 @@ class Inventory extends Component
         return _inventory.length < kMaxInventoryCount;
     }
 
+    public function randomItem(maxLevel :Int) :Item {
+        var type = Random.randomElement(ItemData.types);
+        return new Item(type, maxLevel);
+    }
+
     public function tryRewardItem(maxLevel :Int) :Void {
         if (Random.randomBool(0.35) && hasSpaceForItem()) {
-            var type = Random.randomElement(ItemData.types);
-            var item = new Item(type, maxLevel);
-            _inventory.push(item);
+            _inventory.push(randomItem(maxLevel));
 
             updateInventoryHtml();
         }

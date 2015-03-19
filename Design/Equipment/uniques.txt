@@ -1,0 +1,20 @@
+Unique Items
+
+High-level: Unique Items are gamechanging items with effects that can't be found anywhere else. They aren't the most powerful items in terms of raw stats, but they can make certain builds possible.
+
+Uniques often balanced by dropping at a fixed level, meaning they'll be outscaled in raw stats by rares as the player progresses. However a good unique can continue to be relevant into the endgame, so long as the player builds accordingly, and doesn't overload themselves with uniques.
+
+Examples:
+
+    Wrathbone: lvl50 axe
+        * Skills cost no mana
+        + Powerful attack damage for its level
+        - A high-level weapon is where most attack damage comes from
+        - Gives very little benefit to spellcasters
+
+    ____ : lvl30 ring
+        * Skills cost 3x as much mana, deal 2x as much damage
+
+    Golden Touch : lvl15 gloves
+        * +20% item drop rate
+        * +40% item rarity

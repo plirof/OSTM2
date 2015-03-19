@@ -97,7 +97,7 @@ class Affix {
     }
 
     public function rollItemLevel(itemLevel :Int) {
-        level = Random.randomIntRange(0, itemLevel * AffixType.kRollCounts);
+        level = Random.randomIntRange(0, itemLevel * AffixType.kRollCounts - 1);
     }
 
     public function text() :String {

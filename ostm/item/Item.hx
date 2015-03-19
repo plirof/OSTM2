@@ -29,10 +29,10 @@ class Item {
     public function new(type :ItemType, level :Int) {
         this.type = type;
         this.itemLevel = level;
-        this.level = Random.randomIntRange(1, level + 1);
+        this.level = Random.randomIntRange(1, level);
         this.tier = Math.floor(this.level / kTierLevels);
 
-        var nAffixes = Random.randomIntRange(0, 5);
+        var nAffixes = Random.randomIntRange(0, 4);
         var possibleAffixes = Affix.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
         var selectedAffixes = Random.randomElements(possibleAffixes, nAffixes);
         for (type in selectedAffixes) {
