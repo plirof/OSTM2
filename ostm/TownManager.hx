@@ -6,6 +6,8 @@ import js.html.*;
 import jengine.*;
 import jengine.util.Random;
 
+import ostm.battle.BattleManager;
+import ostm.battle.BattleMember;
 import ostm.item.Inventory;
 import ostm.item.Item;
 import ostm.map.MapGenerator;
@@ -47,11 +49,15 @@ class TownManager extends Component {
             shop.removeChild(shop.firstChild);
         }
 
+        var player = BattleManager.instance.getPlayer();
         var items = _shopItems[mapNode];
         for (item in items) {
             shop.appendChild(item.createElement([
                 'Buy' => function(event) {
-                    if (Inventory.instance.hasSpaceForItem()) {
+                    var price = item.buyValue();
+                    if (Inventory.instance.hasSpaceForItem() &&
+                        player.gold >= price) {
+                        player.addGold(-price);
                         items.remove(item);
                         Inventory.instance.push(item);
                         Inventory.instance.updateInventoryHtml();

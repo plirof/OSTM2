@@ -10,6 +10,7 @@ import ostm.battle.BattleManager;
 import ostm.battle.StatModifier;
 import ostm.item.Affix;
 import ostm.item.ItemType;
+import ostm.map.MapGenerator;
 
 class Item {
     public var type(default, null) :ItemType;
@@ -68,6 +69,10 @@ class Item {
     }
 
     public function discard() {
+        if (MapGenerator.instance.isInTown()) {
+            BattleManager.instance.getPlayer().addGold(sellValue());
+        }
+        
         Inventory.instance.remove(this);
 
         hideBothBodies();
@@ -192,6 +197,14 @@ class Item {
             _body.appendChild(aff);
         }
 
+        var buy = Browser.document.createLIElement();
+        buy.innerText = 'Buy Price: ' + Util.format(buyValue());
+        _body.appendChild(buy);
+        var sell = Browser.document.createLIElement();
+        sell.innerText = 'Sell Price: ' + Util.format(sellValue());
+        _body.appendChild(sell);
+
+
         Browser.document.getElementById('popup-container').appendChild(_body);
 
         return _elem;
@@ -257,6 +270,17 @@ class Item {
         def += mod.flatDefense;
         def *= 1 + mod.localPercentDefense / 100;
         return Math.round(def);
+    }
+
+    public function buyValue() :Int {
+        var value = Math.pow(tier + 1, 2.2) * 10;
+        for (affix in affixes) {
+            value *= affix.value();
+        }
+        return Math.round(value);
+    }
+    public function sellValue() :Int {
+        return Math.round(Math.pow(buyValue(), 0.85) * 0.5);
     }
 
     public function serialize() :Dynamic {

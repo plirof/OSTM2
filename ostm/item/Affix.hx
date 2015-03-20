@@ -108,6 +108,10 @@ class Affix {
         type.applyModifier(type.valueForLevel(slot, level), mod);
     }
 
+    public function value() :Float {
+        return 1 + 0.2 * level / AffixType.kRollCounts;
+    }
+
     public function serialize() :Dynamic {
         return {
             id: type.id,

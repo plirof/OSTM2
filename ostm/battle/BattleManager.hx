@@ -196,7 +196,18 @@ class BattleManager extends Component {
             else {
                 _killCount++;
                 var xp = _enemy.xpReward();
+                var gold = _enemy.goldReward();
                 _player.addXp(xp);
+                _player.addGold(gold);
+
+                var goldStr = Util.format(gold) + ' G';
+                entity.getSystem().addEntity(new Entity([
+                    new Transform(pos),
+                    new HtmlRenderer({
+                        parent: 'popup-container',
+                    }),
+                    new PopupNumber(goldStr, '#ffff33', 22, 125, 2),
+                ]));
                 var xpStr = Util.format(xp) + ' XP';
                 entity.getSystem().addEntity(new Entity([
                     new Transform(pos),
