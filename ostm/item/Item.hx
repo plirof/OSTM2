@@ -16,6 +16,7 @@ class Item {
     public var type(default, null) :ItemType;
     var itemLevel :Int; // Level this item spawned at
     var level :Int; // Level this item rolled
+    var isOwned :Bool;
 
     var tier :Int;
 
@@ -288,6 +289,7 @@ class Item {
             id: type.id,
             itemLevel: itemLevel,
             level: level,
+            isOwned: isOwned,
             affixes: affixes.map(function (affix) { return affix.serialize(); }),
         };
     }
@@ -296,6 +298,7 @@ class Item {
             if (data.id == type.id) {
                 var item = new Item(type, 0);
                 item.level = data.level;
+                item.isOwned = data.isOwned;
                 item.itemLevel = data.itemLevel;
                 item.tier = Math.floor(item.level / kTierLevels);
                 item.affixes = data.affixes.map(function (d) { return Affix.loadAffix(d); });

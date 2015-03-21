@@ -365,7 +365,7 @@ class MapGenerator extends Component
         updateScrollBounds();
     }
 
-    function getNode(i :Int, j :Int) :MapNode {
+    public function getNode(i :Int, j :Int) :MapNode {
         if (_generated.get(i) != null && _generated.get(i).get(j) != null) {
             return _generated[i][j];
         }
