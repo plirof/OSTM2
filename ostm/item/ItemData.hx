@@ -4,6 +4,7 @@ class ItemData {
     public static var types = [
         new WeaponType({
             id: 'sword',
+            image: 'Sword.png',
             names: [
                 'Rusted Sword',
                 'Copper Sword',
@@ -17,6 +18,7 @@ class ItemData {
         }),
         new WeaponType({
             id: 'axe',
+            image: 'Axe.png',
             names: [
                 'Rusted Axe',
                 'Hatchet',
@@ -30,6 +32,7 @@ class ItemData {
         }),
         new WeaponType({
             id: 'dagger',
+            image: 'Dagger.png',
             names: [
                 'Rusted Dagger',
                 'Knife',
@@ -43,6 +46,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'armor',
+            image: 'Armor.png',
             names: [
                 'Tattered Shirt',
                 'Cloth Shirt',
@@ -55,6 +59,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'helm',
+            image: 'Helmet.png',
             names: [
                 'Hat',
                 'Leather Cap',
@@ -67,6 +72,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'boots',
+            image: 'Boot.png',
             names: [
                 'Sandals',
                 'Leather Shoes',
@@ -79,6 +85,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'gloves',
+            image: 'Glove.png',
             names: [
                 'Cuffs',
                 'Wool Gloves',
@@ -91,6 +98,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'ring',
+            image: 'Ring.png',
             names: [
                 'Ring',
             ],

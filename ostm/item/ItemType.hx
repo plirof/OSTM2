@@ -11,6 +11,7 @@ enum ItemSlot {
 
 class ItemType {
     public var id(default, null) :String;
+    public var image(default, null) :String;
     public var names(default, null) :Array<String>;
     public var slot(default, null) :ItemSlot;
     public var attack(default, null) :Float;
@@ -18,6 +19,7 @@ class ItemType {
 
     public function new(data) {
         id = data.id;
+        image = data.image;
         names = data.names;
         slot = data.slot;
         attack = data.attack;

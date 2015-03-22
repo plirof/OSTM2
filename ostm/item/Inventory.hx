@@ -46,7 +46,10 @@ class Inventory extends Component
         var clear = Browser.document.createButtonElement();
         clear.innerText = 'Discard All';
         clear.onclick = function (event) {
-            _inventory = [];
+            var inv = _inventory.copy();
+            for (item in inv) {
+                item.discard();
+            }
             updateInventoryHtml();
         };
         inventory.appendChild(clear);

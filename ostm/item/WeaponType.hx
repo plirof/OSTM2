@@ -7,6 +7,7 @@ class WeaponType extends ItemType {
     public function new(data) {
         super({
             id: data.id,
+            image: data.image,
             names: data.names,
             slot: Weapon,
             attack: data.attack,

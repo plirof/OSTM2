@@ -130,7 +130,8 @@ class Item {
         _elem.style.textAlign = 'center';
         _elem.style.display = 'inline-block';
         var img = Browser.document.createImageElement();
-        img.src = 'img/Sword.png';
+        img.src = 'img/' + type.image;
+        img.height = 40;
         _elem.appendChild(img);
 
         _buttons = Browser.document.createSpanElement();
