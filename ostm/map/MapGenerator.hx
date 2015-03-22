@@ -29,9 +29,8 @@ class MapGenerator extends Component
 
     var _scrollHelper :Entity;
 
-    static inline var kMoveTime :Float = 20.0;
+    static inline var kMoveTime :Float = 12.0;
     static inline var kMoveBarWidth :Float = 500;
-    static inline var kKillsToUnlock :Int = 3;
     var _moveBar :Element;
     var _moveTimer :Float = 0;
     var _movePath :Array<MapNode> = null;
@@ -83,26 +82,6 @@ class MapGenerator extends Component
             ]),
         ]);
         entity.getSystem().addEntity(moveBarEntity);
-        entity.getSystem().addEntity(new Entity([
-            new HtmlRenderer({
-                id: 'kill-bar',
-                parent: 'game-header',
-                size: new Vec2(kMoveBarWidth, 25),
-                style: [
-                    'background' => '#885500',
-                    'border' => '1px solid #000000',
-                ],
-            }),
-            new Transform(new Vec2(20, 37)),
-            new ProgressBar(function() {
-                if (!selectedNode.hasUnseenNeighbors()) {
-                    return 0;
-                }
-                return BattleManager.instance.getKillCount() / kKillsToUnlock;
-            }, [
-                'background' => '#ffaa00',
-            ]),
-        ]));
 
         // var startTime = Time.raw;
 
@@ -129,15 +108,9 @@ class MapGenerator extends Component
     }
 
     public override function update() {
-        if (BattleManager.instance.isPlayerDead()) {
+        if (BattleManager.instance.isInBattle() ||
+            BattleManager.instance.isPlayerDead()) {
             return;
-        }
-
-        var hasUnseen = selectedNode.hasUnseenNeighbors();
-        Browser.document.getElementById('kill-bar').style.background = hasUnseen ? '#885500' : '#666666';
-        if (hasUnseen && BattleManager.instance.getKillCount() >= kKillsToUnlock) {
-            selectedNode.unlockRandomNeighbor();
-            BattleManager.instance.resetKillCount();
         }
 
         var player = BattleManager.instance.getPlayer();
