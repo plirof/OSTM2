@@ -32,6 +32,24 @@ class BattleManager extends Component {
         _player.elem.style.background = '#0088ff';
         _enemy = addBattleMember(false, new Vec2(350, 80));
 
+        entity.getSystem().addEntity(new Entity([
+            new HtmlRenderer({
+                id: 'kill-bar',
+                parent: 'game-header',
+                size: new Vec2(500, 25),
+                style: [
+                    'background' => '#885500',
+                    'border' => '1px solid #000000',
+                ],
+            }),
+            new Transform(new Vec2(20, 37)),
+            new ProgressBar(function() {
+                return _enemySpawnTimer / kEnemySpawnTime;
+            }, [
+                'background' => '#ffaa00',
+            ]),
+        ]));
+
         var buttons = [];
         for (skill in ActiveSkill.skills) {
             var i = buttons.length;
