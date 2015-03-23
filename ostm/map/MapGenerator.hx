@@ -7,6 +7,7 @@ import jengine.*;
 import jengine.SaveManager;
 import jengine.util.*;
 
+import ostm.TownManager;
 import ostm.battle.*;
 
 typedef MapHint = {
@@ -425,6 +426,12 @@ class MapGenerator extends Component
     public function click(node :MapNode) :Void {
         if (node == selectedNode) {
             setPath(null);
+            return;
+        }
+
+        if (node.isTown() && TownManager.instance.shouldWarp) {
+            setPath(null);
+            setSelected(node);
             return;
         }
 

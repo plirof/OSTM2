@@ -31,6 +31,9 @@ class TownManager extends Component
     public var saveId(default, null) :String = 'town-manager';
     var _shops = new Map<MapNode, ShopData>();
     var _lastNode :MapNode = null;
+    public var shouldWarp(default, null) :Bool = false;
+
+    var _warpButton :Element;
 
     static inline var kShopRefreshTime = 120;
 
@@ -42,6 +45,13 @@ class TownManager extends Component
 
     public override function start() :Void {
         SaveManager.instance.addItem(this);
+
+        _warpButton = Browser.document.getElementById('town-warp-button');
+        _warpButton.onclick = function(event) {
+            shouldWarp = !shouldWarp;
+            updateWarpButton();
+        };
+        updateWarpButton();
     }
 
     public override function update() :Void {
@@ -68,6 +78,10 @@ class TownManager extends Component
             if (mapNode != _lastNode) {
                 updateShopHtml(mapNode);
             }
+        }
+        else { //not in town
+            shouldWarp = false;
+            updateWarpButton();
         }
 
         _lastNode = mapNode;
@@ -112,6 +126,10 @@ class TownManager extends Component
                 },
             ]));
         }
+    }
+
+    function updateWarpButton() :Void {
+        _warpButton.innerText = shouldWarp ? 'Disable' : 'Enable';
     }
 
     public function serialize() :Dynamic {
