@@ -215,18 +215,12 @@ class BattleManager extends Component {
                 _killCount++;
                 var xp = _enemy.xpReward();
                 var gold = _enemy.goldReward();
+                var gems = Random.randomBool(0.5) ? 1 : 0;
                 _player.addXp(xp);
                 _player.addGold(gold);
+                _player.addGems(gems);
 
-                var goldStr = Util.format(gold) + ' G';
-                entity.getSystem().addEntity(new Entity([
-                    new Transform(pos),
-                    new HtmlRenderer({
-                        parent: 'popup-container',
-                    }),
-                    new PopupNumber(goldStr, '#ffff33', 22, 125, 2),
-                ]));
-                var xpStr = Util.format(xp) + ' XP';
+                var xpStr = Util.format(xp) + 'XP';
                 entity.getSystem().addEntity(new Entity([
                     new Transform(pos),
                     new HtmlRenderer({
@@ -234,6 +228,24 @@ class BattleManager extends Component {
                     }),
                     new PopupNumber(xpStr, '#33ff33', 22, 170, 2.5),
                 ]));
+                var goldStr = Util.format(gold) + 'G';
+                entity.getSystem().addEntity(new Entity([
+                    new Transform(pos + new Vec2(0, 30)),
+                    new HtmlRenderer({
+                        parent: 'popup-container',
+                    }),
+                    new PopupNumber(goldStr, '#ffff33', 22, 170, 2.5),
+                ]));
+                if (gems > 0) {
+                var goldStr = Util.format(gems) + 'Gem';
+                entity.getSystem().addEntity(new Entity([
+                    new Transform(pos + new Vec2(0, 60)),
+                    new HtmlRenderer({
+                        parent: 'popup-container',
+                    }),
+                    new PopupNumber(goldStr, '#ff3333', 22, 170, 2.5),
+                ]));
+                }
 
                 Inventory.instance.tryRewardItem(_enemy.level);
             }

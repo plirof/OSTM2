@@ -35,7 +35,7 @@ class TownManager extends Component
 
     var _warpButton :Element;
 
-    static inline var kShopRefreshTime = 120;
+    static inline var kShopRefreshTime = 300;
 
     public static var instance(default, null) :TownManager;
 
@@ -52,6 +52,19 @@ class TownManager extends Component
             updateWarpButton();
         };
         updateWarpButton();
+
+        var restockButton = Browser.document.getElementById('town-shop-restock-button');
+        restockButton.onclick = function(event) {
+            var player = BattleManager.instance.getPlayer();
+            var mapNode = MapGenerator.instance.selectedNode;
+            var price = restockPrice(mapNode);
+            if (price < player.gold) {
+                player.addGold(-price);
+                generateItems(mapNode);
+                updateShopHtml(mapNode);
+                updateRestockPrice(mapNode);
+            }
+        };
     }
 
     public override function update() :Void {
@@ -78,6 +91,7 @@ class TownManager extends Component
             if (mapNode != _lastNode) {
                 updateShopHtml(mapNode);
             }
+            updateRestockPrice(mapNode);
         }
         else { //not in town
             shouldWarp = false;
@@ -130,6 +144,20 @@ class TownManager extends Component
 
     function updateWarpButton() :Void {
         _warpButton.innerText = shouldWarp ? 'Disable' : 'Enable';
+    }
+
+    function restockPrice(mapNode :MapNode) :Int {
+        var items = _shops[mapNode].items;
+        var price = 0;
+        for (item in items) {
+            price += item.buyValue() - item.sellValue();
+        }
+        return price;
+    }
+
+    function updateRestockPrice(mapNode :MapNode) :Void {
+        var label = Browser.document.getElementById('town-shop-restock-price');
+        label.innerText = Util.format(restockPrice(mapNode));
     }
 
     public function serialize() :Dynamic {

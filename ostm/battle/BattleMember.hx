@@ -68,6 +68,7 @@ class BattleMember implements Saveable {
 
     public var xp :Int = 0;
     public var gold :Int = 0;
+    public var gems :Int = 0;
     public var health :Int = 0;
     public var healthPartial :Float = 0;
     public var attackTimer :Float = 0;
@@ -97,6 +98,9 @@ class BattleMember implements Saveable {
     }
     public function addGold(gold :Int) :Void {
         this.gold += gold;
+    }
+    public function addGems(gems :Int) :Void {
+        this.gems += gems;
     }
     public function xpToNextLevel() :Int {
         return Math.round(10 + 5 * Math.pow(level - 1, 2.6));
@@ -260,6 +264,7 @@ class BattleMember implements Saveable {
         return {
             xp: this.xp,
             gold: this.gold,
+            gems: this.gems,
             level: this.level,
             health: this.health,
             equipment: equips,
@@ -268,6 +273,7 @@ class BattleMember implements Saveable {
     public function deserialize(data :Dynamic) :Void {
         xp = data.xp;
         gold = data.gold;
+        gems = data.gems;
         level = data.level;
         health = data.health;
         for (k in equipment.keys()) {

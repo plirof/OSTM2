@@ -255,7 +255,7 @@ class MapGenerator extends Component
 
         var isDone = function() {
             if (cellNodes.length == kGridSize * kGridSize) {
-                trace('boop');
+                //TODO: make this unneeded!
                 return true;
             }
             return findPathWithinCell(left, right) != null

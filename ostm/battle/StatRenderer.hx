@@ -62,6 +62,9 @@ class StatRenderer extends Component {
             new StatElement(list, 'Gold', function() {
                 return Util.format(_member.gold);
             }),
+            new StatElement(list, 'Gems', function() {
+                return Util.format(_member.gems);
+            }),
             new StatElement(list, 'HP', function() {
                 return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
             }),

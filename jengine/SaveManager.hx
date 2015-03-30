@@ -9,8 +9,12 @@ interface Saveable {
     public function deserialize(data :Dynamic) :Void;
 }
 
-class SaveManager extends Component {
+class SaveManager extends Component
+        implements Saveable {
     public static var instance(default, null) :SaveManager;
+
+    public var saveId(default, null) :String = 'save-manager';
+    public var loadedVersion(default, null) :Int;
 
     var _toSave = new Map<String, Saveable>();
     var _saveTimer :Float = 0;
@@ -23,6 +27,8 @@ class SaveManager extends Component {
 
         Browser.document.getElementById('save-button').onclick = function (event) { save(); };
         Browser.document.getElementById('save-clear-button').onclick = function (event) { clearSave(); };
+
+        addItem(this);
     }
 
     public override function postStart() :Void {
@@ -72,12 +78,29 @@ class SaveManager extends Component {
     public function loadString(saveString :String) :Void {
         var save :Dynamic = Json.parse(saveString);
         var keys = _toSave.keys();
+        var keyArray = [];
+
+        deserialize(Reflect.getProperty(save, this.saveId));
+
         for (k in keys) {
+            if (k == this.saveId) {
+                continue;
+            }
             var data = Reflect.getProperty(save, k);
             var item = _toSave.get(k);
             if (data != null) {
                 item.deserialize(data);
             }
         }
+    }
+
+    public function serialize() :Dynamic {
+        return {
+            saveVersion: 1,
+        };
+    }
+
+    public function deserialize(data :Dynamic) :Void {
+        this.loadedVersion = data.saveVersion;
     }
 }
