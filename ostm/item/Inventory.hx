@@ -14,8 +14,9 @@ class Inventory extends Component
         implements Saveable {
     public var saveId(default, null) :String = 'inventory';
     var _inventory :Array<Item> = [];
+    var _sizeUpgrades :Int = 0;
 
-    static inline var kMaxInventoryCount :Int = 10;
+    static inline var kBaseInventoryCount :Int = 10;
 
     public static var instance(default, null) :Inventory;
 
@@ -40,7 +41,7 @@ class Inventory extends Component
         }
 
         var count = Browser.document.createLIElement();
-        count.innerText = 'Capacity: ' + _inventory.length + ' / ' + kMaxInventoryCount;
+        count.innerText = 'Capacity: ' + _inventory.length + ' / ' + capacity();
         inventory.appendChild(count);
 
         var clear = Browser.document.createButtonElement();
@@ -87,8 +88,21 @@ class Inventory extends Component
         }
     }
 
+    public function capacity() :Int {
+        return kBaseInventoryCount + _sizeUpgrades;
+    }
+
+    public function capacityUpgradeCost() :Int {
+        return 10 * (_sizeUpgrades + 1);
+    }
+
+    public function upgradeCapacity() :Void {
+        _sizeUpgrades++;
+        updateInventoryHtml();
+    }
+
     public function hasSpaceForItem() :Bool {
-        return _inventory.length < kMaxInventoryCount;
+        return _inventory.length < capacity();
     }
 
     public function randomItem(maxLevel :Int) :Item {
@@ -107,10 +121,17 @@ class Inventory extends Component
     public function serialize() :Dynamic {
         return {
             items: _inventory.map(function (item) { return item.serialize(); }),
+            size: _sizeUpgrades,
         };
     }
     public function deserialize(data :Dynamic) {
         _inventory = data.items.map(function (d) { return Item.loadItem(d); });
+        _sizeUpgrades = data.size;
+
+        if (SaveManager.instance.loadedVersion < 2) {
+            _sizeUpgrades = 0;
+        }
+
         updateInventoryHtml();
     }
 }

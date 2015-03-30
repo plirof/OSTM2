@@ -65,6 +65,16 @@ class TownManager extends Component
                 updateRestockPrice(mapNode);
             }
         };
+
+        var capacityButton = Browser.document.getElementById('town-shop-capacity-button');
+        capacityButton.onclick = function(event) {
+            var player = BattleManager.instance.getPlayer();
+            var price = Inventory.instance.capacityUpgradeCost();
+            if (price < player.gems) {
+                player.addGems(-price);
+                Inventory.instance.upgradeCapacity();
+            }
+        };
     }
 
     public override function update() :Void {
@@ -92,6 +102,8 @@ class TownManager extends Component
                 updateShopHtml(mapNode);
             }
             updateRestockPrice(mapNode);
+
+            Browser.document.getElementById('town-shop-capacity-price').innerText = Util.format(Inventory.instance.capacityUpgradeCost());
         }
         else { //not in town
             shouldWarp = false;

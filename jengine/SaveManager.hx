@@ -81,6 +81,10 @@ class SaveManager extends Component
         var keyArray = [];
 
         deserialize(Reflect.getProperty(save, this.saveId));
+        if (loadedVersion <= 0) {
+            // TODO: maybe set a backup save file
+            return;
+        }
 
         for (k in keys) {
             if (k == this.saveId) {
@@ -96,7 +100,7 @@ class SaveManager extends Component
 
     public function serialize() :Dynamic {
         return {
-            saveVersion: 1,
+            saveVersion: 2,
         };
     }
 

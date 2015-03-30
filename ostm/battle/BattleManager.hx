@@ -215,7 +215,7 @@ class BattleManager extends Component {
                 _killCount++;
                 var xp = _enemy.xpReward();
                 var gold = _enemy.goldReward();
-                var gems = Random.randomBool(0.5) ? 1 : 0;
+                var gems = Random.randomBool(0.07) ? 1 : 0;
                 _player.addXp(xp);
                 _player.addGold(gold);
                 _player.addGems(gems);
