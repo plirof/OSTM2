@@ -14,8 +14,50 @@ class SkillTree extends Component
     public var saveId(default, null) :String = 'skill-tree';
 
     public static var instance(default, null) :SkillTree;
-    public var skills(default, null) = new Array<PassiveSkill>();
+    public var skills(default, null) = [
+        new PassiveSkill({
+            id: 'str',
+            reqs: [],
+            icon: 'STR+',
+            pos: {x: 0, y: 0},
+            desc: 'Strength+',
+            mod: function(value, mod) {
+                mod.flatStrength += value;
+            },
+        }),
+        new PassiveSkill({
+            id: 'vit',
+            reqs: ['str'],
+            icon: 'VIT+',
+            pos: {x: 1, y: -1},
+            desc: 'Vitality+',
+            mod: function(value, mod) {
+                mod.flatVitality += value;
+            },
+        }),
+        new PassiveSkill({
+            id: 'spd',
+            reqs: ['str'],
+            icon: 'SPD+',
+            pos: {x: 1, y: 1},
+            desc: 'Speed+',
+            mod: function(value, mod) {
+                mod.percentMoveSpeed += value;
+            },
+        }),
+        new PassiveSkill({
+            id: 'cch',
+            reqs: ['spd'],
+            icon: 'CCH+',
+            pos: {x: 2, y: 1},
+            desc: 'Crit Chance+',
+            mod: function(value, mod) {
+                mod.percentCritChance += value;
+            },
+        }),
+    ];
     var _skillNodes = new Array<SkillNode>();
+
 
     public override function init() :Void {
         instance = this;
@@ -24,27 +66,14 @@ class SkillTree extends Component
     public override function start() :Void {
         SaveManager.instance.addItem(this);
 
-        var str = new PassiveSkill('STR+', 'Strength+', function(value, mod) {
-            mod.flatStrength += value;
-        });
-        var vit = new PassiveSkill('VIT+', 'Vitality+', function(value, mod) {
-            mod.flatVitality += value;
-        });
-        var spd = new PassiveSkill('SPD+', 'Speed+', function(value, mod) {
-            mod.percentMoveSpeed += value;
-        });
-        var crit = new PassiveSkill('CCH+', 'Crit Chance+', function(value, mod) {
-            mod.percentCritChance += value;
-        });
-
-        vit.addRequirement(str);
-        spd.addRequirement(str);
-        crit.addRequirement(spd);
-
-        addNode(str, 0, 0);
-        addNode(vit, 1, -1);
-        addNode(spd, 1, 1);
-        addNode(crit, 2, 1);
+        for (skill in skills) {
+            for (s2 in skills) {
+                if (skill.requirementIds.indexOf(s2.id) != -1) {
+                    skill.addRequirement(s2);
+                }
+            }
+            addNode(skill, skill.pos.x, skill.pos.y);
+        }
 
         updateScrollBounds();
     }
@@ -70,7 +99,6 @@ class SkillTree extends Component
         }
         entity.getSystem().addEntity(ent);
 
-        skills.push(skill);
         _skillNodes.push(node);
         return node;
     }
@@ -92,9 +120,23 @@ class SkillTree extends Component
     }
 
     public function serialize() :Dynamic {
-        return { };
+        return {
+            skills: skills.map(function(skill) { return skill.serialize(); }),
+        };
     }
     public function deserialize(data :Dynamic) :Void {
+        if (SaveManager.instance.loadedVersion < 3) {
+            return;
+        }
+        
+        var savedSkills :Array<Dynamic> = data.skills;
+        for (save in savedSkills) {
+            for (skill in skills) {
+                if (save.id == skill.id) {
+                    skill.deserialize(save);
+                }
+            }
+        }
     }
 }
 

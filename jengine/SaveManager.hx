@@ -100,7 +100,7 @@ class SaveManager extends Component
 
     public function serialize() :Dynamic {
         return {
-            saveVersion: 2,
+            saveVersion: 3,
         };
     }
 
