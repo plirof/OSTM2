@@ -5,6 +5,7 @@ import js.html.*;
 
 import jengine.*;
 import jengine.SaveManager;
+import jengine.util.Util;
 
 import ostm.battle.PassiveSkill;
 import ostm.map.MapNode;
@@ -17,41 +18,61 @@ class SkillTree extends Component
     public var skills(default, null) = [
         new PassiveSkill({
             id: 'str',
-            reqs: [],
+            requirements: [],
             icon: 'STR+',
             pos: {x: 0, y: 0},
-            desc: 'Strength+',
-            mod: function(value, mod) {
+            name: 'Strength+',
+            description: 'Increases strength',
+            isPercent: false,
+            leveling: function(level) {
+                return 3 * level;
+            },
+            modifier: function(value, mod) {
                 mod.flatStrength += value;
             },
         }),
         new PassiveSkill({
             id: 'vit',
-            reqs: ['str'],
+            requirements: ['str'],
             icon: 'VIT+',
-            pos: {x: 1, y: -1},
-            desc: 'Vitality+',
-            mod: function(value, mod) {
+            pos: {x: -1, y: 1},
+            name: 'Vitality+',
+            description: 'Increases vitality',
+            isPercent: false,
+            leveling: function(level) {
+                return 4 * level;
+            },
+            modifier: function(value, mod) {
                 mod.flatVitality += value;
             },
         }),
         new PassiveSkill({
             id: 'spd',
-            reqs: ['str'],
+            requirements: ['str'],
             icon: 'SPD+',
             pos: {x: 1, y: 1},
-            desc: 'Speed+',
-            mod: function(value, mod) {
+            name: 'Speed+',
+            description: 'Increases movement speed',
+            isPercent: true,
+            leveling: function(level) {
+                return 6 * level;
+            },
+            modifier: function(value, mod) {
                 mod.percentMoveSpeed += value;
             },
         }),
         new PassiveSkill({
             id: 'cch',
-            reqs: ['spd'],
+            requirements: ['spd'],
             icon: 'CCH+',
-            pos: {x: 2, y: 1},
-            desc: 'Crit Chance+',
-            mod: function(value, mod) {
+            pos: {x: 1, y: 2},
+            name: 'Crit Chance+',
+            description: 'Increases global critical hit chance',
+            isPercent: true,
+            leveling: function(level) {
+                return 15 * level;
+            },
+            modifier: function(value, mod) {
                 mod.percentCritChance += value;
             },
         }),
@@ -81,7 +102,7 @@ class SkillTree extends Component
     function addNode(skill :PassiveSkill, y :Int, x :Int) :SkillNode {
         var size :Vec2 = new Vec2(50, 50);
 
-        var node = new SkillNode(y, x, skill);
+        var node = new SkillNode(x, y, skill);
         var ent = new Entity([
             new HtmlRenderer({
                 parent: 'skill-screen',
@@ -106,7 +127,7 @@ class SkillTree extends Component
     function updateScrollBounds() :Void {
         var topLeft = new Vec2(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
-        var origin :Vec2 = new Vec2(100, 100);
+        var origin :Vec2 = new Vec2(15, 15);
         for (node in _skillNodes) {
             var pos = node.getOffset();
             topLeft = Vec2.min(topLeft, pos);
@@ -128,7 +149,7 @@ class SkillTree extends Component
         if (SaveManager.instance.loadedVersion < 3) {
             return;
         }
-        
+
         var savedSkills :Array<Dynamic> = data.skills;
         for (save in savedSkills) {
             for (skill in skills) {
@@ -143,6 +164,8 @@ class SkillTree extends Component
 class SkillNode extends GameNode {
     public var skill(default, null) :PassiveSkill;
     var _description :Element;
+    var _curValue :Element;
+    var _nextValue :Element;
     var _count :Element;
 
     public function new(x :Int, y :Int, skill :PassiveSkill) {
@@ -153,17 +176,26 @@ class SkillNode extends GameNode {
     public override function start() :Void {
         super.start();
 
-        var name = Browser.document.createSpanElement();
-        name.innerText = skill.abbreviation;
-        elem.appendChild(name);
+        createSpan(skill.abbreviation, elem);
         elem.appendChild(Browser.document.createBRElement());
-        _count = Browser.document.createSpanElement();
-        elem.appendChild(_count);
+        _count = createSpan('', elem);
 
         _description = Browser.document.createUListElement();
-        var descText = Browser.document.createSpanElement();
-        descText.innerText = skill.description;
-        _description.appendChild(descText);
+        createSpan(skill.name, _description);
+        _description.appendChild(Browser.document.createBRElement());
+        createSpan(skill.description, _description);
+
+        _description.appendChild(Browser.document.createBRElement());
+
+        createSpan('Current: ', _description);
+        _curValue = createSpan('', _description);
+        if (skill.isPercent) { createSpan('%', _description); }
+
+        _description.appendChild(Browser.document.createBRElement());
+
+        createSpan('Next: ', _description);
+        _nextValue = createSpan('', _description);
+        if (skill.isPercent) { createSpan('%', _description); }
 
         _description.style.display = 'none';
         _description.style.position = 'absolute';
@@ -175,8 +207,19 @@ class SkillNode extends GameNode {
         Browser.document.getElementById('popup-container').appendChild(_description);
     }
 
+    function createSpan(text :String, parent :Element) :Element {
+        var elem = Browser.document.createSpanElement();
+        elem.innerText = text;
+        if (parent != null) {
+            parent.appendChild(elem);
+        }
+        return elem;
+    }
+
     public override function update() :Void {
-        _count.innerText = cast skill.level;
+        _count.innerText = Util.format(skill.level);
+        _curValue.innerText = Util.format(skill.currentValue());
+        _nextValue.innerText = Util.format(skill.nextValue());
     }
 
     public override function onMouseOver(event :MouseEvent) :Void {
