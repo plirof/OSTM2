@@ -14,6 +14,12 @@ html {
         0 -1px 1px #000000;
 }
 
+.title {
+    left: 550px;
+    top: 20px;
+    font-size: 36px;
+}
+
 #game-header {
     position: absolute;
     left: 0px;
@@ -61,19 +67,25 @@ div {
     height: 100%;
     background: #aaffaa;
 }
+#inventory-screen {
+    height: 50%;
+    top: 50%;
+    background: #aaaaff;
+}
 #map-screen {
-    height: 65%;
+    height: 50%;
+    left: 50%;
+    width: 50%;
     background: #aaaaaa;
 }
 #battle-screen, #town-screen {
-    height: 35%;
+    height: 50%;
     width: 50%;
-    top: 65%;
 }
 #skill-screen {
-    height: 35%;
+    height: 50%;
     width: 50%;
-    top: 65%;
+    top: 50%;
     left: 50%;
     background: #ddff77;
 }
