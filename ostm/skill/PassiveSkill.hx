@@ -1,8 +1,10 @@
-package ostm.battle;
+package ostm.skill;
 
 import jengine.Point;
 import jengine.SaveManager;
 import jengine.util.Util;
+
+import ostm.battle.StatModifier;
 
 class PassiveSkill {
     public var id(default, null) :String;

@@ -8,6 +8,8 @@ import jengine.SaveManager;
 import ostm.item.Affix;
 import ostm.item.Item;
 import ostm.item.ItemType;
+import ostm.skill.PassiveSkill;
+import ostm.skill.SkillTree;
 
 class StatType {
     var baseValue :Float;

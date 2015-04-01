@@ -7,7 +7,7 @@ import jengine.SaveManager;
 import ostm.battle.BattleManager;
 import ostm.item.Inventory;
 import ostm.map.MapGenerator;
-import ostm.SkillTree;
+import ostm.skill.SkillTree;
 
 class GameMain extends JEngineMain {
 	public static function main() {
