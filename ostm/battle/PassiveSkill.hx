@@ -1,7 +1,8 @@
 package ostm.battle;
 
-import jengine.*;
+import jengine.Point;
 import jengine.SaveManager;
+import jengine.util.Util;
 
 class PassiveSkill {
     public var id(default, null) :String;
@@ -29,9 +30,18 @@ class PassiveSkill {
     }
 
     public function addRequirement(req :PassiveSkill) :Void {
-        if (requirements.indexOf(req) == -1) {
+        if (!Util.contains(requirements, req)) {
             requirements.push(req);
         }
+    }
+
+    public function hasMetRequirements() :Bool {
+        for (req in requirements) {
+            if (req.level > 0) {
+                return true;
+            }
+        }
+        return requirements.length == 0;
     }
 
     public function levelUp() :Void {

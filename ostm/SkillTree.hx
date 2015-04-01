@@ -6,7 +6,9 @@ import js.html.*;
 import jengine.*;
 import jengine.SaveManager;
 import jengine.util.Util;
+import jengine.util.JsUtil;
 
+import ostm.battle.BattleManager;
 import ostm.battle.PassiveSkill;
 import ostm.map.MapNode;
 
@@ -15,6 +17,10 @@ class SkillTree extends Component
     public var saveId(default, null) :String = 'skill-tree';
 
     public static var instance(default, null) :SkillTree;
+
+    var _skillNodes = new Array<SkillNode>();
+    var _skillPoints :Element;
+
     public var skills(default, null) = [
         new PassiveSkill({
             id: 'str',
@@ -77,8 +83,6 @@ class SkillTree extends Component
             },
         }),
     ];
-    var _skillNodes = new Array<SkillNode>();
-
 
     public override function init() :Void {
         instance = this;
@@ -87,22 +91,47 @@ class SkillTree extends Component
     public override function start() :Void {
         SaveManager.instance.addItem(this);
 
+        var screen = Browser.document.getElementById('skill-screen');
+        JsUtil.createSpan('Skill points: ', screen);
+        _skillPoints = JsUtil.createSpan('', screen);
+
         for (skill in skills) {
             for (s2 in skills) {
                 if (skill.requirementIds.indexOf(s2.id) != -1) {
                     skill.addRequirement(s2);
                 }
             }
-            addNode(skill, skill.pos.x, skill.pos.y);
+            addNode(skill);
         }
 
         updateScrollBounds();
     }
 
-    function addNode(skill :PassiveSkill, y :Int, x :Int) :SkillNode {
+    public override function update() :Void {
+        _skillPoints.innerText = Util.format(availableSkillPoints());
+    }
+
+    function maxSkillPoints() :Int {
+        var player = BattleManager.instance.getPlayer();
+        return player.level - 1;
+    }
+
+    function spentSkillPoints() :Int {
+        var count = 0;
+        for (skill in skills) {
+            count += skill.level;
+        }
+        return count;
+    }
+
+    public function availableSkillPoints() :Int {
+        return maxSkillPoints() - spentSkillPoints();
+    }
+
+    function addNode(skill :PassiveSkill) :SkillNode {
         var size :Vec2 = new Vec2(50, 50);
 
-        var node = new SkillNode(x, y, skill);
+        var node = new SkillNode(skill, this);
         var ent = new Entity([
             new HtmlRenderer({
                 parent: 'skill-screen',
@@ -127,7 +156,7 @@ class SkillTree extends Component
     function updateScrollBounds() :Void {
         var topLeft = new Vec2(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
-        var origin :Vec2 = new Vec2(15, 15);
+        var origin :Vec2 = new Vec2(25, 25);
         for (node in _skillNodes) {
             var pos = node.getOffset();
             topLeft = Vec2.min(topLeft, pos);
@@ -167,35 +196,40 @@ class SkillNode extends GameNode {
     var _curValue :Element;
     var _nextValue :Element;
     var _count :Element;
+    var _tree :SkillTree;
 
-    public function new(x :Int, y :Int, skill :PassiveSkill) {
-        super(x, y);
+    public function new(skill :PassiveSkill, tree :SkillTree) {
+        super(skill.pos.y, skill.pos.x);
+
         this.skill = skill;
+        _tree = tree;
     }
 
     public override function start() :Void {
         super.start();
 
-        createSpan(skill.abbreviation, elem);
-        elem.appendChild(Browser.document.createBRElement());
-        _count = createSpan('', elem);
+        var doc = Browser.document;
 
-        _description = Browser.document.createUListElement();
-        createSpan(skill.name, _description);
-        _description.appendChild(Browser.document.createBRElement());
-        createSpan(skill.description, _description);
+        JsUtil.createSpan(skill.abbreviation, elem);
+        elem.appendChild(doc.createBRElement());
+        _count = JsUtil.createSpan('', elem);
 
-        _description.appendChild(Browser.document.createBRElement());
+        _description = doc.createUListElement();
+        JsUtil.createSpan(skill.name, _description);
+        _description.appendChild(doc.createBRElement());
+        JsUtil.createSpan(skill.description, _description);
 
-        createSpan('Current: ', _description);
-        _curValue = createSpan('', _description);
-        if (skill.isPercent) { createSpan('%', _description); }
+        _description.appendChild(doc.createBRElement());
 
-        _description.appendChild(Browser.document.createBRElement());
+        JsUtil.createSpan('Current: ', _description);
+        _curValue = JsUtil.createSpan('', _description);
+        if (skill.isPercent) { JsUtil.createSpan('%', _description); }
 
-        createSpan('Next: ', _description);
-        _nextValue = createSpan('', _description);
-        if (skill.isPercent) { createSpan('%', _description); }
+        _description.appendChild(doc.createBRElement());
+
+        JsUtil.createSpan('Next: ', _description);
+        _nextValue = JsUtil.createSpan('', _description);
+        if (skill.isPercent) { JsUtil.createSpan('%', _description); }
 
         _description.style.display = 'none';
         _description.style.position = 'absolute';
@@ -204,16 +238,7 @@ class SkillNode extends GameNode {
         _description.style.width = cast 220;
         _description.style.zIndex = cast 10;
 
-        Browser.document.getElementById('popup-container').appendChild(_description);
-    }
-
-    function createSpan(text :String, parent :Element) :Element {
-        var elem = Browser.document.createSpanElement();
-        elem.innerText = text;
-        if (parent != null) {
-            parent.appendChild(elem);
-        }
-        return elem;
+        doc.getElementById('popup-container').appendChild(_description);
     }
 
     public override function update() :Void {
@@ -233,6 +258,9 @@ class SkillNode extends GameNode {
     }
 
     override function onClick(event) {
-        skill.levelUp();
+        if (_tree.availableSkillPoints() > 0 &&
+            skill.hasMetRequirements()) {
+            skill.levelUp();
+        }
     }
 }
