@@ -105,6 +105,7 @@ class MapGenerator extends Component
         // trace('Time to generate: ' + elapsed + ' s (' + rate + ' nodes/s)');
 
         _start.setOccupied();
+        updateScrollBounds();
         centerCurrentNode();
     }
 
@@ -170,6 +171,8 @@ class MapGenerator extends Component
                 node.markDirty();
             }
         });
+
+        updateScrollBounds();
     }
 
     function generateSurroundingCells(i :Int, j :Int) :Void {
@@ -469,14 +472,18 @@ class MapGenerator extends Component
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
         var origin :Vec2 = new Vec2(100, 100);
         forAllNodes(function (node) {
-            var pos = node.getOffset();
-            topLeft = Vec2.min(topLeft, pos);
+            if (node.hasSeen()) {
+                var pos = node.getOffset();
+                topLeft = Vec2.min(topLeft, pos);
+            }
         });
 
         forAllNodes(function (node) {
             var pos = origin + node.getOffset() - topLeft;
             node.getTransform().pos = pos;
-            botRight = Vec2.max(botRight, pos);
+            if (node.hasSeen()) {
+                botRight = Vec2.max(botRight, pos);
+            }
         });
         
         var scrollBuffer = new Vec2(250, 150);
@@ -623,5 +630,7 @@ class MapGenerator extends Component
         if (chk != null) {
             _checkpoint = chk;
         }
+
+        updateScrollBounds();
     }
 }
