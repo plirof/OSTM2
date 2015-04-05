@@ -11,7 +11,7 @@ class ItemData {
                 'Short Sword',
                 'Long Sword',
             ],
-            attack: 4,
+            attack: 4.1,
             attackSpeed: 1.55,
             crit: 5,
             defense: 0,
@@ -27,7 +27,7 @@ class ItemData {
             ],
             attack: 5.25,
             attackSpeed: 1.35,
-            crit: 5,
+            crit: 7,
             defense: 0,
         }),
         new WeaponType({
@@ -41,7 +41,7 @@ class ItemData {
             ],
             attack: 3,
             attackSpeed: 1.8,
-            crit: 7,
+            crit: 9,
             defense: 0,
         }),
         new ItemType({

@@ -81,7 +81,8 @@ class SaveManager extends Component
         var keyArray = [];
 
         deserialize(Reflect.getProperty(save, this.saveId));
-        if (loadedVersion <= 0) {
+        if (loadedVersion <= 3) {
+            // Don't load if the loaded value is before the save version to wipe
             // TODO: maybe set a backup save file
             return;
         }
@@ -100,7 +101,7 @@ class SaveManager extends Component
 
     public function serialize() :Dynamic {
         return {
-            saveVersion: 3,
+            saveVersion: 4,
         };
     }
 

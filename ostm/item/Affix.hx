@@ -56,11 +56,14 @@ class Affix {
         new AffixType('local-percent-attack-speed', '% Attack Speed', 5, 1, function(value, mod) {
             mod.localPercentAttackSpeed += value;
         }, [ Weapon => 1.0 ]),
-        new AffixType('local-percent-crit-chance', '% Crit Chance', 5, 1, function(value, mod) {
-            mod.localPercentCritChance += value;
-        }, [ Weapon => 1.0 ]),
         new AffixType('local-percent-attack', '% Attack', 5, 1.5, function(value, mod) {
             mod.localPercentAttack += value;
+        }, [ Weapon => 1.0 ]),
+        new AffixType('flat-crit-rating', 'Crit Rating', 2, 1, function(value, mod) {
+            mod.flatCritRating += value;
+        }, [ Weapon => 1.0 ]),
+        new AffixType('local-percent-crit-rating', '% Crit Rating', 5, 1, function(value, mod) {
+            mod.localPercentCritRating += value;
         }, [ Weapon => 1.0 ]),
         new AffixType('flat-defense', 'Defense', 2, 1.25, function(value, mod) {
             mod.flatDefense += value;
@@ -83,7 +86,7 @@ class Affix {
         new AffixType('percent-crit-chance', '% Global Crit Chance', 2, 1, function(value, mod) {
             mod.percentCritChance += value;
         }, [ Weapon => 1.0, Ring => 0.5 ]),
-        new AffixType('percent-crit-damage', '% Crit Damage', 10, 2, function(value, mod) {
+        new AffixType('percent-crit-damage', '% Global Crit Damage', 10, 2, function(value, mod) {
             mod.percentCritDamage += value;
         }, [ Weapon => 1.0, Ring => 0.5 ]),
         new AffixType('percent-move-speed', '% Move Speed', 10, 2, function(value, mod) {

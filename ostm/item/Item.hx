@@ -185,7 +185,7 @@ class Item {
             _body.appendChild(spd);
 
             var crt = js.Browser.document.createLIElement();
-            crt.innerText = 'Crit chance: ' + Util.formatFloat(100 * critChance()) + '%';
+            crt.innerText = 'Crit Rating: ' + Util.format(critRating());
             _body.appendChild(crt);
         }
         var def = Browser.document.createLIElement();
@@ -255,15 +255,17 @@ class Item {
         spd *= 1 + mod.localPercentAttackSpeed / 100;        
         return spd;
     }
-    public function critChance() :Float {
+    public function critRating() :Int {
         if (!Std.is(type, WeaponType)) {
             return 0;
         }
         var wep :WeaponType = cast(type, WeaponType);
         var mod = sumAffixes();
-        var crt = wep.crit / 100;
-        crt *= 1 + mod.localPercentCritChance / 100;        
-        return crt;
+        var crt = wep.crit;
+        crt *= 1 + kTierLevels * 0.1 * tier;
+        crt += mod.flatCritRating;
+        crt *= 1 + mod.localPercentCritRating / 100;        
+        return Math.round(crt);
     }
     public function defense() :Int {
         var mod = sumAffixes();

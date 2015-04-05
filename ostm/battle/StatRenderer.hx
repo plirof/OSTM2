@@ -80,11 +80,18 @@ class StatRenderer extends Component {
             new StatElement(list, 'Attack Speed', function() {
                 return Util.formatFloat(_member.attackSpeed()) + '/s';
             }),
+            new StatElement(list, 'Crit Rating', function() {
+                var lev = BattleManager.instance.spawnLevel();
+                return Util.format(_member.critInfo(lev).rating);
+            }),
             new StatElement(list, 'Crit Chance', function() {
-                return Util.formatFloat(100 * _member.critChance()) + '%';
+                var lev = BattleManager.instance.spawnLevel();
+                return Util.formatFloat(100 * _member.critInfo(lev).chance) +
+                    '% (against level ' + Util.format(lev) + ' enemies)';
             }),
             new StatElement(list, 'Crit Damage', function() {
-                return '+' + Util.formatFloat(100 * (_member.critDamage() - 1), 0) + '%';
+                var lev = BattleManager.instance.spawnLevel();
+                return '+' + Util.formatFloat(100 * _member.critInfo(lev).damage, 0) + '%';
             }),
             new StatElement(list, 'Armor', function() {
                 return Util.format(_member.defense());
@@ -92,7 +99,7 @@ class StatRenderer extends Component {
             new StatElement(list, 'Damage Reduction', function() {
                 var lev = BattleManager.instance.spawnLevel();
                 return Util.formatFloat(_member.damageReduction(lev) * 100) +
-                    '% (against level ' + lev + ' enemies)';
+                    '% (against level ' + Util.format(lev) + ' enemies)';
             }),
             new StatElement(list, 'Move Speed', function() {
                 return '+' + Util.formatFloat(100 * (_member.moveSpeed() - 1), 0) + '%';
@@ -110,7 +117,8 @@ class StatRenderer extends Component {
                 return Util.format(_member.dexterity());
             }),
             new StatElement(list, 'DPS', function() {
-                return Util.formatFloat(_member.dps());
+                var lev = BattleManager.instance.spawnLevel();
+                return Util.formatFloat(_member.dps(lev));
             }),
             new StatElement(list, 'EHP', function() {
                 var lev = BattleManager.instance.spawnLevel();

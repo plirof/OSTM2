@@ -183,24 +183,37 @@ class BattleMember implements Saveable {
         spd *= curSkill.speed;
         return spd;
     }
-    public function critChance() :Float {
+    public function critInfo(targetLevel :Int) {
         var wep = equipment.get(Weapon);
         var mod = sumAffixes();
-        var crt = wep != null ? wep.critChance() : 0.05;
-        crt *= (1 + mod.percentCritChance / 100);
-        return crt;
+        
+        var floatRating :Float = wep != null ? wep.critRating() : 3;
+        floatRating *= 1 + dexterity() * 0.02;
+        var rating = Math.round(floatRating);
+
+        var offense = 0.02 * rating;
+        var defense = 4 + targetLevel;
+        var totalDamage = 1 + offense / defense;
+
+        var baseChance = Math.pow(rating, 0.7) / 100;
+        var chance = 0.025 + baseChance / Math.pow(defense, 0.5);
+        var damage = (totalDamage - 1) / chance;
+
+        chance *= (1 + mod.percentCritChance / 100);
+        damage *= 1 + mod.percentCritDamage / 100;
+
+        return {
+            rating: rating,
+            chance: chance,
+            damage: damage,
+        };
     }
-    public function critDamage() :Float {
-        var mod = sumAffixes();
-        var dam = 1.5;
-        dam += mod.percentCritDamage / 100;
-        return dam;
-    }
-    public function dps() :Float {
+    public function dps(targetLevel :Int) :Float {
         var atk = damage();
         var spd = attackSpeed();
-        var crits = 1 + critChance() * (critDamage() - 1);
-        return atk * spd * crits;
+        var crit = critInfo(targetLevel);
+        var critMod = 1 + crit.chance * crit.damage;
+        return atk * spd * critMod;
     }
 
     public function defense() :Int {
@@ -252,7 +265,6 @@ class BattleMember implements Saveable {
     public function setActiveSkill(skill :ActiveSkill) :Void {
         if (curSkill != skill) {
             curSkill = skill;
-            attackTimer = 0;
         }
     }
 

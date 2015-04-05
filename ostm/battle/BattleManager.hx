@@ -180,9 +180,10 @@ class BattleManager extends Component {
     function dealDamage(target :BattleMember, attacker :BattleMember) :Void {
         var baseDamage = attacker.damage();
         var damage = Math.round(baseDamage * (1 - target.damageReduction(attacker.level)));
-        var isCrit = Random.randomBool(attacker.critChance());
+        var crit = attacker.critInfo(target.level);
+        var isCrit = Random.randomBool(crit.chance);
         if (isCrit) {
-            damage = Math.round(damage * attacker.critDamage());
+            damage = Math.round(damage * (1 + crit.damage));
         }
         target.health -= damage;
 
