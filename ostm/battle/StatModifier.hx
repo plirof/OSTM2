@@ -17,6 +17,7 @@ class StatModifier {
     public var percentDefense :Int = 0;
     public var percentAttackSpeed :Int = 0;
     public var percentMoveSpeed :Int = 0;
+    public var percentCritRating :Int = 0;
     public var percentCritChance :Int = 0;
     public var percentCritDamage :Int = 0;
 

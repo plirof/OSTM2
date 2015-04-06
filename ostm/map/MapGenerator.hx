@@ -336,9 +336,6 @@ class MapGenerator extends Component
             tryConnect(pos.i + kGridSize - 1, pos.j + k, pos.i + kGridSize, pos.j + k);
         }
 
-        forAllNodes(function(node) {
-            node.markDirty();
-        });
         updateScrollBounds();
     }
 
@@ -488,6 +485,10 @@ class MapGenerator extends Component
         
         var scrollBuffer = new Vec2(250, 150);
         _scrollHelper.getTransform().pos = origin + botRight + scrollBuffer;
+        
+        forAllNodes(function(node) {
+            node.markDirty();
+        });
     }
 
     public function centerCurrentNode() :Void {

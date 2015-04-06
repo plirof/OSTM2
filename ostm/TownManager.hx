@@ -58,7 +58,7 @@ class TownManager extends Component
             var player = BattleManager.instance.getPlayer();
             var mapNode = MapGenerator.instance.selectedNode;
             var price = restockPrice(mapNode);
-            if (price < player.gold) {
+            if (price <= player.gold) {
                 player.addGold(-price);
                 generateItems(mapNode);
                 updateShopHtml(mapNode);
@@ -70,7 +70,7 @@ class TownManager extends Component
         capacityButton.onclick = function(event) {
             var player = BattleManager.instance.getPlayer();
             var price = Inventory.instance.capacityUpgradeCost();
-            if (price < player.gems) {
+            if (price <= player.gems) {
                 player.addGems(-price);
                 Inventory.instance.upgradeCapacity();
             }

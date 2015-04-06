@@ -189,6 +189,7 @@ class BattleMember implements Saveable {
         
         var floatRating :Float = wep != null ? wep.critRating() : 3;
         floatRating *= 1 + dexterity() * 0.02;
+        floatRating *= 1 + mod.percentCritRating / 100;
         var rating = Math.round(floatRating);
 
         var offense = 0.02 * rating;
