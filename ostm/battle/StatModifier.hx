@@ -6,6 +6,8 @@ class StatModifier {
     public var flatCritRating :Int = 0;
     public var flatHealth :Int = 0;
     public var flatHealthRegen :Int = 0;
+    public var flatMana :Int = 0;
+    public var flatManaRegen :Int = 0;
 
     public var flatStrength :Int = 0;
     public var flatVitality :Int = 0;
@@ -13,6 +15,7 @@ class StatModifier {
     public var flatDexterity :Int = 0;
 
     public var percentHealth :Int = 0;
+    public var percentMana :Int = 0;
     public var percentAttack :Int = 0;
     public var percentDefense :Int = 0;
     public var percentAttackSpeed :Int = 0;

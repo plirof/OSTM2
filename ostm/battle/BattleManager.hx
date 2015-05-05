@@ -64,14 +64,11 @@ class BattleManager extends Component {
             var btn = new Entity([
                 new Transform(new Vec2(100 * i + 50, 200)),
                 html,
+                new ActiveSkillButton(i, skill),
             ]);
-            var elem = html.getElement();
-            elem.innerText = '(' + (i + 1) + ') ' + skill.name;
-            elem.onclick = function (event) {
-                _player.setActiveSkill(skill);
-            };
-            buttons.push(elem);
             entity.getSystem().addEntity(btn);
+            var elem = html.getElement();
+            buttons.push(elem);
         }
         Browser.document.onkeydown = function (event :KeyboardEvent) :Void {
             var i = event.keyCode - 49; //49 == keycode for '1'
