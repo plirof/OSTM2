@@ -114,18 +114,21 @@ class BattleManager extends Component {
             return;
         }
 
-        var regen;
+        var healthRegen;
         if (_isPlayerDead) {
-            regen = _player.maxHealth() / kPlayerDeathTime;
+            healthRegen = _player.maxHealth() / kPlayerDeathTime;
         }
         else if (isInBattle()) {
-            regen = _player.healthRegenInCombat();
+            healthRegen = _player.healthRegenInCombat();
         }
         else {
-            regen = _player.healthRegenOutOfCombat();
+            healthRegen = _player.healthRegenOutOfCombat();
         }
-        _player.healthPartial += regen * Time.dt;
+        var manaRegen = _player.manaRegen();
+        _player.healthPartial += healthRegen * Time.dt;
+        _player.manaPartial += manaRegen * Time.dt;
         var dHealth = Math.floor(_player.healthPartial);
+        var dMana = Math.floor(_player.manaPartial);
         _player.health += dHealth;
         _player.healthPartial -= dHealth;
         if (_player.health >= _player.maxHealth()) {
@@ -135,6 +138,11 @@ class BattleManager extends Component {
                 _isPlayerDead = false;
                 _enemySpawnTimer = 0;
             }
+        }
+        _player.mana += dMana;
+        _player.manaPartial -= dMana;
+        if (_player.mana >= _player.maxMana()) {
+            _player.mana = _player.maxMana();
         }
     }
 

@@ -256,13 +256,13 @@ class Item {
         return spd;
     }
     public function critRating() :Int {
-        if (!Std.is(type, WeaponType)) {
-            return 0;
+        var crt :Float = 0;
+        if (Std.is(type, WeaponType)) {
+            var wep :WeaponType = cast(type, WeaponType);
+            crt = wep.crit;
+            crt *= 1 + kTierLevels * 0.1 * tier;
         }
-        var wep :WeaponType = cast(type, WeaponType);
         var mod = sumAffixes();
-        var crt = wep.crit;
-        crt *= 1 + kTierLevels * 0.1 * tier;
         crt += mod.flatCritRating;
         crt *= 1 + mod.localPercentCritRating / 100;        
         return Math.round(crt);

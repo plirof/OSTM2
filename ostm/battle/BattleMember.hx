@@ -34,15 +34,17 @@ class ClassType {
     public var strength(default, null) :StatType;
     public var dexterity(default, null) :StatType;
     public var vitality(default, null) :StatType;
-    public var wisdom(default, null) :StatType;
     public var endurance(default, null) :StatType;
+    public var intelligence(default, null) :StatType;
+    public var wisdom(default, null) :StatType;
 
-    public function new(str, dex, vit, wis, end) {
+    public function new(str, dex, vit, end, int, wis) {
         strength = str;
         dexterity = dex;
         vitality = vit;
-        wisdom = wis;
         endurance = end;
+        intelligence = int;
+        wisdom = wis;
     }
 
     public static var playerType = new ClassType(
@@ -50,9 +52,11 @@ class ClassType {
         new StatType(5, 2.5),
         new StatType(5, 2.5),
         new StatType(5, 2.5),
+        new StatType(5, 2.5),
         new StatType(5, 2.5)
     );
     public static var enemyType = new ClassType(
+        new StatType(3, 1.5),
         new StatType(3, 1.5),
         new StatType(3, 1.5),
         new StatType(3, 1.5),
@@ -141,7 +145,7 @@ class BattleMember implements Saveable {
     public function wisdom() :Int {
         var mod = sumAffixes();
         var val = classType.wisdom.value(level, isPlayer);
-        val += mod.flatVitality;
+        val += mod.flatWisdom;
         return Math.round(val);
     }
     public function endurance() :Int {
@@ -183,6 +187,23 @@ class BattleMember implements Saveable {
         mp = Math.round(mp * (1 + mod.percentMana / 100));
         return mp;
     }
+    public function healthRegenInCombat() :Float {
+        var mod = sumAffixes();
+        return mod.flatHealthRegen;
+    }
+    public function healthRegenOutOfCombat() :Float {
+        var inCombat = healthRegenInCombat();
+        var out = maxHealth() * 0.025;
+        out += inCombat;
+        return out;
+    }
+    public function manaRegen() :Float {
+        var mod = sumAffixes();
+        var reg = maxMana() * 0.065;
+        reg *= 1 + mod.percentManaRegen / 100;
+        return reg;
+    }
+    
     public function damage() :Int {
         var mod = sumAffixes();
         var atk :Float = equipment.get(Weapon) != null ? 0 : 2;
@@ -256,16 +277,7 @@ class BattleMember implements Saveable {
         var mitigated = 1 / (1 - damageReduction(attackerLevel));
         return hp * mitigated;
     }
-    public function healthRegenInCombat() :Float {
-        var mod = sumAffixes();
-        return mod.flatHealthRegen;
-    }
-    public function healthRegenOutOfCombat() :Float {
-        var inCombat = healthRegenInCombat();
-        var out = maxHealth() * 0.025;
-        out += inCombat;
-        return out;
-    }
+
     public function moveSpeed() :Float {
         var mod = sumAffixes();
         var spd :Float = 1;

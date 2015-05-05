@@ -59,24 +59,30 @@ class Affix {
         new AffixType('local-percent-attack', '% Attack', 5, 1.5, function(value, mod) {
             mod.localPercentAttack += value;
         }, [ Weapon => 1.0 ]),
-        new AffixType('flat-crit-rating', 'Crit Rating', 2, 1, function(value, mod) {
+        new AffixType('flat-crit-rating', 'Crit Rating', 4, 2, function(value, mod) {
             mod.flatCritRating += value;
-        }, [ Weapon => 1.0 ]),
+        }, [ Weapon => 1.0, Gloves => 0.5, Ring => 0.5 ]),
         new AffixType('local-percent-crit-rating', '% Crit Rating', 5, 1, function(value, mod) {
             mod.localPercentCritRating += value;
         }, [ Weapon => 1.0 ]),
         new AffixType('flat-defense', 'Defense', 2, 1.25, function(value, mod) {
             mod.flatDefense += value;
-        }, [ Body => 1.0, Boots => 0.5, Helmet => 1.0 ]),
-        new AffixType('flat-hp', 'HP', 5, 2.5, function(value, mod) {
+        }, [ Body => 1.0, Boots => 0.5, Helmet => 1.0, Ring => 0.5 ]),
+        new AffixType('flat-hp', 'Health', 5, 2.5, function(value, mod) {
             mod.flatHealth += value;
         }, [ Body => 1.0, Helmet => 0.5, Ring => 0.5, Boots => 0.5, Gloves => 0.5 ]),
-        new AffixType('flat-hp-regen', 'HP Regen', 1, 0.35, function(value, mod) {
+        new AffixType('flat-hp-regen', 'Health Regen', 1, 0.35, function(value, mod) {
             mod.flatHealthRegen += value;
         }, [ Body => 1.0, Ring => 0.5 ]),
-        new AffixType('percent-hp', '% HP', 2, 0.5, function(value, mod) {
+        new AffixType('percent-hp', '% Health', 2, 0.5, function(value, mod) {
             mod.percentHealth += value;
         }, [ Helmet => 1.0 ]),
+        new AffixType('flat-mp', 'Mana', 5, 2.5, function(value, mod) {
+            mod.flatMana += value;
+        }, [ Body => 0.5, Helmet => 1.0, Ring => 0.5, Gloves => 0.5 ]),
+        new AffixType('percent-mp-regen', '% Mana Regen', 10, 3, function(value, mod) {
+            mod.percentManaRegen += value;
+        }, [ Helmet => 1.0, Ring => 0.5 ]),
         new AffixType('local-percent-defense', '% Defense', 10, 5, function(value, mod) {
             mod.localPercentDefense += value;
         }, [ Body => 1.0, Helmet => 1.0, Boots => 0.5, Gloves => 0.5 ]),
