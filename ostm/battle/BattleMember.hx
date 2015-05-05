@@ -33,18 +33,16 @@ class StatType {
 class ClassType {
     public var strength(default, null) :StatType;
     public var dexterity(default, null) :StatType;
+    public var intelligence(default, null) :StatType;
     public var vitality(default, null) :StatType;
     public var endurance(default, null) :StatType;
-    public var intelligence(default, null) :StatType;
-    public var wisdom(default, null) :StatType;
 
-    public function new(str, dex, vit, end, int, wis) {
+    public function new(str, dex, int, vit, end) {
         strength = str;
         dexterity = dex;
+        intelligence = int;
         vitality = vit;
         endurance = end;
-        intelligence = int;
-        wisdom = wis;
     }
 
     public static var playerType = new ClassType(
@@ -52,11 +50,9 @@ class ClassType {
         new StatType(5, 2.5),
         new StatType(5, 2.5),
         new StatType(5, 2.5),
-        new StatType(5, 2.5),
         new StatType(5, 2.5)
     );
     public static var enemyType = new ClassType(
-        new StatType(3, 1.5),
         new StatType(3, 1.5),
         new StatType(3, 1.5),
         new StatType(3, 1.5),
@@ -136,16 +132,16 @@ class BattleMember implements Saveable {
         val += mod.flatDexterity;
         return Math.round(val);
     }
+    public function intelligence() :Int {
+        var mod = sumAffixes();
+        var val = classType.intelligence.value(level, isPlayer);
+        val += mod.flatIntelligence;
+        return Math.round(val);
+    }
     public function vitality() :Int {
         var mod = sumAffixes();
         var val = classType.vitality.value(level, isPlayer);
         val += mod.flatVitality;
-        return Math.round(val);
-    }
-    public function wisdom() :Int {
-        var mod = sumAffixes();
-        var val = classType.wisdom.value(level, isPlayer);
-        val += mod.flatWisdom;
         return Math.round(val);
     }
     public function endurance() :Int {
@@ -179,10 +175,7 @@ class BattleMember implements Saveable {
     }
     public function maxMana() :Int {
         var mod = sumAffixes();
-        var mp = wisdom() * 10;
-        if (isPlayer) {
-            mp += 20;
-        }
+        var mp = 100;
         mp += mod.flatMana;
         mp = Math.round(mp * (1 + mod.percentMana / 100));
         return mp;
@@ -199,7 +192,7 @@ class BattleMember implements Saveable {
     }
     public function manaRegen() :Float {
         var mod = sumAffixes();
-        var reg = maxMana() * 0.065;
+        var reg = maxMana() * 0.04;
         reg *= 1 + mod.percentManaRegen / 100;
         return reg;
     }
@@ -252,6 +245,10 @@ class BattleMember implements Saveable {
             damage: damage,
         };
     }
+    public function manaCost() :Int {
+        return curSkill.manaCost;
+    }
+
     public function dps(targetLevel :Int) :Float {
         var atk = damage();
         var spd = attackSpeed();
@@ -298,7 +295,7 @@ class BattleMember implements Saveable {
     }
 
     public function setActiveSkill(skill :ActiveSkill) :Void {
-        if (curSkill != skill) {
+        if (curSkill != skill && skill.manaCost <= mana) {
             curSkill = skill;
         }
     }
@@ -316,6 +313,7 @@ class BattleMember implements Saveable {
             gems: this.gems,
             level: this.level,
             health: this.health,
+            mana: this.mana,
             equipment: equips,
         };
     }
@@ -325,6 +323,7 @@ class BattleMember implements Saveable {
         gems = data.gems;
         level = data.level;
         health = data.health;
+        mana = data.mana;
         for (k in equipment.keys()) {
             equipment[k] = null;
         }

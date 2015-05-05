@@ -82,6 +82,7 @@ class BattleManager extends Component {
         
         for (mem in _battleMembers) {
             mem.health = mem.maxHealth();
+            mem.mana = mem.maxMana();
         }
 
         entity.getSystem().addEntity(new Entity([
@@ -110,6 +111,7 @@ class BattleManager extends Component {
     function playerRegenUpdate() :Void {
         if (MapGenerator.instance.isInTown()) {
             _player.health = _player.maxHealth();
+            _player.mana = _player.maxMana();
             _isPlayerDead = false;
             return;
         }
@@ -191,6 +193,7 @@ class BattleManager extends Component {
             damage = Math.round(damage * (1 + crit.damage));
         }
         target.health -= damage;
+        attacker.mana -= attacker.manaCost();
 
         var elem = target.entity.getComponent(HtmlRenderer).getElement();
         var rect = elem.getBoundingClientRect();
@@ -216,6 +219,7 @@ class BattleManager extends Component {
                 MapGenerator.instance.returnToCheckpoint();
                 _enemy.level = spawnLevel();
                 _enemy.health = _enemy.maxHealth();
+                _enemy.mana = _enemy.maxMana();
             }
             else {
                 _killCount++;

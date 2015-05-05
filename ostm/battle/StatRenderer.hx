@@ -65,14 +65,20 @@ class StatRenderer extends Component {
             new StatElement(list, 'Gems', function() {
                 return Util.format(_member.gems);
             }),
-            new StatElement(list, 'HP', function() {
+            new StatElement(list, 'Health', function() {
                 return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
+            }),
+            new StatElement(list, 'Mana', function() {
+                return Util.format(_member.mana) + ' / ' + Util.format(_member.maxMana());
             }),
             new StatElement(list, 'Health Regen (in combat)', function() {
                 return Util.formatFloat(_member.healthRegenInCombat()) + '/s';
             }),
             new StatElement(list, 'Health Regen (out of combat)', function() {
                 return Util.formatFloat(_member.healthRegenOutOfCombat()) + '/s';
+            }),
+            new StatElement(list, 'Mana Regen', function() {
+                return Util.formatFloat(_member.manaRegen()) + '/s';
             }),
             new StatElement(list, 'Damage', function() {
                 return Util.format(_member.damage());
@@ -107,14 +113,17 @@ class StatRenderer extends Component {
             new StatElement(list, 'STR', function() {
                 return Util.format(_member.strength());
             }),
+            new StatElement(list, 'DEX', function() {
+                return Util.format(_member.dexterity());
+            }),
+            new StatElement(list, 'INT', function() {
+                return Util.format(_member.intelligence());
+            }),
             new StatElement(list, 'VIT', function() {
                 return Util.format(_member.vitality());
             }),
             new StatElement(list, 'END', function() {
                 return Util.format(_member.endurance());
-            }),
-            new StatElement(list, 'DEX', function() {
-                return Util.format(_member.dexterity());
             }),
             new StatElement(list, 'DPS', function() {
                 var lev = BattleManager.instance.spawnLevel();

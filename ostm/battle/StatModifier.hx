@@ -13,7 +13,6 @@ class StatModifier {
     public var flatVitality :Int = 0;
     public var flatEndurance :Int = 0;
     public var flatIntelligence :Int = 0;
-    public var flatWisdom :Int = 0;
 
     public var percentHealth :Int = 0;
     public var percentMana :Int = 0;

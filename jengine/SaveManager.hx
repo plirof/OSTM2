@@ -22,6 +22,9 @@ class SaveManager extends Component
     static inline var kSaveTime = 15;
     static inline var kSaveKey = 'ostm2';
 
+    static inline var kCurrentSaveVersion = 5;
+    static inline var kLastCompatibleSaveVersion = 5;
+
     public override function init() :Void {
         instance = this;
 
@@ -81,7 +84,7 @@ class SaveManager extends Component
         var keyArray = [];
 
         deserialize(Reflect.getProperty(save, this.saveId));
-        if (loadedVersion <= 3) {
+        if (loadedVersion < kLastCompatibleSaveVersion) {
             // Don't load if the loaded value is before the save version to wipe
             // TODO: maybe set a backup save file
             return;
@@ -101,7 +104,7 @@ class SaveManager extends Component
 
     public function serialize() :Dynamic {
         return {
-            saveVersion: 4,
+            saveVersion: kCurrentSaveVersion,
         };
     }
 

@@ -10,6 +10,7 @@ class BattleRenderer extends Component {
     var _member :BattleMember;
     
     var _hpBar :Entity;
+    var _mpBar :Entity;
     var _attackBar :Entity;
 
     var _attackElem :Element;
@@ -22,11 +23,13 @@ class BattleRenderer extends Component {
         var renderer = getComponent(HtmlRenderer);
         var id = renderer.getElement().id;
         var size = renderer.size;
-        var barSize = new Vec2(150, 20);
+        var barSize = new Vec2(160, 10);
         var barX = (size.x - barSize.x) / 2;
+        var atkBarSize = new Vec2(180, 20);
+        var atkBarX = (size.x - atkBarSize.x) / 2;
 
         _hpBar = new Entity([
-            new Transform(new Vec2(barX, -60)),
+            new Transform(new Vec2(barX, -42)),
             new HtmlRenderer({
                 parent: id,
                 size: barSize,
@@ -42,11 +45,28 @@ class BattleRenderer extends Component {
             ]),
         ]);
         entity.getSystem().addEntity(_hpBar);
-        _attackBar = new Entity([
-            new Transform(new Vec2(barX, -38)),
+        _mpBar = new Entity([
+            new Transform(new Vec2(barX, -30)),
             new HtmlRenderer({
                 parent: id,
                 size: barSize,
+                style: [
+                    'background' => '#222266',
+                    'border' => '2px solid black',
+                ],
+            }),
+            new ProgressBar(function() {
+                return _member.mana / _member.maxMana();
+            }, [
+                'background' => '#0044ff',
+            ]),
+        ]);
+        entity.getSystem().addEntity(_mpBar);
+        _attackBar = new Entity([
+            new Transform(new Vec2(atkBarX, 70)),
+            new HtmlRenderer({
+                parent: id,
+                size: atkBarSize,
                 style: [
                     'background' => '#226622',
                     'border' => '2px solid black',
