@@ -117,8 +117,12 @@ class MapGenerator extends Component
 
         var player = BattleManager.instance.getPlayer();
         _moveTimer += Time.dt * player.moveSpeed();
+        if (isInTown()) {
+            _moveTimer = kMoveTime;
+        }
+
         if (_movePath != null) {
-            if (_moveTimer > kMoveTime && !BattleManager.instance.isInBattle()) {
+            if (_moveTimer >= kMoveTime && !BattleManager.instance.isInBattle()) {
                 _moveTimer = 0;
                 
                 var next = _movePath[1];
