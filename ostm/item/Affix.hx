@@ -84,9 +84,6 @@ class Affix {
         new LinearAffixType('flat-defense', 'Defense', 2, 1.25, function(value, mod) {
             mod.flatDefense += value;
         }, [ Body => 1.0, Boots => 0.5, Helmet => 1.0, Ring => 0.5 ]),
-        new LinearAffixType('flat-hp', 'Health', 5, 2.5, function(value, mod) {
-            mod.flatHealth += value;
-        }, [ Body => 1.0, Helmet => 0.5, Ring => 0.5, Boots => 0.5, Gloves => 0.5 ]),
         new LinearAffixType('flat-hp-regen', 'Health Regen', 1, 0.35, function(value, mod) {
             mod.flatHealthRegen += value;
         }, [ Body => 1.0, Ring => 0.5 ]),
@@ -114,6 +111,21 @@ class Affix {
         new LinearAffixType('percent-move-speed', '% Move Speed', 10, 2, function(value, mod) {
             mod.percentMoveSpeed += value;
         }, [ Boots => 1.0 ]),
+        new LinearAffixType('flat-strength', 'Strength', 2, 0.75, function(value, mod) {
+            mod.flatStrength += value;
+        }, [ Body => 1.0, Helmet => 1.0, Boots => 1.0, Gloves => 1.0, Ring => 1.0 ]),
+        new LinearAffixType('flat-dexterity', 'Dexterity', 2, 0.75, function(value, mod) {
+            mod.flatDexterity += value;
+        }, [ Body => 1.0, Helmet => 1.0, Boots => 1.0, Gloves => 1.0, Ring => 1.0 ]),
+        new LinearAffixType('flat-vitality', 'Vitality', 2, 0.75, function(value, mod) {
+            mod.flatVitality += value;
+        }, [ Body => 1.0, Helmet => 1.0, Boots => 1.0, Gloves => 1.0, Ring => 1.0 ]),
+        new LinearAffixType('flat-endurance', 'Endurance', 2, 0.75, function(value, mod) {
+            mod.flatEndurance += value;
+        }, [ Body => 1.0, Helmet => 1.0, Boots => 1.0, Gloves => 1.0, Ring => 1.0 ]),
+        new LinearAffixType('flat-intelligence', 'Intelligence', 2, 0.75, function(value, mod) {
+            mod.flatIntelligence += value;
+        }, [ Body => 1.0, Helmet => 1.0, Boots => 1.0, Gloves => 1.0, Ring => 1.0 ]),
     ];
 
     public function new(type :AffixType, slot :ItemSlot) {

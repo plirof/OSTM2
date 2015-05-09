@@ -109,7 +109,21 @@ class Inventory extends Component
         var type = Random.randomElement(ItemData.types);
         var item = new Item(type, maxLevel);
         item.setDropLevel(Random.randomIntRange(1, maxLevel));
-        item.rollAffixes(Random.randomIntRange(0, 4));
+        var affixOdds = [
+            7 => 0.01,
+            4 => 0.05,
+            3 => 0.08,
+            2 => 0.12,
+            1 => 0.25,
+        ];
+        var nAffixes = 0;
+        for (n in affixOdds.keys()) {
+            if (Random.randomBool(affixOdds[n])) {
+                nAffixes = n;
+                break;
+            }
+        }
+        item.rollAffixes(nAffixes);
         return item;
     }
 

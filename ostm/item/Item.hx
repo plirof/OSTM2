@@ -97,11 +97,14 @@ class Item {
     }
 
     function getColor() :String {
+        if (affixes.length > 4) {
+            return '#ff2222';
+        }
         if (affixes.length > 2) {
-            return '#ffff00';
+            return '#ffff22';
         }
         if (affixes.length > 0) {
-            return '#0099ff';
+            return '#2277ff';
         }
         return '#ffffff';
     }
