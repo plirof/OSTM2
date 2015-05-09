@@ -107,7 +107,10 @@ class Inventory extends Component
 
     public function randomItem(maxLevel :Int) :Item {
         var type = Random.randomElement(ItemData.types);
-        return new Item(type, maxLevel);
+        var item = new Item(type, maxLevel);
+        item.setDropLevel(Random.randomIntRange(1, maxLevel));
+        item.rollAffixes(Random.randomIntRange(0, 4));
+        return item;
     }
 
     public function tryRewardItem(maxLevel :Int) :Void {

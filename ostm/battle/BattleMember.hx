@@ -7,6 +7,7 @@ import jengine.SaveManager;
 
 import ostm.item.Affix;
 import ostm.item.Item;
+import ostm.item.ItemData;
 import ostm.item.ItemType;
 import ostm.skill.PassiveSkill;
 import ostm.skill.SkillTree;
@@ -53,11 +54,11 @@ class ClassType {
         new StatType(5, 2.5)
     );
     public static var enemyType = new ClassType(
-        new StatType(3, 1.5),
-        new StatType(3, 1.5),
-        new StatType(3, 1.5),
-        new StatType(3, 1.5),
-        new StatType(3, 1.5)
+        new StatType(4, 2),
+        new StatType(4, 2),
+        new StatType(4, 2),
+        new StatType(4, 2),
+        new StatType(4, 2)
     );
 }
 
@@ -92,6 +93,11 @@ class BattleMember implements Saveable {
         this.isPlayer = isPlayer;
         if (this.isPlayer) {
             this.saveId = 'player';
+            var swordType = ItemData.getItemType('sword');
+            if (swordType != null) {
+                var sword = new Item(swordType, 1);
+                equipment[ItemSlot.Weapon] = sword;
+            }
             SaveManager.instance.addItem(this);
         }
     }

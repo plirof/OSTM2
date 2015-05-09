@@ -18,7 +18,7 @@ class Item {
     var level :Int; // Level this item rolled
     var isOwned :Bool;
 
-    var tier :Int;
+    var tier(get, null) :Int;
 
     var affixes :Array<Affix> = [];
 
@@ -31,10 +31,15 @@ class Item {
     public function new(type :ItemType, level :Int) {
         this.type = type;
         this.itemLevel = level;
-        this.level = Random.randomIntRange(1, level);
-        this.tier = Math.floor(this.level / kTierLevels);
+        this.level = level;
+    }
 
-        var nAffixes = Random.randomIntRange(0, 4);
+    public function setDropLevel(level :Int) :Void {
+        this.level = level;
+
+    }
+
+    public function rollAffixes(nAffixes :Int) :Void {
         var possibleAffixes = Affix.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
         var selectedAffixes = Random.randomElements(possibleAffixes, nAffixes);
         for (type in selectedAffixes) {
@@ -285,6 +290,10 @@ class Item {
     }
     public function sellValue() :Int {
         return Math.round(Math.pow(buyValue(), 0.85) * 0.5);
+    }
+
+    function get_tier() :Int {
+        return Math.floor(this.level / kTierLevels);
     }
 
     public function serialize() :Dynamic {

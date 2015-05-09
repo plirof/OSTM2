@@ -1,6 +1,15 @@
 package ostm.item;
 
 class ItemData {
+    public static function getItemType(id :String) :ItemType {
+        for (type in types) {
+            if (type.id == id) {
+                return type;
+            }
+        }
+        return null;
+    }
+
     public static var types = [
         new WeaponType({
             id: 'sword',
