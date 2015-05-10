@@ -32,13 +32,15 @@ class StatType {
 }
 
 class ClassType {
+    public var name(default, null) :String;
     public var strength(default, null) :StatType;
     public var dexterity(default, null) :StatType;
     public var intelligence(default, null) :StatType;
     public var vitality(default, null) :StatType;
     public var endurance(default, null) :StatType;
 
-    public function new(str, dex, int, vit, end) {
+    public function new(name, str, dex, int, vit, end) {
+        this.name = name;
         strength = str;
         dexterity = dex;
         intelligence = int;
@@ -47,6 +49,7 @@ class ClassType {
     }
 
     public static var playerType = new ClassType(
+        'Adventurer',
         new StatType(5, 2.5),
         new StatType(5, 2.5),
         new StatType(5, 2.5),
@@ -54,11 +57,12 @@ class ClassType {
         new StatType(5, 2.5)
     );
     public static var enemyType = new ClassType(
-        new StatType(4, 2),
-        new StatType(4, 2),
-        new StatType(4, 2),
-        new StatType(4, 2),
-        new StatType(4, 2)
+        'Enemy',
+        new StatType(3, 1.25),
+        new StatType(3, 1.25),
+        new StatType(3, 1.25),
+        new StatType(3, 1.25),
+        new StatType(3, 1.25)
     );
 }
 
@@ -82,7 +86,7 @@ class BattleMember implements Saveable {
     public var manaPartial :Float = 0;
     public var attackTimer :Float = 0;
     public var curSkill :ActiveSkill;
-    var classType :ClassType;
+    public var classType :ClassType;
 
     public function new(isPlayer :Bool) {
         classType = isPlayer ? ClassType.playerType : ClassType.enemyType;

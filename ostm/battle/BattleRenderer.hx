@@ -9,6 +9,7 @@ import jengine.util.Util;
 class BattleRenderer extends Component {
     var _member :BattleMember;
     
+    var _nameEnt :Entity;
     var _hpBar :Entity;
     var _mpBar :Entity;
     var _attackBar :Entity;
@@ -23,10 +24,26 @@ class BattleRenderer extends Component {
         var renderer = getComponent(HtmlRenderer);
         var id = renderer.getElement().id;
         var size = renderer.size;
+        var nameSize = new Vec2(160, 30);
+        var nameX = (size.x - nameSize.x) / 2;
         var barSize = new Vec2(160, 10);
         var barX = (size.x - barSize.x) / 2;
         var atkBarSize = new Vec2(180, 20);
         var atkBarX = (size.x - atkBarSize.x) / 2;
+
+        _nameEnt = new Entity([
+            new Transform(new Vec2(nameX, -60)),
+            new HtmlRenderer({
+                parent: id,
+                size: nameSize,
+                text: _member.classType.name,
+                style: [
+                    'background' => 'none',
+                    'text-align' => 'center',
+                ],
+            }),
+        ]);
+        entity.getSystem().addEntity(_nameEnt);
 
         _hpBar = new Entity([
             new Transform(new Vec2(barX, -42)),
@@ -62,6 +79,7 @@ class BattleRenderer extends Component {
             ]),
         ]);
         entity.getSystem().addEntity(_mpBar);
+
         _attackBar = new Entity([
             new Transform(new Vec2(atkBarX, 70)),
             new HtmlRenderer({

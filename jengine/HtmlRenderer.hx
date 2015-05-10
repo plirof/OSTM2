@@ -37,6 +37,9 @@ class HtmlRenderer extends Component {
         if (_options.id != null) {
             _elem.id = _options.id;
         }
+        if (_options.text != null) {
+            _elem.innerText = _options.text;
+        }
 
         _elem.style.position = 'absolute';
         _elem.style.background = 'red';
