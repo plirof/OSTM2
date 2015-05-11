@@ -9,6 +9,7 @@ import jengine.util.Util;
 class BattleRenderer extends Component {
     var _member :BattleMember;
     
+    var _imageElem :ImageElement;
     var _nameEnt :Entity;
     var _hpBar :Entity;
     var _mpBar :Entity;
@@ -22,7 +23,8 @@ class BattleRenderer extends Component {
 
     public override function start() :Void {
         var renderer = getComponent(HtmlRenderer);
-        var id = renderer.getElement().id;
+        var elem = renderer.getElement();
+        var id = elem.id;
         var size = renderer.size;
         var nameSize = new Vec2(160, 30);
         var nameX = (size.x - nameSize.x) / 2;
@@ -30,6 +32,14 @@ class BattleRenderer extends Component {
         var barX = (size.x - barSize.x) / 2;
         var atkBarSize = new Vec2(180, 20);
         var atkBarX = (size.x - atkBarSize.x) / 2;
+
+        _imageElem = Browser.document.createImageElement();
+        _imageElem.src = 'img/' + _member.classType.image;
+        _imageElem.height = Math.round(renderer.size.y);
+        _imageElem.style.display = 'block';
+        _imageElem.style.margin = '0px auto 0px auto';
+        _imageElem.style.imageRendering = 'pixelated';
+        elem.appendChild(_imageElem);
 
         _nameEnt = new Entity([
             new Transform(new Vec2(nameX, -60)),

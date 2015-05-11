@@ -12,60 +12,6 @@ import ostm.item.ItemType;
 import ostm.skill.PassiveSkill;
 import ostm.skill.SkillTree;
 
-class StatType {
-    var baseValue :Float;
-    var perLevel :Float;
-
-    public function new(base :Float, perLevel: Float) {
-        this.baseValue = base;
-        this.perLevel = perLevel;
-    }
-    public function value(level :Int, isPlayer :Bool) :Int {
-        var l = level - 1;
-        var v = baseValue;
-        v += perLevel * l;
-        if (!isPlayer) {
-            v += 0.1 * perLevel * Math.pow(l, 1.75);
-        }
-        return Math.floor(v);
-    }
-}
-
-class ClassType {
-    public var name(default, null) :String;
-    public var strength(default, null) :StatType;
-    public var dexterity(default, null) :StatType;
-    public var intelligence(default, null) :StatType;
-    public var vitality(default, null) :StatType;
-    public var endurance(default, null) :StatType;
-
-    public function new(name, str, dex, int, vit, end) {
-        this.name = name;
-        strength = str;
-        dexterity = dex;
-        intelligence = int;
-        vitality = vit;
-        endurance = end;
-    }
-
-    public static var playerType = new ClassType(
-        'Adventurer',
-        new StatType(5, 2.5),
-        new StatType(5, 2.5),
-        new StatType(5, 2.5),
-        new StatType(5, 2.5),
-        new StatType(5, 2.5)
-    );
-    public static var enemyType = new ClassType(
-        'Enemy',
-        new StatType(3, 1.25),
-        new StatType(3, 1.25),
-        new StatType(3, 1.25),
-        new StatType(3, 1.25),
-        new StatType(3, 1.25)
-    );
-}
-
 class BattleMember implements Saveable {
     public var saveId(default, null) :String;
 
@@ -190,19 +136,29 @@ class BattleMember implements Saveable {
         mp = Math.round(mp * (1 + mod.percentMana / 100));
         return mp;
     }
-    public function healthRegenInCombat() :Float {
+    function baseHealthRegenInCombat() :Float {
         var mod = sumAffixes();
-        return mod.flatHealthRegen;
+        var reg = 0;
+        reg += mod.flatHealthRegen;
+        return reg;
+    }
+    function baseHealthRegenOutOfCombat() :Float {
+        var reg = 4 + maxHealth() * 0.01;
+        return reg;
+    }
+    public function healthRegenInCombat() :Float {
+        var rIn = baseHealthRegenInCombat();
+        var rOut = baseHealthRegenOutOfCombat();
+        return rIn + 0.2 * rOut;
     }
     public function healthRegenOutOfCombat() :Float {
-        var inCombat = healthRegenInCombat();
-        var out = maxHealth() * 0.025;
-        out += inCombat;
-        return out;
+        var rIn = baseHealthRegenInCombat();
+        var rOut = baseHealthRegenOutOfCombat();
+        return rIn + rOut;
     }
     public function manaRegen() :Float {
         var mod = sumAffixes();
-        var reg = maxMana() * 0.04;
+        var reg = 2 + maxMana() * 0.015;
         reg *= 1 + mod.percentManaRegen / 100;
         return reg;
     }

@@ -138,8 +138,9 @@ class Item {
         _elem.style.textAlign = 'center';
         _elem.style.display = 'inline-block';
         var img = Browser.document.createImageElement();
-        img.src = 'img/' + type.image;
+        img.src = 'img/items/' + type.image;
         img.height = 40;
+        img.style.imageRendering = 'pixelated';
         _elem.appendChild(img);
 
         _buttons = Browser.document.createSpanElement();

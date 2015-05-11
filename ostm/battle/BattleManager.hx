@@ -29,7 +29,6 @@ class BattleManager extends Component {
 
     public override function start() :Void {
         _player = addBattleMember(true, new Vec2(75, 80));
-        _player.elem.style.background = '#0088ff';
         _enemy = addBattleMember(false, new Vec2(350, 80));
 
         entity.getSystem().addEntity(new Entity([
@@ -274,7 +273,7 @@ class BattleManager extends Component {
                 parent: 'battle-screen',
                 size: size,
                 style: [
-                    'border' => '2px solid black',
+                    'background' => 'none',
                 ],
             }),
             new BattleRenderer(bat),

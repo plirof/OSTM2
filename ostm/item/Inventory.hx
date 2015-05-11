@@ -93,7 +93,7 @@ class Inventory extends Component
     }
 
     public function capacityUpgradeCost() :Int {
-        return 10 * (_sizeUpgrades + 1);
+        return 10 + 5 * _sizeUpgrades;
     }
 
     public function upgradeCapacity() :Void {
