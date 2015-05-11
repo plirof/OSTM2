@@ -33,6 +33,9 @@ class PassiveSkill {
 
     public function addRequirement(req :PassiveSkill) :Void {
         if (!Util.contains(requirements, req)) {
+            if (requirements.length == 0) {
+                pos = { x: pos.x + req.pos.x, y: pos.y + req.pos.y };
+            }
             requirements.push(req);
         }
     }

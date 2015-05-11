@@ -18,7 +18,7 @@ class PassiveData {
         new PassiveSkill({
             id: 'dex',
             icon: 'DEX+',
-            pos: {x: 2, y: 0},
+            pos: {x: 1, y: 0},
             name: 'Dexterity+',
             description: 'Increases dexterity',
             leveling: function(level) {
@@ -32,7 +32,7 @@ class PassiveData {
                 id: 'atk-spd',
                 requirements: ['dex'],
                 icon: 'ASPD',
-                pos: {x: 3, y: 1},
+                pos: {x: 1, y: 1},
                 name: 'AttackSpeed+',
                 description: 'Increases attack speed',
                 isPercent: true,
@@ -47,7 +47,7 @@ class PassiveData {
                     id: 'spd',
                     requirements: ['atk-spd'],
                     icon: 'MSPD',
-                    pos: {x: 3, y: 2},
+                    pos: {x: 0, y: 1},
                     name: 'MoveSpeed+',
                     description: 'Increases movement speed',
                     isPercent: true,
@@ -62,7 +62,7 @@ class PassiveData {
                 id: 'crt',
                 requirements: ['dex'],
                 icon: 'CRT+',
-                pos: {x: 2, y: 1},
+                pos: {x: 0, y: 1},
                 name: 'Crit Rating+',
                 description: 'Increases critical rating',
                 isPercent: true,
@@ -77,7 +77,7 @@ class PassiveData {
                     id: 'cch',
                     requirements: ['crt'],
                     icon: 'CCH+',
-                    pos: {x: 1, y: 2},
+                    pos: {x: -1, y: 1},
                     name: 'Crit Chance+',
                     description: 'Increases global critical hit chance',
                     isPercent: true,
@@ -92,7 +92,7 @@ class PassiveData {
                     id: 'cdm',
                     requirements: ['crt'],
                     icon: 'CDM+',
-                    pos: {x: 2, y: 2},
+                    pos: {x: 0, y: 1},
                     name: 'Crit Damage+',
                     description: 'Increases global critical hit damage',
                     isPercent: true,
@@ -106,7 +106,7 @@ class PassiveData {
         new PassiveSkill({
             id: 'int',
             icon: 'INT+',
-            pos: {x: 4, y: 0},
+            pos: {x: 3, y: 0},
             name: 'Intelligence+',
             description: 'Increases intelligence',
             leveling: function(level) {
@@ -120,7 +120,7 @@ class PassiveData {
                 id: 'mp',
                 requirements: ['int'],
                 icon: 'MP+',
-                pos: {x: 4, y: 1},
+                pos: {x: 0, y: 1},
                 name: 'Mana+',
                 description: 'Increases mana',
                 leveling: function(level) {
@@ -134,7 +134,7 @@ class PassiveData {
                     id: 'mp-reg',
                     requirements: ['mp'],
                     icon: 'MPRe',
-                    pos: {x: 4, y: 2},
+                    pos: {x: 0, y: 1},
                     name: 'Mana Regen+',
                     description: 'Increases mana regen',
                     isPercent: true,
@@ -148,7 +148,7 @@ class PassiveData {
         new PassiveSkill({
             id: 'vit',
             icon: 'VIT+',
-            pos: {x: 5, y: 0},
+            pos: {x: 4, y: 0},
             name: 'Vitality+',
             description: 'Increases vitality',
             leveling: function(level) {
@@ -161,7 +161,7 @@ class PassiveData {
         new PassiveSkill({
             id: 'end',
             icon: 'END+',
-            pos: {x: 7, y: 0},
+            pos: {x: 6, y: 0},
             name: 'Endurance+',
             description: 'Increases endurance',
             leveling: function(level) {
@@ -175,7 +175,7 @@ class PassiveData {
                 id: 'hp',
                 icon: 'HP+',
                 requirements: ['vit', 'end'],
-                pos: {x: 6, y: 1},
+                pos: {x: 1, y: 1},
                 name: 'Health+',
                 description: 'Increases health',
                 isPercent: true,
@@ -190,7 +190,7 @@ class PassiveData {
                     id: 'hp-reg',
                     icon: 'HPRe',
                     requirements: ['hp'],
-                    pos: {x: 6, y: 2},
+                    pos: {x: 0, y: 1},
                     name: 'Health Regen+',
                     description: 'Increases health regen',
                     leveling: function(level) {
@@ -204,7 +204,7 @@ class PassiveData {
                 id: 'arm',
                 icon: 'ARM+',
                 requirements: ['end'],
-                pos: {x: 7, y: 1},
+                pos: {x: 0, y: 1},
                 name: 'Armor+',
                 description: 'Increases armor',
                 leveling: function(level) {
