@@ -4,6 +4,7 @@ import js.html.Element;
 
 import jengine.Entity;
 import jengine.SaveManager;
+import jengine.util.Random;
 
 import ostm.item.Affix;
 import ostm.item.Item;
@@ -35,7 +36,13 @@ class BattleMember implements Saveable {
     public var classType :ClassType;
 
     public function new(isPlayer :Bool) {
-        classType = isPlayer ? ClassType.playerType : ClassType.enemyType;
+        if (isPlayer) {
+            classType = ClassType.playerType;
+        }
+        else {
+            classType = Random.randomElement(ClassType.enemyTypes);
+        }
+        
         for (k in ItemSlot.createAll()) {
             equipment[k] = null;
         }

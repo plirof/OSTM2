@@ -47,13 +47,24 @@ class ClassType {
         vit: new StatType(5, 2.5),
         end: new StatType(5, 2.5),
     });
-    public static var enemyType = new ClassType({
-        name: 'Slime',
-        image: 'enemies/Slime.png',
-        str: new StatType(3.2, 0.8),
-        dex: new StatType(3.2, 0.8),
-        int: new StatType(3.2, 0.8),
-        vit: new StatType(3.2, 0.8),
-        end: new StatType(3.2, 0.8),
-    });
+    public static var enemyTypes = [
+        new ClassType({
+            name: 'Slime',
+            image: 'enemies/Slime.png',
+            str: new StatType(2.2, 0.6),
+            dex: new StatType(2.2, 0.6),
+            int: new StatType(2.2, 0.6),
+            vit: new StatType(4.2, 1.6),
+            end: new StatType(2.2, 0.6),
+        }),
+        new ClassType({
+            name: 'Snake',
+            image: 'enemies/Snake.png',
+            str: new StatType(4.6, 1.1),
+            dex: new StatType(5.2, 1.3),
+            int: new StatType(3.2, 0.8),
+            vit: new StatType(2.2, 0.6),
+            end: new StatType(2.2, 0.6),
+        }),
+    ];
 }
