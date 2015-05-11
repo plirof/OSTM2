@@ -90,8 +90,7 @@ class MapGenerator extends Component
         selectedNode = _start; // _start is generated as part of generateGridCell(0, 0)
         _checkpoint = _start;
 
-
-        // var baseGen = 3;
+        // var baseGen = 6;
         // for (i in -baseGen...(baseGen + 1)) {
         //     for (j in -baseGen...(baseGen + 1)) {
         //         generateGridCell(i, j);
@@ -183,8 +182,8 @@ class MapGenerator extends Component
         var p = getGridCoord(i, j);
         var xs = [0, -1, 1, 0, 0];
         var ys = [0, 0, 0, -1, 1];
-        for (i in 0...xs.length) {
-            generateGridCell(p.x + xs[i], p.y + ys[i]);
+        for (k in 0...xs.length) {
+            generateGridCell(p.x + xs[k], p.y + ys[k]);
         }
     }
 
@@ -216,15 +215,12 @@ class MapGenerator extends Component
         var upSeed = cellSeed(x, y + 1);
         var downSeed = cellSeed(x, y - 1);
         
-        var leftY = _rand.setSeed(seed + leftSeed).randomInt(kGridSize);
-        var rightY = _rand.setSeed(seed + rightSeed).randomInt(kGridSize);
-        var downX = _rand.setSeed(seed + downSeed).randomInt(kGridSize);
-        var upX = _rand.setSeed(seed + upSeed).randomInt(kGridSize);
+        var leftY = _rand.setSeed(seed + leftSeed).randomInt(kGridSize - 2) + 1;
+        var rightY = _rand.setSeed(seed + rightSeed).randomInt(kGridSize - 2) + 1;
+        var downX = _rand.setSeed(seed + downSeed).randomInt(kGridSize - 2) + 1;
+        var upX = _rand.setSeed(seed + upSeed).randomInt(kGridSize - 2) + 1;
 
         _rand.setSeed(seed);
-        if (_rand.randomBool(0.11) && !isOriginCell) {
-            return;
-        }
 
         var left = addNode(null, pos.i, pos.j + leftY);
         var right = addNode(null, pos.i + kGridSize - 1, pos.j + rightY);
@@ -233,8 +229,8 @@ class MapGenerator extends Component
 
         var startNodes = [left];
         if (startNodes.indexOf(right) == -1) { startNodes.push(right); }
-        if (startNodes.indexOf(down) == -1) { startNodes.push(down); }
         if (startNodes.indexOf(up) == -1) { startNodes.push(up); }
+        if (startNodes.indexOf(down) == -1) { startNodes.push(down); }
 
         var cellNodes = startNodes.copy(); //[left, right, up, down];
 
@@ -256,15 +252,11 @@ class MapGenerator extends Component
                     return node == end;
                 },
                 function (node :MapNode) {
-                    return cellNodes.indexOf(node) != -1;
+                    return true;
                 });
         };
 
         var isDone = function() {
-            if (cellNodes.length == kGridSize * kGridSize) {
-                //TODO: make this unneeded!
-                return true;
-            }
             return findPathWithinCell(left, right) != null
                 && findPathWithinCell(left, up) != null
                 && findPathWithinCell(left, down) != null;
@@ -328,16 +320,20 @@ class MapGenerator extends Component
                 a.addNeighbor(b);
             }
         };
-        tryConnect(pos.i - 1, pos.j + leftY, left.depth, left.height, true);
-        tryConnect(pos.i + kGridSize, pos.j + rightY, right.depth, right.height, true);
-        tryConnect(pos.i + downX, pos.j - 1, down.depth, down.height, true);
-        tryConnect(pos.i + upX, pos.j + kGridSize, up.depth, up.height, true);
+        tryConnect(left.depth - 1, left.height, left.depth, left.height, true);
+        tryConnect(right.depth + 1, right.height, right.depth, right.height, true);
+        tryConnect(down.depth, down.height - 1, down.depth, down.height, true);
+        tryConnect(up.depth, up.height + 1, up.depth, up.height, true);
 
         for (k in 0...kGridSize) {
-            tryConnect(pos.i + k, pos.j, pos.i + k, pos.j - 1);
-            tryConnect(pos.i + k, pos.j + kGridSize - 1, pos.i + k, pos.j + kGridSize);
-            tryConnect(pos.i, pos.j + k, pos.i - 1, pos.j + k);
-            tryConnect(pos.i + kGridSize - 1, pos.j + k, pos.i + kGridSize, pos.j + k);
+            tryConnect(pos.i + k, pos.j, 
+                       pos.i + k, pos.j - 1);
+            tryConnect(pos.i + k, pos.j + kGridSize - 1,
+                       pos.i + k, pos.j + kGridSize);
+            tryConnect(pos.i, pos.j + k,
+                       pos.i - 1, pos.j + k);
+            tryConnect(pos.i + kGridSize - 1, pos.j + k,
+                       pos.i + kGridSize, pos.j + k);
         }
 
         updateScrollBounds();
@@ -548,7 +544,7 @@ class MapGenerator extends Component
 
             for (m in node.neighbors) {
                 var n :MapNode = cast m;
-                var canVisit = node.hasVisited() && allowedFunction(n);
+                var canVisit = allowedFunction(n);
                 if (canVisit) {
                     if (closedSet.get(n) == null) {
                         openSet.push(n);
@@ -570,7 +566,7 @@ class MapGenerator extends Component
                 return node == end;
             },
             function (node :MapNode) {
-                return true;
+                return node.hasSeen();
             });
     }
 

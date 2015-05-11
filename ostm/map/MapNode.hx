@@ -27,8 +27,8 @@ class MapNode extends GameNode {
 
     var _highlightedLineWidth :Float = 8;
 
-    public static inline var kMaxRegions = 12;
-    public static inline var kMaxVisibleRegion = 12; //4;
+    public static inline var kMaxRegions = 4;
+    public static inline var kMaxVisibleRegion = 4; //4;
     public static inline var kLaunchRegions = 4;
 
     static var _highestVisited = 0;
