@@ -21,11 +21,11 @@ class PassiveSkill {
 
     public function new(data :Dynamic) {
         id = data.id;
-        requirementIds = data.requirements;
+        requirementIds = data.requirements != null ? data.requirements : [];
         name = data.name;
         abbreviation = data.icon;
         description = data.description;
-        isPercent = data.isPercent;
+        isPercent = data.isPercent != null ? data.isPercent : false;
         levelValueFunction = data.leveling;
         modifierFunction = data.modifier;
         pos = data.pos;

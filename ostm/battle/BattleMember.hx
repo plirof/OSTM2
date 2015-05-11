@@ -42,7 +42,7 @@ class BattleMember implements Saveable {
         else {
             classType = Random.randomElement(ClassType.enemyTypes);
         }
-        
+
         for (k in ItemSlot.createAll()) {
             equipment[k] = null;
         }
@@ -121,6 +121,10 @@ class BattleMember implements Saveable {
                 item.sumAffixes(mod);
             }
         }
+
+        mod.flatAttack = 0;
+        mod.flatDefense = 0;
+        
         for (passive in SkillTree.instance.skills) {
             passive.sumAffixes(mod);
         }
@@ -232,9 +236,11 @@ class BattleMember implements Saveable {
 
     public function defense() :Int {
         var def :Float = 0;
+        var mod = sumAffixes();
         for (item in equipment) {
             def += item != null ? item.defense() : 0;
         }
+        def += mod.flatDefense;
         def *= 1 + endurance() * 0.02;
         return Math.round(def);
     }

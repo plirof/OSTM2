@@ -40,6 +40,7 @@ class SkillTree extends Component
                     skill.addRequirement(s2);
                 }
             }
+            // TODO: skills must have requirements listed before them in PassiveData, fix that
             addNode(skill);
         }
 
@@ -48,6 +49,20 @@ class SkillTree extends Component
 
     public override function update() :Void {
         _skillPoints.innerText = Util.format(availableSkillPoints());
+
+        for (node in _skillNodes) {
+            var bg;
+            if (node.skill.level > 0) {
+                bg = '#ff3333';
+            }
+            else if (node.skill.hasMetRequirements()) {
+                bg = '#992222';
+            }
+            else {
+                bg = '#444444';
+            }
+            node.elem.style.backgroundColor = bg;
+        }
     }
 
     function maxSkillPoints() :Int {
