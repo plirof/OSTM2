@@ -55,7 +55,7 @@ class SkillTree extends Component
             if (node.skill.level > 0) {
                 bg = '#ff3333';
             }
-            else if (node.skill.hasMetRequirements()) {
+            else if (node.skill.hasMetRequirements() && availableSkillPoints() > 0) {
                 bg = '#992222';
             }
             else {

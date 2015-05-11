@@ -4,6 +4,7 @@ import js.html.Element;
 
 import jengine.Entity;
 import jengine.SaveManager;
+import jengine.Time;
 import jengine.util.Random;
 
 import ostm.item.Affix;
@@ -276,6 +277,32 @@ class BattleMember implements Saveable {
     public function setActiveSkill(skill :ActiveSkill) :Void {
         if (curSkill != skill && skill.manaCost <= mana) {
             curSkill = skill;
+        }
+    }
+
+    public function updateRegen(inBattle :Bool) :Void {
+        var hpReg;
+        if (inBattle) {
+            hpReg = healthRegenInCombat();
+        }
+        else {
+            hpReg = healthRegenOutOfCombat();
+        }
+        var mpReg = manaRegen();
+        healthPartial += hpReg * Time.dt;
+        manaPartial += mpReg * Time.dt;
+        var dHealth = Math.floor(healthPartial);
+        var dMana = Math.floor(manaPartial);
+        health += dHealth;
+        healthPartial -= dHealth;
+        if (health >= maxHealth()) {
+            health = maxHealth();
+
+        }
+        mana += dMana;
+        manaPartial -= dMana;
+        if (mana >= maxMana()) {
+            mana = maxMana();
         }
     }
 

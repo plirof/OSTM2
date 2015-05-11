@@ -63,7 +63,7 @@ class ClassType {
             str: new StatType(4.6, 1.1),
             dex: new StatType(5.2, 1.3),
             int: new StatType(3.2, 0.8),
-            vit: new StatType(2.2, 0.6),
+            vit: new StatType(2.8, 0.6),
             end: new StatType(2.2, 0.6),
         }),
     ];

@@ -108,7 +108,7 @@ class BattleManager extends Component {
         return MapGenerator.instance.selectedNode.areaLevel();
     }
 
-    function playerRegenUpdate() :Void {
+    function regenUpdate() :Void {
         if (MapGenerator.instance.isInTown()) {
             _player.health = _player.maxHealth();
             _player.mana = _player.maxMana();
@@ -116,42 +116,20 @@ class BattleManager extends Component {
             return;
         }
 
-        var healthRegen;
-        if (_isPlayerDead) {
-            healthRegen = _player.maxHealth() / kPlayerDeathTime;
+        for (mem in _battleMembers) {
+            mem.updateRegen(isInBattle());
         }
-        else if (isInBattle()) {
-            healthRegen = _player.healthRegenInCombat();
-        }
-        else {
-            healthRegen = _player.healthRegenOutOfCombat();
-        }
-        var manaRegen = _player.manaRegen();
-        _player.healthPartial += healthRegen * Time.dt;
-        _player.manaPartial += manaRegen * Time.dt;
-        var dHealth = Math.floor(_player.healthPartial);
-        var dMana = Math.floor(_player.manaPartial);
-        _player.health += dHealth;
-        _player.healthPartial -= dHealth;
-        if (_player.health >= _player.maxHealth()) {
-            _player.health = _player.maxHealth();
 
-            if (_isPlayerDead) {
-                _isPlayerDead = false;
-                _enemySpawnTimer = 0;
-            }
-        }
-        _player.mana += dMana;
-        _player.manaPartial -= dMana;
-        if (_player.mana >= _player.maxMana()) {
-            _player.mana = _player.maxMana();
+        if (_isPlayerDead && _player.health == _player.maxHealth()) {
+            _isPlayerDead = false;
+            _enemySpawnTimer = 0;
         }
     }
 
     public override function update() :Void {
         var hasEnemySpawned = isInBattle();
 
-        playerRegenUpdate();
+        regenUpdate();
 
         var inTown = MapGenerator.instance.isInTown();
         Browser.document.getElementById('battle-screen').style.display = !inTown ? '' : 'none';
@@ -188,6 +166,7 @@ class BattleManager extends Component {
             var enemy = addBattleMember(false, new Vec2(350, 80 + 170 * i));
             enemy.level = spawnLevel();
             enemy.health = enemy.maxHealth();
+            enemy.mana = enemy.maxMana();
             _enemies.push(enemy);
         }
     }
