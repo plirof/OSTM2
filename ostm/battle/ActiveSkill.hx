@@ -8,8 +8,8 @@ class ActiveSkill {
 
     public static var skills = [
         new ActiveSkill('Attack', 0, 1, 1),
-        new ActiveSkill('Quick Attack', 15, 0.8, 1.5),
-        new ActiveSkill('Power Attack', 20, 1.8, 0.6),
+        new ActiveSkill('Quick Attack', 12, 1, 1.6),
+        new ActiveSkill('Power Attack', 16, 2.2, 0.65),
     ];
 
     public function new(name, mana, damage, speed) {

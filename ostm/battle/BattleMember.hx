@@ -86,31 +86,31 @@ class BattleMember implements Saveable {
 
     public function strength() :Int {
         var mod = sumAffixes();
-        var val = classType.strength.value(level, isPlayer);
+        var val = classType.strength.value(level);
         val += mod.flatStrength;
         return Math.round(val);
     }
     public function dexterity() :Int {
         var mod = sumAffixes();
-        var val = classType.dexterity.value(level, isPlayer);
+        var val = classType.dexterity.value(level);
         val += mod.flatDexterity;
         return Math.round(val);
     }
     public function intelligence() :Int {
         var mod = sumAffixes();
-        var val = classType.intelligence.value(level, isPlayer);
+        var val = classType.intelligence.value(level);
         val += mod.flatIntelligence;
         return Math.round(val);
     }
     public function vitality() :Int {
         var mod = sumAffixes();
-        var val = classType.vitality.value(level, isPlayer);
+        var val = classType.vitality.value(level);
         val += mod.flatVitality;
         return Math.round(val);
     }
     public function endurance() :Int {
         var mod = sumAffixes();
-        var val = classType.endurance.value(level, isPlayer);
+        var val = classType.endurance.value(level);
         val += mod.flatEndurance;
         return Math.round(val);
     }
@@ -177,9 +177,9 @@ class BattleMember implements Saveable {
     
     public function damage() :Int {
         var mod = sumAffixes();
-        var atk :Float = equipment.get(Weapon) != null ? 0 : 2;
-        if (!isPlayer) {
-            atk = 1 + level;
+        var atk :Float = 0;
+        if (equipment.get(Weapon) == null) {
+            atk = classType.unarmedAttack.value(level);
         }
         for (item in equipment) {
             atk += item != null ? item.attack() : 0;

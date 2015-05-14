@@ -61,7 +61,9 @@ class SkillTree extends Component
             else {
                 bg = '#444444';
             }
-            node.elem.style.backgroundColor = bg;
+            if (node.elem != null) {
+                node.elem.style.backgroundColor = bg;
+            }
         }
     }
 

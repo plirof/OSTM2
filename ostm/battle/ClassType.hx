@@ -8,13 +8,18 @@ class StatType {
         this.baseValue = base;
         this.perLevel = perLevel;
     }
-    public function value(level :Int, isPlayer :Bool) :Int {
+    public function value(level :Int) :Int {
         var l = level - 1;
         var v = baseValue;
         v += perLevel * l;
-        if (!isPlayer) {
-            v += 0.1 * perLevel * Math.pow(l, 1.75);
-        }
+        return Math.floor(v);
+    }
+}
+
+class ExpStatType extends StatType {
+    public override function value(level :Int) :Int {
+        var v :Float = super.value(level);
+        v += 0.1 * perLevel * Math.pow(level - 1, 1.75);
         return Math.floor(v);
     }
 }
@@ -22,15 +27,17 @@ class StatType {
 class ClassType {
     public var name(default, null) :String;
     public var image(default, null) :String;
+    public var unarmedAttack(default, null) :StatType;
     public var strength(default, null) :StatType;
     public var dexterity(default, null) :StatType;
     public var intelligence(default, null) :StatType;
     public var vitality(default, null) :StatType;
     public var endurance(default, null) :StatType;
 
-    public function new(data) {
+    public function new(data :Dynamic) {
         name = data.name;
         image = data.image;
+        unarmedAttack = data.attack != null ? data.attack : new StatType(2, 0);
         strength = data.str;
         dexterity = data.dex;
         intelligence = data.int;
@@ -51,20 +58,22 @@ class ClassType {
         new ClassType({
             name: 'Slime',
             image: 'enemies/Slime.png',
-            str: new StatType(2.2, 0.6),
-            dex: new StatType(2.2, 0.6),
-            int: new StatType(2.2, 0.6),
-            vit: new StatType(4.2, 1.6),
-            end: new StatType(2.2, 0.6),
+            attack: new StatType(1.5, 0.75),
+            str: new ExpStatType(2.2, 0.6),
+            dex: new ExpStatType(2.2, 0.6),
+            int: new ExpStatType(2.2, 0.6),
+            vit: new ExpStatType(4.2, 1.6),
+            end: new ExpStatType(2.2, 0.6),
         }),
         new ClassType({
             name: 'Snake',
             image: 'enemies/Snake.png',
-            str: new StatType(4.6, 1.1),
-            dex: new StatType(5.2, 1.3),
-            int: new StatType(3.2, 0.8),
-            vit: new StatType(2.8, 0.6),
-            end: new StatType(2.2, 0.6),
+            attack: new StatType(2.25, 1.15),
+            str: new ExpStatType(4.6, 1.1),
+            dex: new ExpStatType(5.2, 1.3),
+            int: new ExpStatType(3.2, 0.8),
+            vit: new ExpStatType(2.8, 0.6),
+            end: new ExpStatType(2.2, 0.6),
         }),
     ];
 }
