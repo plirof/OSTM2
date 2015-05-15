@@ -13,6 +13,7 @@ import ostm.item.Inventory;
 class BattleManager extends Component {
     var _player :BattleMember;
     var _battleMembers :Array<BattleMember> = [];
+    var _activeButtons :Array<ActiveSkillButton> = [];
 
     var _enemies :Array<BattleMember> = [];
 
@@ -49,33 +50,26 @@ class BattleManager extends Component {
             ]),
         ]));
 
-        var buttons = [];
+        _activeButtons = [];
         for (skill in ActiveSkill.skills) {
-            var i = buttons.length;
-            var html = new HtmlRenderer({
-                parent: 'battle-screen',
-                size: new Vec2(80, 80),
-                style: [
-                    'border' => '2px solid black',
-                    'background' => 'white',
-                ],
-            });
+            var i = _activeButtons.length;
             var x = i % 2;
             var y = Math.floor(i / 2);
-            var btn = new Entity([
+            var btn = new ActiveSkillButton(i, skill);
+            var btnEnt = new Entity([
                 new Transform(new Vec2(90 * x + 20, 90 * y + 200)),
-                html,
-                new ActiveSkillButton(i, skill),
+                new HtmlRenderer({
+                    parent: 'battle-screen',
+                    size: new Vec2(80, 80),
+                    style: [
+                        'border' => '2px solid black',
+                        'background' => 'white',
+                    ],
+                }),
+                btn,
             ]);
-            entity.getSystem().addEntity(btn);
-            var elem = html.getElement();
-            buttons.push(elem);
-        }
-        Browser.document.onkeydown = function (event :KeyboardEvent) :Void {
-            var i = event.keyCode - 49; //49 == keycode for '1'
-            if (i >= 0 && i < buttons.length) {
-                buttons[i].onclick(null);
-            }
+            entity.getSystem().addEntity(btnEnt);
+            _activeButtons.push(btn);
         }
 
         _player.level = 1;
@@ -106,6 +100,13 @@ class BattleManager extends Component {
 
     public function spawnLevel() :Int {
         return MapGenerator.instance.selectedNode.areaLevel();
+    }
+
+    public function keyDown(keyCode :Int) :Void {
+        var i = keyCode - 49; //49 == keycode for '1'
+        if (i >= 0 && i < _activeButtons.length) {
+            _activeButtons[i].onClick();
+        }
     }
 
     function regenUpdate() :Void {

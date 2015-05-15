@@ -4,6 +4,7 @@ import jengine.Entity;
 import jengine.JEngineMain;
 import jengine.SaveManager;
 
+import ostm.KeyboardManager;
 import ostm.battle.BattleManager;
 import ostm.item.Inventory;
 import ostm.map.MapGenerator;
@@ -16,6 +17,7 @@ class GameMain extends JEngineMain {
 
 	public function new() {
 		var entityList = [
+            new Entity([ new KeyboardManager() ]),
             new Entity([ new MapGenerator() ]),
             new Entity([ new BattleManager() ]),
             new Entity([ new Inventory() ]),

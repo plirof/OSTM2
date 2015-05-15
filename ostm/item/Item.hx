@@ -146,12 +146,21 @@ class Item {
         _buttons = Browser.document.createSpanElement();
         _elem.appendChild(_buttons);
 
+        var index = 0;
         for (k in buttons.keys()) {
             var f = buttons[k];
             var btn = Browser.document.createButtonElement();
             btn.onclick = f;
             btn.innerText = k;
             _buttons.appendChild(btn);
+
+            if (index == 0) {
+                img.ondblclick = f;
+            }
+            else if (index == 1) {
+                img.onclick = function(MouseEvent) {}
+            }
+            index++;
         }
 
         _body = Browser.document.createUListElement();

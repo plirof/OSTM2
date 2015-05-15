@@ -63,4 +63,8 @@ class ActiveSkillButton extends Component {
 
         Browser.document.getElementById('popup-container').appendChild(_body);
     }
+
+    public function onClick() :Void {
+        _player.setActiveSkill(_skill);
+    }
 }
