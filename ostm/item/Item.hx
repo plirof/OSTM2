@@ -6,6 +6,7 @@ import js.html.*;
 import jengine.Vec2;
 import jengine.util.*;
 
+import ostm.KeyboardManager;
 import ostm.battle.BattleManager;
 import ostm.battle.StatModifier;
 import ostm.item.Affix;
@@ -147,6 +148,7 @@ class Item {
         _elem.appendChild(_buttons);
 
         var index = 0;
+        var clickFuncs :Array<MouseEvent -> Void> = [];
         for (k in buttons.keys()) {
             var f = buttons[k];
             var btn = Browser.document.createButtonElement();
@@ -157,10 +159,22 @@ class Item {
             if (index == 0) {
                 img.ondblclick = f;
             }
-            else if (index == 1) {
-                img.onclick = function(MouseEvent) {}
-            }
+            clickFuncs.push(f);
             index++;
+        }
+        if (clickFuncs.length > 0) {
+            img.onclick = function(event) {
+                var checks = [
+                    KeyboardManager.instance.isShiftHeld,
+                    KeyboardManager.instance.isCtrlHeld,
+                ];
+
+                for (i in 0...checks.length) {
+                    if (clickFuncs.length > i && checks[i]) {
+                        clickFuncs[i](event);
+                    }
+                }
+            };
         }
 
         _body = Browser.document.createUListElement();
