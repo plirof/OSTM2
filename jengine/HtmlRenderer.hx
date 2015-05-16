@@ -37,6 +37,9 @@ class HtmlRenderer extends Component {
         if (_options.id != null) {
             _elem.id = _options.id;
         }
+        if (_options.className != null) {
+            _elem.className = _options.className;
+        }
         if (_options.text != null) {
             _elem.innerText = _options.text;
         }

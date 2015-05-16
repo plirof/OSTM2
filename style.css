@@ -69,6 +69,7 @@ div {
 }
 #inventory-screen {
     height: 50%;
+    width: 50%;
     top: 50%;
     background: #aaaaff;
 }
@@ -119,4 +120,14 @@ div {
     height: 80px;
     top: 10px;
     right: 10px;
+}
+
+.item {
+    width: 40px;
+    height: 40px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #000000;
+    text-align: center;
+    display: inline-block;
 }

@@ -54,6 +54,7 @@ class Inventory extends Component
             updateInventoryHtml();
         };
         inventory.appendChild(clear);
+        inventory.appendChild(Browser.document.createBRElement());
 
         for (item in _inventory) {
             appendItemHtml(item);

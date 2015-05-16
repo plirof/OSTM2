@@ -130,14 +130,9 @@ class Item {
             return name;
         }
         var _elem = Browser.document.createSpanElement();
-        _elem.style.width = '40px';
-        _elem.style.height = '40px';
-        _elem.style.borderWidth = '2px';
-        _elem.style.borderStyle = 'solid';
-        _elem.style.borderColor = '#000000';
+        _elem.className = 'item';
         _elem.style.background = getColor();
-        _elem.style.textAlign = 'center';
-        _elem.style.display = 'inline-block';
+
         var img = Browser.document.createImageElement();
         img.src = 'img/items/' + type.image;
         img.height = 40;
