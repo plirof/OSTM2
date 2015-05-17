@@ -1,9 +1,0 @@
-Item Upgrading
-
-Philosophy
-    A player should be able to invest in an item and enhance its power, but upgrading one item shouldn't invalidate finding new items.
-
-    - Upgrading an item costs gold in proportion to the rarity of the item, the item's level, and the item's material.
-    - The item's material doesn't change. Magic affixes on the item stay the same. Enchantments the player can put on the item stay at the level the item was found at.
-    - The only thing that increases are the base stats of the item, in the same way an item normally levels up (at 80% effectiveness, so a 'level X sword +X' won't be as effective as a 'level 2X sword').
-    - Required level does not increase.

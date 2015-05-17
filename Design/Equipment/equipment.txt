@@ -1,7 +1,0 @@
-Equipment
-
-Summary
-    Items are found randomly, upgradeable, made of different materials, have random magic properties, and can be deliberately enchanted.
-
-Restrictions
-    Equipment that drops at level X may only be equipped by characters of level floor(x * 0.75) or higher. Upgrading an item does not increase this minimum level.
