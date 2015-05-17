@@ -60,12 +60,19 @@ class BattleMember implements Saveable {
         }
     }
 
+    function levelUp() :Void {
+        level++;
+        
+        untyped ga('send', 'event', 'player', 'level-up', '', level);
+    }
+
     public function addXp(xp :Int) :Void {
         this.xp += xp;
         var tnl = xpToNextLevel();
-        if (this.xp >= tnl) {
+        while (this.xp >= tnl) {
             this.xp -= tnl;
-            level++;
+
+            levelUp();
         }
     }
     public function addGold(gold :Int) :Void {

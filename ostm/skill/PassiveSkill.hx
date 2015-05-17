@@ -51,6 +51,8 @@ class PassiveSkill {
 
     public function levelUp() :Void {
         level++;
+
+        untyped ga('send', 'event', 'player', 'spend-skill-point', id, level);
     }
 
     public function currentValue() :Int {
