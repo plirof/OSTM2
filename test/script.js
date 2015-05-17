@@ -1758,12 +1758,16 @@ ostm.battle.BattleMember = function(isPlayer) {
 ostm.battle.BattleMember.__name__ = true;
 ostm.battle.BattleMember.__interfaces__ = [jengine.Saveable];
 ostm.battle.BattleMember.prototype = {
-	addXp: function(xp) {
+	levelUp: function() {
+		this.level++;
+		ga("send","event","player","level-up","",this.level);
+	}
+	,addXp: function(xp) {
 		this.xp += xp;
 		var tnl = this.xpToNextLevel();
-		if(this.xp >= tnl) {
+		while(this.xp >= tnl) {
 			this.xp -= tnl;
-			this.level++;
+			this.levelUp();
 		}
 	}
 	,addGold: function(gold) {
@@ -3843,6 +3847,7 @@ ostm.skill.PassiveSkill.prototype = {
 	}
 	,levelUp: function() {
 		this.level++;
+		ga("send","event","player","spend-skill-point",this.id,this.level);
 	}
 	,currentValue: function() {
 		return this.levelValueFunction(this.level);
