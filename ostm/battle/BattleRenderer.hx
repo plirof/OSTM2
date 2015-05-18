@@ -15,8 +15,6 @@ class BattleRenderer extends Component {
     var _mpBar :Entity;
     var _attackBar :Entity;
 
-    var _attackElem :Element;
-
     public function new(member :BattleMember) {
         _member = member;
     }
@@ -28,7 +26,7 @@ class BattleRenderer extends Component {
         var size = renderer.size;
         var nameSize = new Vec2(160, 30);
         var nameX = (size.x - nameSize.x) / 2;
-        var barSize = new Vec2(160, 10);
+        var barSize = new Vec2(160, 16);
         var barX = (size.x - barSize.x) / 2;
         var atkBarSize = new Vec2(180, 20);
         var atkBarX = (size.x - atkBarSize.x) / 2;
@@ -42,7 +40,7 @@ class BattleRenderer extends Component {
         elem.appendChild(_imageElem);
 
         _nameEnt = new Entity([
-            new Transform(new Vec2(nameX, -60)),
+            new Transform(new Vec2(nameX, -62)),
             new HtmlRenderer({
                 parent: id,
                 size: nameSize,
@@ -71,9 +69,8 @@ class BattleRenderer extends Component {
                 'background' => '#ff0000',
             ]),
         ]);
-        entity.getSystem().addEntity(_hpBar);
         _mpBar = new Entity([
-            new Transform(new Vec2(barX, -30)),
+            new Transform(new Vec2(barX, -24)),
             new HtmlRenderer({
                 parent: id,
                 size: barSize,
@@ -88,6 +85,16 @@ class BattleRenderer extends Component {
                 'background' => '#0044ff',
             ]),
         ]);
+
+        if (_member.isPlayer) {
+            _hpBar.addComponent(new CenteredText(function() {
+                return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
+            }, 12));
+            _mpBar.addComponent(new CenteredText(function() {
+                return Util.format(_member.mana) + ' / ' + Util.format(_member.maxMana());
+            }, 12));
+        }
+        entity.getSystem().addEntity(_hpBar);
         entity.getSystem().addEntity(_mpBar);
 
         _attackBar = new Entity([
@@ -105,20 +112,10 @@ class BattleRenderer extends Component {
             }, [
                 'background' => '#00ff00',
             ]),
+            new CenteredText(function() {
+                return _member.curSkill.name;
+            }),
         ]);
         entity.getSystem().addEntity(_attackBar);
-    }
-
-    public override function update() :Void {
-        if (_attackElem == null) {
-            _attackElem = Browser.document.createSpanElement();
-            _attackElem.style.position = 'absolute';
-            var atkRenderer = _attackBar.getComponent(HtmlRenderer);
-            _attackElem.style.width = cast atkRenderer.size.x;
-            _attackElem.style.textAlign = 'center';
-            _attackElem.style.zIndex = cast 1;
-            atkRenderer.getElement().appendChild(_attackElem);
-        }
-        _attackElem.innerText = _member.curSkill.name;
     }
 }
