@@ -1,7 +1,7 @@
 package ostm.map;
 
 import js.*;
-import js.html.Element;
+import js.html.*;
 
 import jengine.*;
 import jengine.SaveManager;
@@ -31,8 +31,8 @@ class MapGenerator extends Component
     var _scrollHelper :Entity;
 
     static inline var kMoveTime :Float = 12.0;
-    static inline var kMoveBarWidth :Float = 500;
-    var _moveBar :Element;
+    var _moveBarTransform :Transform;
+    var _mapScreenElem :Element;
     var _moveTimer :Float = 0;
     var _movePath :Array<MapNode> = null;
 
@@ -54,8 +54,6 @@ class MapGenerator extends Component
     public override function start() :Void {
         SaveManager.instance.addItem(this);
 
-        // _generated.push(new Map<Int, MapNode>());
-        
         _scrollHelper = new Entity([
             new HtmlRenderer({
                 parent: 'map-screen',
@@ -65,26 +63,22 @@ class MapGenerator extends Component
         ]);
         entity.getSystem().addEntity(_scrollHelper);
 
+        _moveBarTransform = new Transform();
         var moveBarEntity = new Entity([
+            _moveBarTransform,
             new HtmlRenderer({
-                id: 'move-bar',
-                parent: 'game-header',
-                size: new Vec2(kMoveBarWidth, 25),
+                parent: 'map-screen',
+                className: 'move-bar',
                 style: [
-                    'background' => '#888800',
-                    'border' => '1px solid #000000',
+                    'position' => 'fixed',
                 ],
             }),
-            new Transform(new Vec2(20, 7)),
             new ProgressBar(function() {
                 return _moveTimer / kMoveTime;
-            }, [
-                'background' => '#ffff00',
-            ]),
+            }),
         ]);
         entity.getSystem().addEntity(moveBarEntity);
-
-        // var startTime = Time.raw;
+        _mapScreenElem = Browser.document.getElementById('map-screen');
 
         generateSurroundingCells(0, 0);
         selectedNode = _start; // _start is generated as part of generateGridCell(0, 0)
@@ -97,18 +91,15 @@ class MapGenerator extends Component
         //     }
         // }
 
-        // var nodeCount = debugNodeCount();
-        // var elapsed = Time.raw - startTime;
-        // var rate = nodeCount / elapsed;
-        // trace('Map Nodes: ' + nodeCount);
-        // trace('Time to generate: ' + elapsed + ' s (' + rate + ' nodes/s)');
-
         _start.setOccupied();
         updateScrollBounds();
         centerCurrentNode();
     }
 
     public override function update() {
+        var rect = _mapScreenElem.getBoundingClientRect();
+        _moveBarTransform.pos = new Vec2(rect.left + 20, rect.top + 20);
+
         if (BattleManager.instance.isInBattle() ||
             BattleManager.instance.isPlayerDead()) {
             return;
@@ -134,12 +125,6 @@ class MapGenerator extends Component
                 }
             }
         }
-    }
-
-    function debugNodeCount() {
-        var nodeCount = 0;
-        forAllNodes(function (node) { nodeCount++; });
-        return nodeCount;
     }
 
     function getGridCoord(i :Int, j :Int) {

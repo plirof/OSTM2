@@ -89,10 +89,10 @@ class BattleRenderer extends Component {
         if (_member.isPlayer) {
             _hpBar.addComponent(new CenteredText(function() {
                 return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
-            }, 12));
+            }, 13));
             _mpBar.addComponent(new CenteredText(function() {
                 return Util.format(_member.mana) + ' / ' + Util.format(_member.maxMana());
-            }, 12));
+            }, 13));
         }
         entity.getSystem().addEntity(_hpBar);
         entity.getSystem().addEntity(_mpBar);

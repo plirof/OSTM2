@@ -20,9 +20,9 @@ class ProgressBar extends Component {
         var renderer = getComponent(HtmlRenderer);
         if (renderer != null) {
             _elem = Browser.document.createSpanElement();
+            _elem.className = 'progress-bar';
             _elem.style.position = 'absolute';
             _elem.style.height = '100%';
-            _elem.style.background = 'white';
 
             HtmlRenderer.styleElement(_elem, _style);
 

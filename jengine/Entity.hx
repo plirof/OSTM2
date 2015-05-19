@@ -9,10 +9,6 @@ class Entity {
     public function new(components: Array<Component>) {
         _components = components;
 
-        if (getComponent(Transform) == null) {
-            _components.push(new Transform());
-        }
-
         for (cmp in _components) {
             cmp.entity = this;
             cmp.init();

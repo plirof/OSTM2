@@ -34,20 +34,22 @@ class BattleManager extends Component {
 
         entity.getSystem().addEntity(new Entity([
             new HtmlRenderer({
-                id: 'kill-bar',
-                parent: 'game-header',
-                size: new Vec2(500, 25),
-                style: [
-                    'background' => '#885500',
-                    'border' => '1px solid #000000',
-                ],
+                parent: 'battle-screen',
+                className: 'spawn-bar',
             }),
-            new Transform(new Vec2(20, 37)),
             new ProgressBar(function() {
                 return _enemySpawnTimer / kEnemySpawnTime;
-            }, [
-                'background' => '#ffaa00',
-            ]),
+            }),
+        ]));
+
+        entity.getSystem().addEntity(new Entity([
+            new HtmlRenderer({
+                parent: 'battle-screen',
+                className: 'xp-bar',
+            }),
+            new ProgressBar(function() {
+                return _player.xp / _player.xpToNextLevel();
+            }),
         ]));
 
         _activeButtons = [];
@@ -78,24 +80,6 @@ class BattleManager extends Component {
             mem.health = mem.maxHealth();
             mem.mana = mem.maxMana();
         }
-
-        entity.getSystem().addEntity(new Entity([
-            new HtmlRenderer({
-                id: 'xp-bar',
-                parent: 'game-header',
-                size: new Vec2(500, 25),
-                style: [
-                    'background' => '#118811',
-                    'border' => '1px solid #000000',
-                ],
-            }),
-            new Transform(new Vec2(20, 67)),
-            new ProgressBar(function() {
-                return _player.xp / _player.xpToNextLevel();
-            }, [
-                'background' => '#22ff22',
-            ]),
-        ]));
     }
 
     public function spawnLevel() :Int {

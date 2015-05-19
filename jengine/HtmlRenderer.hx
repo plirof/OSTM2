@@ -19,9 +19,6 @@ class HtmlRenderer extends Component {
         _options = options;
 
         var size = _options.size;
-        if (size == null) {
-            size = new Vec2(50, 50);
-        }
         this.size = size;
     }
 
@@ -33,7 +30,7 @@ class HtmlRenderer extends Component {
         else {
             parent = Browser.document.body;
         }
-        _elem = Browser.document.createElement('span');
+        _elem = Browser.document.createSpanElement();
         if (_options.id != null) {
             _elem.id = _options.id;
         }
@@ -45,7 +42,6 @@ class HtmlRenderer extends Component {
         }
 
         _elem.style.position = 'absolute';
-        _elem.style.background = 'red';
         styleElement(_elem, _options.style);
 
         parent.appendChild(_elem);
@@ -64,6 +60,10 @@ class HtmlRenderer extends Component {
     }
 
     function getPos() :Vec2 {
+        if (getTransform() == null) {
+            return null;
+        }
+
         var pos = getTransform().pos;
         if (floating) {
             var container = _elem.parentElement;
@@ -74,6 +74,9 @@ class HtmlRenderer extends Component {
     }
 
     function isDirty() :Bool {
+        if (getPos() == null && size == null) {
+            return false;
+        }
         return _cachedPos != getPos() || _cachedSize != size;
     }
     function markClean() :Void {
@@ -86,10 +89,15 @@ class HtmlRenderer extends Component {
             markClean();
 
             var pos = getPos();
-            _elem.style.left = cast pos.x;
-            _elem.style.top = cast pos.y;
-            _elem.style.width = cast size.x;
-            _elem.style.height = cast size.y;
+            if (pos != null) {
+                _elem.style.left = cast pos.x;
+                _elem.style.top = cast pos.y;
+            }
+
+            if (size != null) {
+                _elem.style.width = cast size.x;
+                _elem.style.height = cast size.y;
+            }
         }
     }
 

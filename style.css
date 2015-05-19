@@ -15,19 +15,19 @@ html {
 }
 
 .title {
-    left: 550px;
+    left: 50px;
     top: 20px;
     font-size: 36px;
 }
 
 .version {
-    left: 700px;
+    left: 200px;
     top: 30px;
     font-size: 24px;
 }
 
 .alpha-warning {
-    left: 540px;
+    left: 40px;
     top: 64px;
     font-size: 16px;
     font-style: italic;
@@ -144,4 +144,39 @@ div {
     border-color: #000000;
     text-align: center;
     display: inline-block;
+}
+
+.xp-bar {
+    left: 27px;
+    top: 180px;
+    width: 160px;
+    height: 12px;
+    background: #118811;
+    border: 1px solid #000000;
+}
+.xp-bar .progress-bar {
+    background: #22ff22;
+}
+
+.spawn-bar {
+    left: 300px;
+    top: 180px;
+    width: 160px;
+    height: 12px;
+    background: #885500;
+    border: 1px solid #000000;
+}
+.spawn-bar .progress-bar {
+    background: #ffaa00;
+}
+
+.move-bar {
+    width: 250px;
+    height: 18px;
+    background: #888800;
+    border: 1px solid #000000;
+    z-index: 10;
+}
+.move-bar .progress-bar {
+    background: #ffff00;
 }
