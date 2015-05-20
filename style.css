@@ -63,15 +63,6 @@ div {
     height: 100%;
 }
 
-#column-1 {
-    width: 30%;
-    left: 0px;
-}
-#column-2 {
-    width: 70%;
-    left: 30%;
-}
-
 .screen {
     width: 100%;
     overflow: auto;
@@ -83,25 +74,22 @@ div {
 }
 #inventory-screen {
     height: 50%;
-    width: 50%;
     top: 50%;
     background: #aaaaff;
 }
 #map-screen {
     height: 50%;
-    left: 50%;
-    width: 50%;
     background: #aaaaaa;
 }
 #battle-screen, #town-screen {
+    height: 100%;
+}
+#main-screen {
     height: 50%;
-    width: 50%;
 }
 #skill-screen {
     height: 50%;
-    width: 50%;
     top: 50%;
-    left: 50%;
     background: #ddff77;
 }
 
@@ -175,8 +163,13 @@ div {
     height: 18px;
     background: #888800;
     border: 1px solid #000000;
-    z-index: 10;
+    z-index: 2;
 }
 .move-bar .progress-bar {
     background: #ffff00;
+}
+
+#header-tab-container {
+    left: 400px;
+    height: 100%;
 }

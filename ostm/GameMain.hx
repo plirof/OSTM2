@@ -17,13 +17,16 @@ class GameMain extends JEngineMain {
 
 	public function new() {
 		var entityList = [
-            new Entity([ new KeyboardManager() ]),
-            new Entity([ new MapGenerator() ]),
-            new Entity([ new BattleManager() ]),
-            new Entity([ new Inventory() ]),
-            new Entity([ new SaveManager() ]),
-            new Entity([ new SkillTree() ]),
-            new Entity([ new TownManager() ]),
+            new Entity([
+                new KeyboardManager(),
+                new MapGenerator(),
+                new BattleManager(),
+                new Inventory(),
+                new SaveManager(),
+                new SkillTree(),
+                new TownManager(),
+                new TabManager(),
+            ]),
         ];
 
         MouseManager.init();
