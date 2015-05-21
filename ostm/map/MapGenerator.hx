@@ -81,8 +81,7 @@ class MapGenerator extends Component
         _mapScreenElem = Browser.document.getElementById('map-screen');
 
         generateSurroundingCells(0, 0);
-        selectedNode = _start; // _start is generated as part of generateGridCell(0, 0)
-        _checkpoint = _start;
+        setSelected(_start); // _start is generated as part of generateGridCell(0, 0)
 
         // var baseGen = 6;
         // for (i in -baseGen...(baseGen + 1)) {
@@ -91,7 +90,6 @@ class MapGenerator extends Component
         //     }
         // }
 
-        _start.setOccupied();
         updateScrollBounds();
         centerCurrentNode();
     }
@@ -142,16 +140,32 @@ class MapGenerator extends Component
     }
 
     function setSelected(next :MapNode) {
-        selectedNode.clearPath();
-        selectedNode.clearOccupied();
+        if (selectedNode != null) {
+            selectedNode.clearPath();
+            selectedNode.clearOccupied();
+        }
 
         selectedNode = next;
         generateSurroundingCells(next.depth, next.height);
         selectedNode.setOccupied();
         BattleManager.instance.resetKillCount();
 
-        if (next.town) {
+        if (next.isTown()) {
             _checkpoint = next;
+
+            var gridPos = getGridCoord(next.depth, next.height);
+            forAllNodesInGridCell(gridPos.x, gridPos.y, function (node) {
+                node.setVisible();
+            });
+            var xs = [1, -1, 0, 0];
+            var ys = [0, 0, 1, -1];
+            for (i in 0...xs.length) {
+                forAllNodesInGridCell(gridPos.x + xs[i], gridPos.y + ys[i], function(node) {
+                    if (node.isTown()) {
+                        node.setVisible();
+                    }
+                });
+            }
         }
 
         forAllNodes(function (node) {
@@ -449,6 +463,20 @@ class MapGenerator extends Component
         }
     }
 
+    function forAllNodesInGridCell(x :Int, y :Int, f :MapNode -> Void) :Void {
+        for (i in (x * kGridSize)...((x + 1) * kGridSize)) {
+            var row = _generated.get(i);
+            if (row != null) {
+                for (j in (y * kGridSize)...(y + 1) * kGridSize) {
+                    var node = row.get(j);
+                    if (node != null) {
+                        f(node);
+                    }
+                }
+            }
+        }
+    }
+
     function updateScrollBounds() :Void {
         var topLeft = new Vec2(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
@@ -551,7 +579,7 @@ class MapGenerator extends Component
                 return node == end;
             },
             function (node :MapNode) {
-                return node.hasSeen();
+                return node == end || node.hasVisited();
             });
     }
 
