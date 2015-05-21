@@ -4,8 +4,13 @@ import js.*;
 import js.html.*;
 
 import jengine.Component;
+import jengine.SaveManager;
 
-class TabManager extends Component {
+class TabManager extends Component
+        implements Saveable {
+
+    public var saveId(default, null) = 'tab-manager';
+
     var _tabs = [
         {
             id: 'stat-screen',
@@ -36,6 +41,8 @@ class TabManager extends Component {
     var _shouldRefresh = true;
 
     public override function start() :Void {
+        SaveManager.instance.addItem(this);
+
         var header = Browser.document.getElementById('header-tab-container');
         for (tab in _tabs) {
             if (tab.buttonName != null) {
@@ -119,6 +126,16 @@ class TabManager extends Component {
             _enabled.remove(tabId);
         }
 
+        _shouldRefresh = true;
+    }
+
+    public function serialize() :Dynamic {
+        return {
+            enabled: _enabled,
+        };
+    }
+    public function deserialize(data :Dynamic) :Void {
+        _enabled = data.enabled;
         _shouldRefresh = true;
     }
 }
