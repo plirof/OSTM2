@@ -109,21 +109,6 @@ div {
         0 -1px 1px #000000;
 }
 
-#save-button {
-    position: absolute;
-    width: 100px;
-    height: 80px;
-    top: 10px;
-    right: 120px;
-}
-#save-clear-button {
-    position: absolute;
-    width: 100px;
-    height: 80px;
-    top: 10px;
-    right: 10px;
-}
-
 .item {
     width: 40px;
     height: 40px;
@@ -169,7 +154,17 @@ div {
     background: #ffff00;
 }
 
-#header-tab-container {
+#header-button-container {
+    position: absolute;
     left: 400px;
+    right: 0px;
     height: 100%;
+    overflow: auto;
+}
+#header-button-container button {
+    height: 80px;
+    width: 100px;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
