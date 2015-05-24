@@ -71,9 +71,19 @@ class ClassType {
             attack: new StatType(2.25, 1.15),
             str: new ExpStatType(4.6, 1.1),
             dex: new ExpStatType(5.2, 1.3),
-            int: new ExpStatType(3.2, 0.8),
+            int: new ExpStatType(2.2, 0.8),
             vit: new ExpStatType(2.8, 0.6),
             end: new ExpStatType(2.2, 0.6),
+        }),
+        new ClassType({
+            name: 'Goblin',
+            image: 'enemies/Goblin.png',
+            attack: new StatType(2, 1.1),
+            str: new ExpStatType(3.5, 0.9),
+            dex: new ExpStatType(5, 1.2),
+            int: new ExpStatType(3.2, 0.8),
+            vit: new ExpStatType(3.8, 0.9),
+            end: new ExpStatType(3.2, 0.8),
         }),
     ];
 }
