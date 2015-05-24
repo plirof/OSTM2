@@ -428,7 +428,7 @@ class MapGenerator extends Component
             return;
         }
 
-        if (node.isTown() && TownManager.instance.shouldWarp) {
+        if (TownManager.instance.shouldWarp && node.isTown() && node.hasVisited()) {
             setPath(null);
             setSelected(node);
             return;

@@ -151,9 +151,10 @@ class Item {
             btn.innerText = k;
             _buttons.appendChild(btn);
 
-            if (index == 0) {
-                img.ondblclick = f;
-            }
+            // This gets triggered when we sell-click too quickly; disable for now
+            // if (index == 0) {
+            //     img.ondblclick = f;
+            // }
             clickFuncs.push(f);
             index++;
         }

@@ -54,6 +54,17 @@ class Inventory extends Component
             updateInventoryHtml();
         };
         inventory.appendChild(clear);
+
+        var sortBtn = Browser.document.createButtonElement();
+        sortBtn.innerText = 'Sort Value';
+        sortBtn.onclick = function (event) {
+            _inventory.sort(function(it1, it2) {
+                return -Reflect.compare(it1.buyValue(), it2.buyValue());
+            });
+            updateInventoryHtml();
+        };
+        inventory.appendChild(sortBtn);
+
         inventory.appendChild(Browser.document.createBRElement());
 
         for (item in _inventory) {
