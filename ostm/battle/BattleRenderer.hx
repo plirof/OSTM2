@@ -40,7 +40,7 @@ class BattleRenderer extends Component {
         elem.appendChild(_imageElem);
 
         _nameEnt = new Entity([
-            new Transform(new Vec2(nameX, -62)),
+            new Transform(new Vec2(nameX, -78)),
             new HtmlRenderer({
                 parent: id,
                 size: nameSize,
@@ -52,6 +52,33 @@ class BattleRenderer extends Component {
             }),
         ]);
         entity.getSystem().addEntity(_nameEnt);
+
+        var levEnt = new Entity([
+            new Transform(new Vec2(barX, -59)),
+            new HtmlRenderer({
+                parent: id,
+                size: barSize,
+                textFunc: function() { return 'L' + Util.format(_member.level); },
+                style: [
+                    'font-size' => '13px',
+                ],
+            }),
+        ]);
+        entity.getSystem().addEntity(levEnt);
+
+        var powEnt = new Entity([
+            new Transform(new Vec2(barX, -59)),
+            new HtmlRenderer({
+                parent: id,
+                size: barSize,
+                textFunc: function() { return 'Pow: ' + Util.format(_member.power(_member.level)); },
+                style: [
+                    'font-size' => '13px',
+                    'text-align' => 'right',
+                ],
+            }),
+        ]);
+        entity.getSystem().addEntity(powEnt);
 
         _hpBar = new Entity([
             new Transform(new Vec2(barX, -42)),

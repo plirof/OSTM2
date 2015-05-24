@@ -1,3 +1,12 @@
+Todo for 0.0.2 release:
+- better map level divvying (linear increase heading out)
+- 2 ring slots! (item button refactor)
+- update notif tech? (notification to refresh when update pushed)
+
+
+------------- OLD: pre-5/24/15, audit later
+
+
 Current Big Problem: game is boring at start
 
 Why: no meaningful interaction/decision making

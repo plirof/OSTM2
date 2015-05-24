@@ -262,6 +262,10 @@ class BattleMember implements Saveable {
         return hp * mitigated;
     }
 
+    public function power(targetLevel :Int) :Int {
+        return Math.round(Math.sqrt(dps(targetLevel) * ehp(targetLevel)));
+    }
+
     public function moveSpeed() :Float {
         var mod = sumAffixes();
         var spd :Float = 1;

@@ -85,6 +85,10 @@ class HtmlRenderer extends Component {
     }
 
     public override function draw() :Void {
+        if (_options.textFunc != null) {
+            _elem.innerText = _options.textFunc();
+        }
+
         if (isDirty()) {
             markClean();
 

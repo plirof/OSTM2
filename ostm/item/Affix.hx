@@ -87,7 +87,7 @@ class Affix {
         new LinearAffixType('flat-hp-regen', 'Health Regen', 1, 0.35, function(value, mod) {
             mod.flatHealthRegen += value;
         }, [ Body => 1.0, Ring => 0.5 ]),
-        new LinearAffixType('percent-hp', '% Health', 8, 2, function(value, mod) {
+        new SqrtAffixType('percent-hp', '% Health', 8, 2, function(value, mod) {
             mod.percentHealth += value;
         }, [ Helmet => 1.0 ]),
         new LinearAffixType('flat-mp', 'Mana', 5, 2.5, function(value, mod) {
