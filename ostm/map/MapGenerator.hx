@@ -37,7 +37,7 @@ class MapGenerator extends Component
     var _movePath :Array<MapNode> = null;
 
     static inline var kGridSize :Int = 5;
-    static inline var kLevelsPerCellDist :Int = 5;
+    static inline var kLevelsPerCellDist :Int = 6;
     static var kHalfGrid :Int = Math.floor(kGridSize / 2);
 
     var _hints :Array<MapHint> = [
@@ -187,7 +187,7 @@ class MapGenerator extends Component
     }
 
     function cellSeed(x :Int, y :Int) :Int {
-        return 3724684 + 21487 * x + 54013 * y + 127 * x * y;
+        return 4613767 + 21487 * x + 54013 * y + 147 * x * y;
     }
 
     function didGenerateCell(x :Int, y :Int) :Bool {
@@ -199,6 +199,11 @@ class MapGenerator extends Component
 
     function generateGridCell(x :Int, y :Int) :Void {
         if (didGenerateCell(x, y)) {
+            return;
+        }
+
+        // No grid cell under origin
+        if (x == 1 && y == 0) {
             return;
         }
 
@@ -233,18 +238,6 @@ class MapGenerator extends Component
 
         var cellNodes = startNodes.copy(); //[left, right, up, down];
 
-        var distToOrigin = Math.floor(Math.abs(x) + Math.abs(y));
-        var cellLevel = distToOrigin * kLevelsPerCellDist;
-        var cellRegion = _rand.randomInt(Util.clampInt(distToOrigin, 2, MapNode.kMaxRegions - 1));
-        if (isOriginCell) {
-            cellRegion = 0;
-        }
-
-        for (node in startNodes) {
-            node.level = cellLevel + 1;
-            node.region = cellRegion;
-        }
-
         var findPathWithinCell = function(start :MapNode, end :MapNode) {
             return bfsPath(start,
                 function (node :MapNode) {
@@ -272,9 +265,6 @@ class MapGenerator extends Component
                 var n = getNode(i, j);
                 if (n == null) {
                     n = addNode(node, i, j);
-                    var lev = node.level + (_rand.randomBool(0.65) ? 1 : 0);
-                    n.level = Util.intMin(lev, cellLevel + kLevelsPerCellDist);
-                    n.region = node.region;
                     cellNodes.push(n);
                 } else if (_rand.randomBool(0.1)) {
                     n.addNeighbor(node);
@@ -296,22 +286,7 @@ class MapGenerator extends Component
             }
         }
 
-        if (isOriginCell) {
-            var minLevelNode :MapNode = null;
-            for (node in cellNodes) {            
-                if (minLevelNode == null || minLevelNode.level > node.level) {
-                    minLevelNode = node;
-                }
-            }
-            _start = minLevelNode;
-            _start.town = true;
-        }
-        else {
-            var townNode = _rand.randomElement(cellNodes);
-            townNode.town = true;            
-        }
-
-
+        // Connect this grid cell to its neighbors
         var tryConnect = function(i1, j1, i2, j2, force = false) {
             var a = getNode(i1, j1);
             var b = getNode(i2, j2);
@@ -333,6 +308,72 @@ class MapGenerator extends Component
                        pos.i - 1, pos.j + k);
             tryConnect(pos.i + kGridSize - 1, pos.j + k,
                        pos.i + kGridSize, pos.j + k);
+        }
+
+        // Set levels for cells
+        var distToOrigin = Math.floor(Math.abs(x) + Math.abs(y));
+        var cellLevel = distToOrigin * kLevelsPerCellDist;
+        var cellRegion = _rand.randomInt(Util.clampInt(distToOrigin, 2, MapNode.kMaxRegions - 1));
+        if (isOriginCell) {
+            cellRegion = 0;
+        }
+
+        for (node in cellNodes) {
+            node.level = cellLevel + 1;
+            node.region = cellRegion;
+        }
+
+        var leftLev = Math.abs(x - 1) > Math.abs(x) ? kLevelsPerCellDist : 1;
+        var rightLev = Math.abs(x + 1) > Math.abs(x) ? kLevelsPerCellDist : 1;
+        var downLev = Math.abs(y - 1) > Math.abs(y) ? kLevelsPerCellDist : 1;
+        var upLev = Math.abs(y + 1) > Math.abs(y) ? kLevelsPerCellDist : 1;
+        if (isOriginCell) { rightLev = 1; }
+
+        startNodes = [left, right, down, up];
+        var startLevels = [leftLev, rightLev, downLev, upLev];
+
+        for (node in cellNodes) {
+            var lev;
+            if (startNodes.indexOf(node) != -1) {
+                lev = startLevels[startNodes.indexOf(node)];
+            }
+            else {
+                var dists = [];
+                for (s in startNodes) {
+                    dists.push(findPathWithinCell(node, s).length - 1);
+                }
+                var loDist = 2 * kGridSize * kGridSize;
+                for (i in 0...dists.length) {
+                    var d = dists[i];
+                    if (d < loDist && startLevels[i] == 1) {
+                        loDist = d;
+                    }
+                }
+                var loInd = dists.indexOf(loDist);
+                var hiInd = (loInd + 1) % 2 + (loInd >= 2 ? 2 : 0);
+                var hiDist = dists[hiInd];
+                var totDist = loDist + hiDist;
+                lev = Math.round(Util.lerp(loDist / totDist, 1, kLevelsPerCellDist));
+                lev = Util.clampInt(lev + Random.randomElement([-1, 0, 0, 1]), 1, kLevelsPerCellDist);
+            }
+
+            node.level = lev + cellLevel;
+        }
+
+        // Setup town node
+        if (!isOriginCell) {
+            var townNode = _rand.randomElement(cellNodes);
+            townNode.town = true;            
+        }
+        else {
+            var minLevelNode :MapNode = null;
+            for (node in cellNodes) {            
+                if (minLevelNode == null || minLevelNode.level > node.level) {
+                    minLevelNode = node;
+                }
+            }
+            _start = minLevelNode;
+            _start.town = true;
         }
 
         updateScrollBounds();

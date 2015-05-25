@@ -22,8 +22,8 @@ class SaveManager extends Component
     static inline var kSaveTime = 15;
     static inline var kSaveKey = 'ostm2';
 
-    static inline var kCurrentSaveVersion = 8;
-    static inline var kLastCompatibleSaveVersion = 8;
+    static inline var kCurrentSaveVersion = 9;
+    static inline var kLastCompatibleSaveVersion = 9;
 
     public override function init() :Void {
         instance = this;
