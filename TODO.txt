@@ -1,4 +1,6 @@
 Todo for 0.0.2 release:
+- short-format Util (1,234 -> 1.2K)
+- hunt/hide toggle, stat
 - better map level divvying (linear increase heading out)
 - 2 ring slots! (item button refactor)
 - update notif tech? (notification to refresh when update pushed)

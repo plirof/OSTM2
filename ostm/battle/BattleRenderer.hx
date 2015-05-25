@@ -10,13 +10,16 @@ class BattleRenderer extends Component {
     var _member :BattleMember;
     
     var _imageElem :ImageElement;
-    var _nameEnt :Entity;
-    var _hpBar :Entity;
-    var _mpBar :Entity;
-    var _attackBar :Entity;
+    var _spawnedEnts :Array<Entity> = [];
 
     public function new(member :BattleMember) {
         _member = member;
+    }
+
+    public override function deinit() :Void {
+        for (ent in _spawnedEnts) {
+            entity.getSystem().removeEntity(ent);
+        }
     }
 
     public override function start() :Void {
@@ -39,7 +42,7 @@ class BattleRenderer extends Component {
         _imageElem.style.imageRendering = 'pixelated';
         elem.appendChild(_imageElem);
 
-        _nameEnt = new Entity([
+        var nameEnt = new Entity([
             new Transform(new Vec2(nameX, -78)),
             new HtmlRenderer({
                 parent: id,
@@ -51,9 +54,9 @@ class BattleRenderer extends Component {
                 ],
             }),
         ]);
-        entity.getSystem().addEntity(_nameEnt);
+        _spawnedEnts.push(nameEnt);
 
-        var levEnt = new Entity([
+        var levelEnt = new Entity([
             new Transform(new Vec2(barX, -59)),
             new HtmlRenderer({
                 parent: id,
@@ -64,9 +67,9 @@ class BattleRenderer extends Component {
                 ],
             }),
         ]);
-        entity.getSystem().addEntity(levEnt);
+        _spawnedEnts.push(levelEnt);
 
-        var powEnt = new Entity([
+        var powerEnt = new Entity([
             new Transform(new Vec2(barX, -59)),
             new HtmlRenderer({
                 parent: id,
@@ -78,9 +81,9 @@ class BattleRenderer extends Component {
                 ],
             }),
         ]);
-        entity.getSystem().addEntity(powEnt);
+        _spawnedEnts.push(powerEnt);
 
-        _hpBar = new Entity([
+        var hpEnt = new Entity([
             new Transform(new Vec2(barX, -42)),
             new HtmlRenderer({
                 parent: id,
@@ -96,7 +99,7 @@ class BattleRenderer extends Component {
                 'background' => '#ff0000',
             ]),
         ]);
-        _mpBar = new Entity([
+        var mpEnt = new Entity([
             new Transform(new Vec2(barX, -24)),
             new HtmlRenderer({
                 parent: id,
@@ -114,17 +117,17 @@ class BattleRenderer extends Component {
         ]);
 
         if (_member.isPlayer) {
-            _hpBar.addComponent(new CenteredText(function() {
+            hpEnt.addComponent(new CenteredText(function() {
                 return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
             }, 13));
-            _mpBar.addComponent(new CenteredText(function() {
+            mpEnt.addComponent(new CenteredText(function() {
                 return Util.format(_member.mana) + ' / ' + Util.format(_member.maxMana());
             }, 13));
         }
-        entity.getSystem().addEntity(_hpBar);
-        entity.getSystem().addEntity(_mpBar);
+        _spawnedEnts.push(hpEnt);
+        _spawnedEnts.push(mpEnt);
 
-        _attackBar = new Entity([
+        var attackBar = new Entity([
             new Transform(new Vec2(atkBarX, 70)),
             new HtmlRenderer({
                 parent: id,
@@ -143,6 +146,10 @@ class BattleRenderer extends Component {
                 return _member.curSkill.name;
             }),
         ]);
-        entity.getSystem().addEntity(_attackBar);
+        _spawnedEnts.push(attackBar);
+
+        for (ent in _spawnedEnts) {
+            entity.getSystem().addEntity(ent);
+        }
     }
 }
