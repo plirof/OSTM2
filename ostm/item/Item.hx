@@ -37,11 +37,10 @@ class Item {
 
     public function setDropLevel(level :Int) :Void {
         this.level = level;
-
     }
 
     public function rollAffixes(nAffixes :Int) :Void {
-        var possibleAffixes = Affix.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
+        var possibleAffixes = AffixData.affixTypes.filter(function (affixType) { return affixType.canGoInSlot(type.slot); });
         var selectedAffixes = Random.randomElements(possibleAffixes, nAffixes);
         for (type in selectedAffixes) {
             var affix = new Affix(type, this.type.slot);
