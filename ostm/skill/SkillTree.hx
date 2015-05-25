@@ -217,6 +217,8 @@ class SkillNode extends GameNode {
         if (_tree.availableSkillPoints() > 0 &&
             skill.hasMetRequirements()) {
             skill.levelUp();
+
+            BattleManager.instance.getPlayer().updateCachedAffixes();
         }
     }
 }

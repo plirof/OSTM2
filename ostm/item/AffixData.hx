@@ -100,6 +100,7 @@ class AffixData {
             description: 'Mana',
             base: 5,
             perLevel: 2.5,
+            levelPower: 0.75,
             modifierFunc: function(value, mod) {
                 mod.flatMana += value;
             },

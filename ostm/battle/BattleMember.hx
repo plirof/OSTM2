@@ -36,6 +36,8 @@ class BattleMember implements Saveable {
     public var curSkill :ActiveSkill;
     public var classType :ClassType;
 
+    var _cachedStatMod = null;
+
     public function new(isPlayer :Bool) {
         if (isPlayer) {
             classType = ClassType.playerType;
@@ -62,6 +64,8 @@ class BattleMember implements Saveable {
 
     function levelUp() :Void {
         level++;
+
+        _cachedStatMod = null;
         
         untyped ga('send', 'event', 'player', 'level-up', '', level);
     }
@@ -122,21 +126,26 @@ class BattleMember implements Saveable {
         return Math.round(val);
     }
 
+    public function updateCachedAffixes() :Void {
+        _cachedStatMod = null;
+    }
     function sumAffixes() :StatModifier {
-        var mod = new StatModifier();
-        for (item in equipment) {
-            if (item != null) {
-                item.sumAffixes(mod);
+        if (_cachedStatMod == null) {
+            _cachedStatMod = new StatModifier();
+            for (item in equipment) {
+                if (item != null) {
+                    item.sumAffixes(_cachedStatMod);
+                }
+            }
+
+            _cachedStatMod.flatAttack = 0;
+            _cachedStatMod.flatDefense = 0;
+            
+            for (passive in SkillTree.instance.skills) {
+                passive.sumAffixes(_cachedStatMod);
             }
         }
-
-        mod.flatAttack = 0;
-        mod.flatDefense = 0;
-        
-        for (passive in SkillTree.instance.skills) {
-            passive.sumAffixes(mod);
-        }
-        return mod;
+        return _cachedStatMod;
     }
     public function maxHealth() :Int {
         var mod = sumAffixes();
@@ -280,9 +289,13 @@ class BattleMember implements Saveable {
         }
 
         equipment[item.type.slot] = item;
+
+        updateCachedAffixes();
     }
     public function unequip(item :Item) :Void {
         equipment[item.type.slot] = null;
+
+        updateCachedAffixes();
     }
 
     public function setActiveSkill(skill :ActiveSkill) :Void {
@@ -349,5 +362,7 @@ class BattleMember implements Saveable {
             var item = Item.loadItem(d);
             equipment[item.type.slot] = item;
         }
+
+        _cachedStatMod = null;
     }
 }

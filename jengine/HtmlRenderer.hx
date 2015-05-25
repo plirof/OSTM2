@@ -12,6 +12,7 @@ class HtmlRenderer extends Component {
     var _options :Dynamic;
     var _elem :Element;
 
+    var _transform :Transform;
     var _cachedPos :Vec2;
     var _cachedSize :Vec2;
 
@@ -47,6 +48,10 @@ class HtmlRenderer extends Component {
         parent.appendChild(_elem);
     }
 
+    public override function start() :Void {
+        _transform = getTransform();
+    }
+
     public static function styleElement(elem :Element, style :Map<String, String>) :Void {
         if (style != null) {
             for (k in style.keys()) {
@@ -60,11 +65,11 @@ class HtmlRenderer extends Component {
     }
 
     function getPos() :Vec2 {
-        if (getTransform() == null) {
+        if (_transform == null) {
             return null;
         }
 
-        var pos = getTransform().pos;
+        var pos = _transform.pos;
         if (floating) {
             var container = _elem.parentElement;
             var scroll = new Vec2(container.scrollLeft, container.scrollTop);
