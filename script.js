@@ -426,7 +426,6 @@ jengine.Component.prototype = {
 jengine.Entity = function(components) {
 	this._hasStarted = false;
 	this._components = components;
-	if(this.getComponent(jengine.Transform) == null) this._components.push(new jengine.Transform());
 	var _g = 0;
 	var _g1 = this._components;
 	while(_g < _g1.length) {
@@ -543,7 +542,6 @@ jengine.HtmlRenderer = function(options) {
 	jengine.Component.call(this);
 	this._options = options;
 	var size = this._options.size;
-	if(size == null) size = jengine._Vec2.Vec2_Impl_._new(50,50);
 	this.size = size;
 };
 jengine.HtmlRenderer.__name__ = true;
@@ -561,12 +559,12 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 	init: function() {
 		var parent;
 		if(this._options.parent != null) parent = window.document.getElementById(this._options.parent); else parent = window.document.body;
-		this._elem = window.document.createElement("span");
+		var _this = window.document;
+		this._elem = _this.createElement("span");
 		if(this._options.id != null) this._elem.id = this._options.id;
 		if(this._options.className != null) this._elem.className = this._options.className;
 		if(this._options.text != null) this._elem.innerText = this._options.text;
 		this._elem.style.position = "absolute";
-		this._elem.style.background = "red";
 		jengine.HtmlRenderer.styleElement(this._elem,this._options.style);
 		parent.appendChild(this._elem);
 	}
@@ -574,6 +572,7 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 		this._elem.parentElement.removeChild(this._elem);
 	}
 	,getPos: function() {
+		if(this.entity.getComponent(jengine.Transform) == null) return null;
 		var pos = this.entity.getComponent(jengine.Transform).pos;
 		if(this.floating) {
 			var container = this._elem.parentElement;
@@ -583,17 +582,28 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 		return pos;
 	}
 	,isDirty: function() {
+		if((function($this) {
+			var $r;
+			var lhs = $this.getPos();
+			$r = lhs == null?true:lhs == null || true?false:lhs.x == null.x && lhs.y == null.y;
+			return $r;
+		}(this)) && (function($this) {
+			var $r;
+			var lhs1 = $this.size;
+			$r = lhs1 == null?true:lhs1 == null || true?false:lhs1.x == null.x && lhs1.y == null.y;
+			return $r;
+		}(this))) return false;
 		return (function($this) {
 			var $r;
-			var lhs = $this._cachedPos;
+			var lhs2 = $this._cachedPos;
 			var rhs = $this.getPos();
-			$r = !(lhs == null && rhs == null?true:lhs == null || rhs == null?false:lhs.x == rhs.x && lhs.y == rhs.y);
+			$r = !(lhs2 == null && rhs == null?true:lhs2 == null || rhs == null?false:lhs2.x == rhs.x && lhs2.y == rhs.y);
 			return $r;
 		}(this)) || (function($this) {
 			var $r;
-			var lhs1 = $this._cachedSize;
+			var lhs3 = $this._cachedSize;
 			var rhs1 = $this.size;
-			$r = !(lhs1 == null && rhs1 == null?true:lhs1 == null || rhs1 == null?false:lhs1.x == rhs1.x && lhs1.y == rhs1.y);
+			$r = !(lhs3 == null && rhs1 == null?true:lhs3 == null || rhs1 == null?false:lhs3.x == rhs1.x && lhs3.y == rhs1.y);
 			return $r;
 		}(this));
 	}
@@ -602,13 +612,23 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 		this._cachedSize = this.size;
 	}
 	,draw: function() {
+		if(this._options.textFunc != null) this._elem.innerText = this._options.textFunc();
 		if(this.isDirty()) {
 			this.markClean();
 			var pos = this.getPos();
-			this._elem.style.left = pos.x;
-			this._elem.style.top = pos.y;
-			this._elem.style.width = this.size.x;
-			this._elem.style.height = this.size.y;
+			if(!(pos == null?true:pos == null || true?false:pos.x == null.x && pos.y == null.y)) {
+				this._elem.style.left = pos.x;
+				this._elem.style.top = pos.y;
+			}
+			if((function($this) {
+				var $r;
+				var lhs = $this.size;
+				$r = !(lhs == null?true:lhs == null || true?false:lhs.x == null.x && lhs.y == null.y);
+				return $r;
+			}(this))) {
+				this._elem.style.width = this.size.x;
+				this._elem.style.height = this.size.y;
+			}
 		}
 	}
 	,getElement: function() {
@@ -1054,7 +1074,7 @@ js.Browser.getLocalStorage = function() {
 };
 var ostm = {};
 ostm.GameMain = function() {
-	var entityList = [new jengine.Entity([new ostm.KeyboardManager()]),new jengine.Entity([new ostm.map.MapGenerator()]),new jengine.Entity([new ostm.battle.BattleManager()]),new jengine.Entity([new ostm.item.Inventory()]),new jengine.Entity([new jengine.SaveManager()]),new jengine.Entity([new ostm.skill.SkillTree()]),new jengine.Entity([new ostm.TownManager()])];
+	var entityList = [new jengine.Entity([new ostm.KeyboardManager(),new ostm.map.MapGenerator(),new ostm.battle.BattleManager(),new ostm.item.Inventory(),new jengine.SaveManager(),new ostm.skill.SkillTree(),new ostm.TownManager(),new ostm.TabManager()])];
 	ostm.MouseManager.init();
 	jengine.JEngineMain.call(this,entityList);
 };
@@ -1217,9 +1237,9 @@ ostm.ProgressBar.prototype = $extend(jengine.Component.prototype,{
 		if(renderer != null) {
 			var _this = window.document;
 			this._elem = _this.createElement("span");
+			this._elem.className = "progress-bar";
 			this._elem.style.position = "absolute";
 			this._elem.style.height = "100%";
-			this._elem.style.background = "white";
 			jengine.HtmlRenderer.styleElement(this._elem,this._style);
 			renderer.getElement().appendChild(this._elem);
 		}
@@ -1234,6 +1254,120 @@ ostm.ProgressBar.prototype = $extend(jengine.Component.prototype,{
 		return this._elem;
 	}
 	,__class__: ostm.ProgressBar
+});
+ostm.TabManager = function() {
+	this._shouldRefresh = true;
+	this._enabled = ["main-screen","map-screen"];
+	this._tabs = [{ id : "stat-screen", buttonName : "Stats", column : 1},{ id : "main-screen", buttonName : null, column : 2},{ id : "inventory-screen", buttonName : "Inventory", column : 2},{ id : "map-screen", buttonName : "Map", column : 3},{ id : "skill-screen", buttonName : "Skills", column : 3}];
+	this.saveId = "tab-manager";
+	jengine.Component.call(this);
+};
+ostm.TabManager.__name__ = true;
+ostm.TabManager.__interfaces__ = [jengine.Saveable];
+ostm.TabManager.__super__ = jengine.Component;
+ostm.TabManager.prototype = $extend(jengine.Component.prototype,{
+	start: function() {
+		var _g2 = this;
+		jengine.SaveManager.instance.addItem(this);
+		var header = window.document.getElementById("header-tab-container");
+		var _g = 0;
+		var _g1 = this._tabs;
+		while(_g < _g1.length) {
+			var tab = [_g1[_g]];
+			++_g;
+			if(tab[0].buttonName != null) {
+				var button;
+				var _this = window.document;
+				button = _this.createElement("button");
+				button.innerText = tab[0].buttonName;
+				button.onclick = (function(tab) {
+					return function(event) {
+						_g2.toggleTabEnabled(tab[0].id);
+					};
+				})(tab);
+				header.appendChild(button);
+			}
+		}
+	}
+	,update: function() {
+		if(this._shouldRefresh) {
+			this._shouldRefresh = false;
+			var columns = new haxe.ds.IntMap();
+			var _g = 0;
+			var _g1 = this._tabs;
+			while(_g < _g1.length) {
+				var tab = _g1[_g];
+				++_g;
+				var elem = window.document.getElementById(tab.id);
+				if(HxOverrides.indexOf(this._enabled,tab.id,0) == -1) elem.style.display = "none"; else {
+					elem.style.display = "";
+					if(columns.get(tab.column) == null) {
+						var v = [];
+						columns.set(tab.column,v);
+						v;
+					}
+					columns.get(tab.column).push(elem);
+				}
+			}
+			var numVisibleColumns = 0;
+			var $it0 = columns.iterator();
+			while( $it0.hasNext() ) {
+				var x = $it0.next();
+				numVisibleColumns++;
+			}
+			var columnWidth = 100.0 / numVisibleColumns;
+			var columnLeft = 0.0;
+			var _g11 = 1;
+			var _g2 = 4;
+			while(_g11 < _g2) {
+				var i = _g11++;
+				var columnElem = window.document.getElementById("column-" + i);
+				if(columns.get(i) == null) columnElem.style.display = "none"; else {
+					columnElem.style.display = "";
+					columnElem.style.width = columnWidth + "%";
+					columnElem.style.left = columnLeft + "%";
+					columnLeft += columnWidth;
+				}
+			}
+			var $it1 = columns.iterator();
+			while( $it1.hasNext() ) {
+				var tabElems = $it1.next();
+				var numVisibleRows = tabElems.length;
+				var rowHeight = 100.0 / numVisibleRows;
+				var rowTop = 0.0;
+				var _g3 = 0;
+				while(_g3 < tabElems.length) {
+					var elem1 = tabElems[_g3];
+					++_g3;
+					elem1.style.height = rowHeight + "%";
+					elem1.style.top = rowTop + "%";
+					rowTop += rowHeight;
+				}
+			}
+		}
+	}
+	,getTabData: function(id) {
+		var _g = 0;
+		var _g1 = this._tabs;
+		while(_g < _g1.length) {
+			var tab = _g1[_g];
+			++_g;
+			if(tab.id == id) return tab;
+		}
+		return null;
+	}
+	,toggleTabEnabled: function(tabId) {
+		if(HxOverrides.indexOf(this._enabled,tabId,0) == -1) this._enabled.push(tabId); else HxOverrides.remove(this._enabled,tabId);
+		this._shouldRefresh = true;
+	}
+	,serialize: function() {
+		return { enabled : this._enabled};
+	}
+	,deserialize: function(data) {
+		this._enabled = data.enabled;
+		this._shouldRefresh = true;
+	}
+	,__class__: ostm.TabManager
 });
 ostm.TownManager = function() {
 	this.shouldWarp = false;
@@ -1478,70 +1612,44 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 		ostm.battle.BattleManager.instance = this;
 	}
 	,start: function() {
-		var _g1 = this;
+		var _g = this;
 		this._player = this.addBattleMember(true,jengine._Vec2.Vec2_Impl_._new(75,80));
-		this.entity.getSystem().addEntity(new jengine.Entity([new jengine.HtmlRenderer({ id : "kill-bar", parent : "game-header", size : jengine._Vec2.Vec2_Impl_._new(500,25), style : (function($this) {
-			var $r;
-			var _g = new haxe.ds.StringMap();
-			_g.set("background","#885500");
-			_g.set("border","1px solid #000000");
-			$r = _g;
-			return $r;
-		}(this))}),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(20,37)),new ostm.ProgressBar(function() {
-			return _g1._enemySpawnTimer / 4;
-		},(function($this) {
-			var $r;
-			var _g11 = new haxe.ds.StringMap();
-			_g11.set("background","#ffaa00");
-			$r = _g11;
-			return $r;
-		}(this)))]));
+		this.entity.getSystem().addEntity(new jengine.Entity([new jengine.HtmlRenderer({ parent : "battle-screen", className : "spawn-bar"}),new ostm.ProgressBar(function() {
+			return _g._enemySpawnTimer / 4;
+		})]));
+		this.entity.getSystem().addEntity(new jengine.Entity([new jengine.HtmlRenderer({ parent : "battle-screen", className : "xp-bar"}),new ostm.ProgressBar(function() {
+			return _g._player.xp / _g._player.xpToNextLevel();
+		})]));
 		this._activeButtons = [];
-		var _g2 = 0;
-		var _g3 = ostm.battle.ActiveSkill.skills;
-		while(_g2 < _g3.length) {
-			var skill = _g3[_g2];
-			++_g2;
+		var _g1 = 0;
+		var _g11 = ostm.battle.ActiveSkill.skills;
+		while(_g1 < _g11.length) {
+			var skill = _g11[_g1];
+			++_g1;
 			var i = this._activeButtons.length;
 			var x = i % 2;
 			var y = Math.floor(i / 2);
 			var btn = new ostm.battle.ActiveSkillButton(i,skill);
 			var btnEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(90 * x + 20,90 * y + 200)),new jengine.HtmlRenderer({ parent : "battle-screen", size : jengine._Vec2.Vec2_Impl_._new(80,80), style : (function($this) {
 				var $r;
-				var _g4 = new haxe.ds.StringMap();
-				_g4.set("border","2px solid black");
-				_g4.set("background","white");
-				$r = _g4;
+				var _g2 = new haxe.ds.StringMap();
+				_g2.set("border","2px solid black");
+				_g2.set("background","white");
+				$r = _g2;
 				return $r;
 			}(this))}),btn]);
 			this.entity.getSystem().addEntity(btnEnt);
 			this._activeButtons.push(btn);
 		}
 		this._player.level = 1;
-		var _g21 = 0;
-		var _g31 = this._battleMembers;
-		while(_g21 < _g31.length) {
-			var mem = _g31[_g21];
-			++_g21;
+		var _g3 = 0;
+		var _g12 = this._battleMembers;
+		while(_g3 < _g12.length) {
+			var mem = _g12[_g3];
+			++_g3;
 			mem.health = mem.maxHealth();
 			mem.mana = mem.maxMana();
 		}
-		this.entity.getSystem().addEntity(new jengine.Entity([new jengine.HtmlRenderer({ id : "xp-bar", parent : "game-header", size : jengine._Vec2.Vec2_Impl_._new(500,25), style : (function($this) {
-			var $r;
-			var _g22 = new haxe.ds.StringMap();
-			_g22.set("background","#118811");
-			_g22.set("border","1px solid #000000");
-			$r = _g22;
-			return $r;
-		}(this))}),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(20,67)),new ostm.ProgressBar(function() {
-			return _g1._player.xp / _g1._player.xpToNextLevel();
-		},(function($this) {
-			var $r;
-			var _g32 = new haxe.ds.StringMap();
-			_g32.set("background","#22ff22");
-			$r = _g32;
-			return $r;
-		}(this)))]));
 	}
 	,spawnLevel: function() {
 		return ostm.map.MapGenerator.instance.selectedNode.areaLevel();
@@ -1946,6 +2054,9 @@ ostm.battle.BattleMember.prototype = {
 		var mitigated = 1 / (1 - this.damageReduction(attackerLevel));
 		return hp * mitigated;
 	}
+	,power: function(targetLevel) {
+		return Math.round(Math.sqrt(this.dps(targetLevel) * this.ehp(targetLevel)));
+	}
 	,moveSpeed: function() {
 		var mod = this.sumAffixes();
 		var spd = 1;
@@ -2015,21 +2126,31 @@ ostm.battle.BattleMember.prototype = {
 	,__class__: ostm.battle.BattleMember
 };
 ostm.battle.BattleRenderer = function(member) {
+	this._spawnedEnts = [];
 	jengine.Component.call(this);
 	this._member = member;
 };
 ostm.battle.BattleRenderer.__name__ = true;
 ostm.battle.BattleRenderer.__super__ = jengine.Component;
 ostm.battle.BattleRenderer.prototype = $extend(jengine.Component.prototype,{
-	start: function() {
-		var _g2 = this;
+	deinit: function() {
+		var _g = 0;
+		var _g1 = this._spawnedEnts;
+		while(_g < _g1.length) {
+			var ent = _g1[_g];
+			++_g;
+			this.entity.getSystem().removeEntity(ent);
+		}
+	}
+	,start: function() {
+		var _g1 = this;
 		var renderer = this.entity.getComponent(jengine.HtmlRenderer);
 		var elem = renderer.getElement();
 		var id = elem.id;
 		var size = renderer.size;
 		var nameSize = jengine._Vec2.Vec2_Impl_._new(160,30);
 		var nameX = (size.x - nameSize.x) / 2;
-		var barSize = jengine._Vec2.Vec2_Impl_._new(160,10);
+		var barSize = jengine._Vec2.Vec2_Impl_._new(160,16);
 		var barX = (size.x - barSize.x) / 2;
 		var atkBarSize = jengine._Vec2.Vec2_Impl_._new(180,20);
 		var atkBarX = (size.x - atkBarSize.x) / 2;
@@ -2041,7 +2162,7 @@ ostm.battle.BattleRenderer.prototype = $extend(jengine.Component.prototype,{
 		this._imageElem.style.margin = "0px auto 0px auto";
 		this._imageElem.style.imageRendering = "pixelated";
 		elem.appendChild(this._imageElem);
-		this._nameEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(nameX,-60)),new jengine.HtmlRenderer({ parent : id, size : nameSize, text : this._member.classType.name, style : (function($this) {
+		var nameEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(nameX,-78)),new jengine.HtmlRenderer({ parent : id, size : nameSize, text : this._member.classType.name, style : (function($this) {
 			var $r;
 			var _g = new haxe.ds.StringMap();
 			_g.set("background","none");
@@ -2049,73 +2170,125 @@ ostm.battle.BattleRenderer.prototype = $extend(jengine.Component.prototype,{
 			$r = _g;
 			return $r;
 		}(this))})]);
-		this.entity.getSystem().addEntity(this._nameEnt);
-		this._hpBar = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(barX,-42)),new jengine.HtmlRenderer({ parent : id, size : barSize, style : (function($this) {
+		this._spawnedEnts.push(nameEnt);
+		var levelEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(barX,-59)),new jengine.HtmlRenderer({ parent : id, size : barSize, textFunc : function() {
+			return "L" + jengine.util.Util.format(_g1._member.level);
+		}, style : (function($this) {
 			var $r;
-			var _g1 = new haxe.ds.StringMap();
-			_g1.set("background","#662222");
-			_g1.set("border","2px solid black");
-			$r = _g1;
+			var _g11 = new haxe.ds.StringMap();
+			_g11.set("font-size","13px");
+			$r = _g11;
 			return $r;
-		}(this))}),new ostm.ProgressBar(function() {
-			return _g2._member.health / _g2._member.maxHealth();
-		},(function($this) {
+		}(this))})]);
+		this._spawnedEnts.push(levelEnt);
+		var powerEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(barX,-59)),new jengine.HtmlRenderer({ parent : id, size : barSize, textFunc : function() {
+			return "Pow: " + jengine.util.Util.format(_g1._member.power(_g1._member.level));
+		}, style : (function($this) {
 			var $r;
-			var _g21 = new haxe.ds.StringMap();
-			_g21.set("background","#ff0000");
-			$r = _g21;
+			var _g2 = new haxe.ds.StringMap();
+			_g2.set("font-size","13px");
+			_g2.set("text-align","right");
+			$r = _g2;
 			return $r;
-		}(this)))]);
-		this.entity.getSystem().addEntity(this._hpBar);
-		this._mpBar = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(barX,-30)),new jengine.HtmlRenderer({ parent : id, size : barSize, style : (function($this) {
+		}(this))})]);
+		this._spawnedEnts.push(powerEnt);
+		var hpEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(barX,-42)),new jengine.HtmlRenderer({ parent : id, size : barSize, style : (function($this) {
 			var $r;
 			var _g3 = new haxe.ds.StringMap();
-			_g3.set("background","#222266");
+			_g3.set("background","#662222");
 			_g3.set("border","2px solid black");
 			$r = _g3;
 			return $r;
 		}(this))}),new ostm.ProgressBar(function() {
-			return _g2._member.mana / _g2._member.maxMana();
+			return _g1._member.health / _g1._member.maxHealth();
 		},(function($this) {
 			var $r;
 			var _g4 = new haxe.ds.StringMap();
-			_g4.set("background","#0044ff");
+			_g4.set("background","#ff0000");
 			$r = _g4;
 			return $r;
 		}(this)))]);
-		this.entity.getSystem().addEntity(this._mpBar);
-		this._attackBar = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(atkBarX,70)),new jengine.HtmlRenderer({ parent : id, size : atkBarSize, style : (function($this) {
+		var mpEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(barX,-24)),new jengine.HtmlRenderer({ parent : id, size : barSize, style : (function($this) {
 			var $r;
 			var _g5 = new haxe.ds.StringMap();
-			_g5.set("background","#226622");
+			_g5.set("background","#222266");
 			_g5.set("border","2px solid black");
 			$r = _g5;
 			return $r;
 		}(this))}),new ostm.ProgressBar(function() {
-			return _g2._member.attackSpeed() * _g2._member.attackTimer;
+			return _g1._member.mana / _g1._member.maxMana();
 		},(function($this) {
 			var $r;
 			var _g6 = new haxe.ds.StringMap();
-			_g6.set("background","#00ff00");
+			_g6.set("background","#0044ff");
 			$r = _g6;
 			return $r;
 		}(this)))]);
-		this.entity.getSystem().addEntity(this._attackBar);
-	}
-	,update: function() {
-		if(this._attackElem == null) {
-			var _this = window.document;
-			this._attackElem = _this.createElement("span");
-			this._attackElem.style.position = "absolute";
-			var atkRenderer = this._attackBar.getComponent(jengine.HtmlRenderer);
-			this._attackElem.style.width = atkRenderer.size.x;
-			this._attackElem.style.textAlign = "center";
-			this._attackElem.style.zIndex = 1;
-			atkRenderer.getElement().appendChild(this._attackElem);
+		if(this._member.isPlayer) {
+			hpEnt.addComponent(new ostm.battle.CenteredText(function() {
+				return jengine.util.Util.format(_g1._member.health) + " / " + jengine.util.Util.format(_g1._member.maxHealth());
+			},13));
+			mpEnt.addComponent(new ostm.battle.CenteredText(function() {
+				return jengine.util.Util.format(_g1._member.mana) + " / " + jengine.util.Util.format(_g1._member.maxMana());
+			},13));
 		}
-		this._attackElem.innerText = this._member.curSkill.name;
+		this._spawnedEnts.push(hpEnt);
+		this._spawnedEnts.push(mpEnt);
+		var attackBar = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(atkBarX,70)),new jengine.HtmlRenderer({ parent : id, size : atkBarSize, style : (function($this) {
+			var $r;
+			var _g7 = new haxe.ds.StringMap();
+			_g7.set("background","#226622");
+			_g7.set("border","2px solid black");
+			$r = _g7;
+			return $r;
+		}(this))}),new ostm.ProgressBar(function() {
+			return _g1._member.attackSpeed() * _g1._member.attackTimer;
+		},(function($this) {
+			var $r;
+			var _g8 = new haxe.ds.StringMap();
+			_g8.set("background","#00ff00");
+			$r = _g8;
+			return $r;
+		}(this))),new ostm.battle.CenteredText(function() {
+			return _g1._member.curSkill.name;
+		})]);
+		this._spawnedEnts.push(attackBar);
+		var _g9 = 0;
+		var _g10 = this._spawnedEnts;
+		while(_g9 < _g10.length) {
+			var ent = _g10[_g9];
+			++_g9;
+			this.entity.getSystem().addEntity(ent);
+		}
 	}
 	,__class__: ostm.battle.BattleRenderer
+});
+ostm.battle.CenteredText = function(textFunc,fontSize) {
+	if(fontSize == null) fontSize = 16;
+	jengine.Component.call(this);
+	this._textFunc = textFunc;
+	this._fontSize = fontSize;
+};
+ostm.battle.CenteredText.__name__ = true;
+ostm.battle.CenteredText.__super__ = jengine.Component;
+ostm.battle.CenteredText.prototype = $extend(jengine.Component.prototype,{
+	update: function() {
+		if(this._elem == null) {
+			var renderer = this.entity.getComponent(jengine.HtmlRenderer);
+			if(renderer != null) {
+				var _this = window.document;
+				this._elem = _this.createElement("span");
+				this._elem.style.position = "absolute";
+				this._elem.style.width = renderer.size.x;
+				this._elem.style.textAlign = "center";
+				this._elem.style.fontSize = this._fontSize;
+				this._elem.style.zIndex = 1;
+				renderer.getElement().appendChild(this._elem);
+			}
+		}
+		if(this._elem != null) this._elem.innerText = this._textFunc();
+	}
+	,__class__: ostm.battle.CenteredText
 });
 ostm.battle.StatType = function(base,perLevel) {
 	this.baseValue = base;
@@ -2573,10 +2746,21 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 			_g.updateInventoryHtml();
 		};
 		inventory.appendChild(clear);
+		var sortBtn;
+		var _this2 = window.document;
+		sortBtn = _this2.createElement("button");
+		sortBtn.innerText = "Sort Value";
+		sortBtn.onclick = function(event1) {
+			_g._inventory.sort(function(it1,it2) {
+				return -Reflect.compare(it1.buyValue(),it2.buyValue());
+			});
+			_g.updateInventoryHtml();
+		};
+		inventory.appendChild(sortBtn);
 		inventory.appendChild((function($this) {
 			var $r;
-			var _this2 = window.document;
-			$r = _this2.createElement("br");
+			var _this3 = window.document;
+			$r = _this3.createElement("br");
 			return $r;
 		}(this)));
 		var _g2 = 0;
@@ -2800,7 +2984,6 @@ ostm.item.Item.prototype = {
 			btn.onclick = f;
 			btn.innerText = k;
 			this._buttons.appendChild(btn);
-			if(index == 0) img.ondblclick = f;
 			clickFuncs.push(f);
 			index++;
 		}
@@ -3033,31 +3216,26 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		jengine.SaveManager.instance.addItem(this);
 		this._scrollHelper = new jengine.Entity([new jengine.HtmlRenderer({ parent : "map-screen", size : jengine._Vec2.Vec2_Impl_._new(1,1)}),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(0,0))]);
 		this.entity.getSystem().addEntity(this._scrollHelper);
-		var moveBarEntity = new jengine.Entity([new jengine.HtmlRenderer({ id : "move-bar", parent : "game-header", size : jengine._Vec2.Vec2_Impl_._new(500,25), style : (function($this) {
+		this._moveBarTransform = new jengine.Transform();
+		var moveBarEntity = new jengine.Entity([this._moveBarTransform,new jengine.HtmlRenderer({ parent : "map-screen", className : "move-bar", style : (function($this) {
 			var $r;
 			var _g = new haxe.ds.StringMap();
-			_g.set("background","#888800");
-			_g.set("border","1px solid #000000");
+			_g.set("position","fixed");
 			$r = _g;
 			return $r;
-		}(this))}),new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(20,7)),new ostm.ProgressBar(function() {
+		}(this))}),new ostm.ProgressBar(function() {
 			return _g1._moveTimer / 12.0;
-		},(function($this) {
-			var $r;
-			var _g11 = new haxe.ds.StringMap();
-			_g11.set("background","#ffff00");
-			$r = _g11;
-			return $r;
-		}(this)))]);
+		})]);
 		this.entity.getSystem().addEntity(moveBarEntity);
+		this._mapScreenElem = window.document.getElementById("map-screen");
 		this.generateSurroundingCells(0,0);
-		this.selectedNode = this._start;
-		this._checkpoint = this._start;
-		this._start.setOccupied();
+		this.setSelected(this._start);
 		this.updateScrollBounds();
 		this.centerCurrentNode();
 	}
 	,update: function() {
+		var rect = this._mapScreenElem.getBoundingClientRect();
+		this._moveBarTransform.pos = jengine._Vec2.Vec2_Impl_._new(rect.left + 20,rect.top + 20);
 		if(ostm.battle.BattleManager.instance.isInBattle() || ostm.battle.BattleManager.instance.isPlayerDead()) return;
 		var player = ostm.battle.BattleManager.instance.getPlayer();
 		this._moveTimer += jengine.Time.dt * player.moveSpeed();
@@ -3075,13 +3253,6 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 			}
 		}
 	}
-	,debugNodeCount: function() {
-		var nodeCount = 0;
-		this.forAllNodes(function(node) {
-			nodeCount++;
-		});
-		return nodeCount;
-	}
 	,getGridCoord: function(i,j) {
 		return { x : Math.floor(i / 5), y : Math.floor(j / 5)};
 	}
@@ -3089,15 +3260,33 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		return { i : x * 5, j : y * 5};
 	}
 	,setSelected: function(next) {
-		this.selectedNode.clearPath();
-		this.selectedNode.clearOccupied();
+		if(this.selectedNode != null) {
+			this.selectedNode.clearPath();
+			this.selectedNode.clearOccupied();
+		}
 		this.selectedNode = next;
 		this.generateSurroundingCells(next.depth,next.height);
 		this.selectedNode.setOccupied();
 		ostm.battle.BattleManager.instance.resetKillCount();
-		if(next.town) this._checkpoint = next;
-		this.forAllNodes(function(node) {
-			if(node.isHint()) node._dirtyFlag = true;
+		if(next.isTown()) {
+			this._checkpoint = next;
+			var gridPos = this.getGridCoord(next.depth,next.height);
+			this.forAllNodesInGridCell(gridPos.x,gridPos.y,function(node) {
+				node.setVisible();
+			});
+			var xs = [1,-1,0,0];
+			var ys = [0,0,1,-1];
+			var _g1 = 0;
+			var _g = xs.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				this.forAllNodesInGridCell(gridPos.x + xs[i],gridPos.y + ys[i],function(node1) {
+					if(node1.isTown()) node1.setVisible();
+				});
+			}
+		}
+		this.forAllNodes(function(node2) {
+			if(node2.isHint()) node2._dirtyFlag = true;
 		});
 		this.updateScrollBounds();
 	}
@@ -3322,7 +3511,7 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 			this.setPath(null);
 			return;
 		}
-		if(node.isTown() && ostm.TownManager.instance.shouldWarp) {
+		if(ostm.TownManager.instance.shouldWarp && node.isTown() && node.hasVisited()) {
 			this.setPath(null);
 			this.setSelected(node);
 			return;
@@ -3355,6 +3544,23 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 			while( $it1.hasNext() ) {
 				var node = $it1.next();
 				f(node);
+			}
+		}
+	}
+	,forAllNodesInGridCell: function(x,y,f) {
+		var _g1 = x * 5;
+		var _g = (x + 1) * 5;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var row = this._generated.get(i);
+			if(row != null) {
+				var _g3 = y * 5;
+				var _g2 = (y + 1) * 5;
+				while(_g3 < _g2) {
+					var j = _g3++;
+					var node = row.get(j);
+					if(node != null) f(node);
+				}
 			}
 		}
 	}
@@ -3451,7 +3657,7 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		return this.bfsPath(start,function(node) {
 			return node == end;
 		},function(node1) {
-			return node1.hasSeen();
+			return node1 == end || node1.hasVisited();
 		});
 	}
 	,returnToCheckpoint: function() {
@@ -4108,12 +4314,13 @@ jengine.SaveManager.kSaveKey = "ostm2";
 jengine.SaveManager.kCurrentSaveVersion = 8;
 jengine.SaveManager.kLastCompatibleSaveVersion = 8;
 jengine.Time.timeMultiplier = 1;
+ostm.TabManager.kNumColumns = 3;
 ostm.TownManager.kShopRefreshTime = 300;
 ostm.battle.ActiveSkill.skills = [new ostm.battle.ActiveSkill("Attack",0,1,1),new ostm.battle.ActiveSkill("Quick Attack",12,1,1.6),new ostm.battle.ActiveSkill("Power Attack",16,2.2,0.65)];
 ostm.battle.BattleManager.kEnemySpawnTime = 4;
 ostm.battle.BattleManager.kPlayerDeathTime = 5;
 ostm.battle.ClassType.playerType = new ostm.battle.ClassType({ name : "Adventurer", image : "classes/Adventurer.png", str : new ostm.battle.StatType(5,2.5), dex : new ostm.battle.StatType(5,2.5), 'int' : new ostm.battle.StatType(5,2.5), vit : new ostm.battle.StatType(5,2.5), end : new ostm.battle.StatType(5,2.5)});
-ostm.battle.ClassType.enemyTypes = [new ostm.battle.ClassType({ name : "Slime", image : "enemies/Slime.png", attack : new ostm.battle.StatType(1.5,0.75), str : new ostm.battle.ExpStatType(2.2,0.6), dex : new ostm.battle.ExpStatType(2.2,0.6), 'int' : new ostm.battle.ExpStatType(2.2,0.6), vit : new ostm.battle.ExpStatType(4.2,1.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Snake", image : "enemies/Snake.png", attack : new ostm.battle.StatType(2.25,1.15), str : new ostm.battle.ExpStatType(4.6,1.1), dex : new ostm.battle.ExpStatType(5.2,1.3), 'int' : new ostm.battle.ExpStatType(3.2,0.8), vit : new ostm.battle.ExpStatType(2.8,0.6), end : new ostm.battle.ExpStatType(2.2,0.6)})];
+ostm.battle.ClassType.enemyTypes = [new ostm.battle.ClassType({ name : "Slime", image : "enemies/Slime.png", attack : new ostm.battle.StatType(1.5,0.75), str : new ostm.battle.ExpStatType(2.2,0.6), dex : new ostm.battle.ExpStatType(2.2,0.6), 'int' : new ostm.battle.ExpStatType(2.2,0.6), vit : new ostm.battle.ExpStatType(4.2,1.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Snake", image : "enemies/Snake.png", attack : new ostm.battle.StatType(2.25,1.15), str : new ostm.battle.ExpStatType(4.6,1.1), dex : new ostm.battle.ExpStatType(5.2,1.3), 'int' : new ostm.battle.ExpStatType(2.2,0.8), vit : new ostm.battle.ExpStatType(2.8,0.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Goblin", image : "enemies/Goblin.png", attack : new ostm.battle.StatType(2,1.1), str : new ostm.battle.ExpStatType(3.5,0.9), dex : new ostm.battle.ExpStatType(5,1.2), 'int' : new ostm.battle.ExpStatType(3.2,0.8), vit : new ostm.battle.ExpStatType(3.8,0.9), end : new ostm.battle.ExpStatType(3.2,0.8)})];
 ostm.item.AffixType.kMaxRolls = 1000;
 ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attack",2,1,function(value,mod) {
 	mod.flatAttack += value;
@@ -4179,7 +4386,7 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g6.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g6;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("percent-hp","% Health",8,2,function(value7,mod7) {
+}(this))),new ostm.item.SqrtAffixType("percent-hp","% Health",8,2,function(value7,mod7) {
 	mod7.percentHealth += value7;
 },(function($this) {
 	var $r;
@@ -4318,7 +4525,6 @@ ostm.item.Inventory.kBaseInventoryCount = 10;
 ostm.item.Item.kTierLevels = 5;
 ostm.item.ItemData.types = [new ostm.item.WeaponType({ id : "sword", image : "Sword.png", names : ["Rusted Sword","Copper Sword","Short Sword","Long Sword"], attack : 4.1, attackSpeed : 1.55, crit : 5, defense : 0}),new ostm.item.WeaponType({ id : "axe", image : "Axe.png", names : ["Rusted Axe","Hatchet","Tomahawk","Battle Axe"], attack : 5.25, attackSpeed : 1.35, crit : 7, defense : 0}),new ostm.item.WeaponType({ id : "dagger", image : "Dagger.png", names : ["Rusted Dagger","Knife","Dagger","Kris"], attack : 3, attackSpeed : 1.8, crit : 9, defense : 0}),new ostm.item.ItemType({ id : "armor", image : "Armor.png", names : ["Tattered Shirt","Cloth Shirt","Padded Armor","Leather Armor"], slot : ostm.item.ItemSlot.Body, attack : 0, defense : 2}),new ostm.item.ItemType({ id : "helm", image : "Helmet.png", names : ["Hat","Leather Cap","Iron Hat","Chainmail Coif"], slot : ostm.item.ItemSlot.Helmet, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "boots", image : "Boot.png", names : ["Sandals","Leather Shoes","Boots","Studded Boots"], slot : ostm.item.ItemSlot.Boots, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "gloves", image : "Glove.png", names : ["Cuffs","Wool Gloves","Leather Gloves","Studded Gloves"], slot : ostm.item.ItemSlot.Gloves, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "ring", image : "Ring.png", names : ["Ring"], slot : ostm.item.ItemSlot.Ring, attack : 0, defense : 0})];
 ostm.map.MapGenerator.kMoveTime = 12.0;
-ostm.map.MapGenerator.kMoveBarWidth = 500;
 ostm.map.MapGenerator.kGridSize = 5;
 ostm.map.MapGenerator.kLevelsPerCellDist = 5;
 ostm.map.MapGenerator.kHalfGrid = Math.floor(2.5);

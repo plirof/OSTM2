@@ -19,10 +19,13 @@
     <div id="popup-container"></div>
     <div id="game-header">
         <div class="title">OSTM2</div>
-        <div class="version">v0.0.1</div>
+        <div class="version">v0.0.2</div>
         <div class="alpha-warning">NOTE: this is very pre-alpha. Saves will be wiped regularly!</div>
-        <button id="save-button">Save</button>
-        <button id="save-clear-button">DELETE</button>
+        <div id="header-button-container">
+            <span id="header-tab-container"></span>
+            <button id="save-button">Save</button>
+            <button id="save-clear-button">DELETE</button>
+        </div>
     </div>
     <div id="game-body">
         <div id="column-1" class="column">
@@ -31,26 +34,30 @@
             </div>
         </div>
         <div id="column-2" class="column">
-            <div id="map-screen" class="screen"></div>
-            <div id="battle-screen" class="screen"></div>
+            <div id="main-screen" class="screen">
+                <div id="battle-screen" class="screen"></div>
+                <div id="town-screen" class="screen">
+                    <span>Town!</span>
+                    <br />
+                    <span>Shop:
+                        <ul id="town-shop"></ul>
+                        <span>Restocks in <span id="town-shop-clock"></span>s</span>
+                        <br />
+                        <span><button id="town-shop-restock-button">Restock now</button> Price: <span id="town-shop-restock-price"></span>G</span>
+                        <br />
+                        <span><button id="town-shop-capacity-button">Buy Inventory Slot</button> Price: <span id="town-shop-capacity-price"></span>Gem</span>
+                    </span>
+                    <br />
+                    <span>Warp? <button id="town-warp-button"></button></span>
+                </div>
+            </div>
             <div id="inventory-screen" class="screen">
                 Inventory:
                 <span id='inventory'></span>
             </div>
-            <div id="town-screen" class="screen">
-                <span>Town!</span>
-                <br />
-                <span>Shop:
-                    <ul id="town-shop"></ul>
-                    <span>Restocks in <span id="town-shop-clock"></span>s</span>
-                    <br />
-                    <span><button id="town-shop-restock-button">Restock now</button> Price: <span id="town-shop-restock-price"></span>G</span>
-                    <br />
-                    <span><button id="town-shop-capacity-button">Buy Inventory Slot</button> Price: <span id="town-shop-capacity-price"></span>Gem</span>
-                </span>
-                <br />
-                <span>Warp? <button id="town-warp-button"></button></span>
-            </div>
+        </div>
+        <div id="column-3" class="column">
+            <div id="map-screen" class="screen"></div>
             <div id="skill-screen" class="screen"></div>
         </div>
     </div>
