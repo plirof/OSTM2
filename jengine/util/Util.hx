@@ -63,6 +63,20 @@ class Util {
         return hi + '.' + lo;
     }
 
+    public static function shortFormat(num :Int, digits :Int = 2) :String {
+        var suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'Nn', 'Dc'];
+        var k :Float = num;
+        var i = 0;
+        while (k >= 1000 && i < suffixes.length) {
+            k /= 1000;
+            i++;
+        }
+        if (i == 0) {
+            return new String(cast num);
+        }
+        return formatFloat(k, digits) + suffixes[i];
+    }
+
     public static function contains<T>(array :Array<T>, item :T) :Bool {
         return array.indexOf(item) != -1;
     }

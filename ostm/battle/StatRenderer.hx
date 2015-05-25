@@ -57,13 +57,13 @@ class StatRenderer extends Component {
                 return Util.format(_member.level);
             }),
             new StatElement(list, 'XP', function() {
-                return Util.format(_member.xp) + ' / ' + Util.format(_member.xpToNextLevel());
+                return Util.shortFormat(_member.xp) + ' / ' + Util.shortFormat(_member.xpToNextLevel());
             }),
             new StatElement(list, 'Gold', function() {
-                return Util.format(_member.gold);
+                return Util.shortFormat(_member.gold);
             }),
             new StatElement(list, 'Gems', function() {
-                return Util.format(_member.gems);
+                return Util.shortFormat(_member.gems);
             }),
             new StatElement(list, 'Health', function() {
                 return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());

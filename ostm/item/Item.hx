@@ -227,10 +227,10 @@ class Item {
         }
 
         var buy = Browser.document.createLIElement();
-        buy.innerText = 'Buy Price: ' + Util.format(buyValue());
+        buy.innerText = 'Buy Price: ' + Util.shortFormat(buyValue());
         _body.appendChild(buy);
         var sell = Browser.document.createLIElement();
-        sell.innerText = 'Sell Price: ' + Util.format(sellValue());
+        sell.innerText = 'Sell Price: ' + Util.shortFormat(sellValue());
         _body.appendChild(sell);
 
 
