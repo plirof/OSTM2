@@ -1,0 +1,19 @@
+OSTM2 - CHANGELOG
+
+---=== v0.0.3 - May ?? 2015 ===---
+* !!SAVE WIPE!!
+* Tweak map generation
+* Add Hunting stat
+* Short-format some numbers
+* Change scaling on some affixes (nerfs)
+* Minor performance optimizations
+
+---=== v0.0.2 - May 24 2015 ===---
+* Map reveals some stuff when you move onto a town
+* Toggle parts of the UI on/off
+* New enemy type
+* Nerfed %-based hp affix on items
+* Fixed a performance leak
+
+---=== v0.0.1 - May 16 2015 ===---
+* Initial (pre)release!

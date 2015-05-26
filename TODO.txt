@@ -1,6 +1,4 @@
-Todo for 0.0.2 release:
-- hunt/hide toggle, stat
-- 2 ring slots! (item button refactor)
+Todo for 0.0.3 release:
 - skill tree update
     - min level for skill tiers (y-pos-dependent)
     - n levels in between upgrading the same passive
@@ -8,6 +6,11 @@ Todo for 0.0.2 release:
     - req. level = spent skill points
 - update notif tech? (notification to refresh when update pushed)
 
+for 0.0.4
+- 2 ring slots! (item button refactor)
+- left/right weapon hand slots
+- blacksmith/enchanting
+- jewel item slot: pure non-combat stats (+xp, +gold, magic find, movespeed, hunting)
 
 ------------- OLD: pre-5/24/15, audit later
 

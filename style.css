@@ -19,11 +19,28 @@ html {
     top: 20px;
     font-size: 36px;
 }
-
 .version {
     left: 200px;
     top: 30px;
     font-size: 24px;
+}
+.changelog {
+    position: absolute;
+    left: 275px;
+    top: 28px;
+}
+.subreddit {
+    position: absolute;
+    left: 275px;
+    top: 46px;
+}
+a {
+    color: #bbbbbb;
+    font-size: 12px;
+    text-decoration: initial;
+}
+a:hover {
+    color: #dd4444;
 }
 
 .alpha-warning {
