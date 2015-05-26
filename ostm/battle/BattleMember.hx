@@ -14,6 +14,12 @@ import ostm.item.ItemType;
 import ostm.skill.PassiveSkill;
 import ostm.skill.SkillTree;
 
+enum HuntType {
+    Normal;
+    Hunting;
+    Hiding;
+}
+
 class BattleMember implements Saveable {
     public var saveId(default, null) :String;
 
@@ -35,6 +41,8 @@ class BattleMember implements Saveable {
     public var attackTimer :Float = 0;
     public var curSkill :ActiveSkill;
     public var classType :ClassType;
+
+    public var huntType :HuntType = Normal;
 
     var _cachedStatMod = null;
 
@@ -330,6 +338,21 @@ class BattleMember implements Saveable {
         }
     }
 
+    public function huntSkill() :Int {
+        var mod = sumAffixes();
+        var hunt = 10;
+        hunt += mod.flatHuntSkill;
+        return hunt;
+    }
+    public function enemySpawnModifier() :Float {
+        var mod = huntSkill() / 40;
+        return switch huntType {
+            case Normal: 1;
+            case Hunting: 1 / (1 + mod);
+            case Hiding: 1 + mod;
+        };
+    }
+
     public function serialize() :Dynamic {
         var equips = [];
         for (item in equipment) {
@@ -345,6 +368,7 @@ class BattleMember implements Saveable {
             health: this.health,
             mana: this.mana,
             equipment: equips,
+            hunt: this.huntType,
         };
     }
     public function deserialize(data :Dynamic) :Void {
@@ -354,6 +378,7 @@ class BattleMember implements Saveable {
         level = data.level;
         health = data.health;
         mana = data.mana;
+        huntType = data.hunt != null ? data.hunt : Normal;
         for (k in equipment.keys()) {
             equipment[k] = null;
         }

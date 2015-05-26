@@ -7,6 +7,7 @@ class StatModifier {
     public var flatHealth :Int = 0;
     public var flatHealthRegen :Int = 0;
     public var flatMana :Int = 0;
+    public var flatHuntSkill :Int = 0;
 
     public var flatStrength :Int = 0;
     public var flatDexterity :Int = 0;

@@ -107,6 +107,17 @@ class AffixData {
             multipliers: [ Body => 0.5, Helmet => 1.0, Ring => 0.5, Gloves => 0.5 ]
         }),
         new AffixType({
+            id: 'flat-hunt',
+            description: 'Hunting',
+            base: 3,
+            perLevel: 2,
+            levelPower: 0.75,
+            modifierFunc: function(value, mod) {
+                mod.flatHuntSkill += value;
+            },
+            multipliers: [ Helmet => 0.5, Boots => 1.0, Ring => 0.5 ]
+        }),
+        new AffixType({
             id: 'percent-mp-regen',
             description: '% Mana Regen',
             base: 10,

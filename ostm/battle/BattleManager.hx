@@ -17,10 +17,14 @@ class BattleManager extends Component {
 
     var _enemies :Array<BattleMember> = [];
 
-    var _enemySpawnTimer :Float = 0;
+    var _enemySpawnPct :Float = 0;
     var _isPlayerDead :Bool = false;
     var _killCount :Int = 0;
-    static inline var kEnemySpawnTime :Float = 4;
+
+    var _battleScreen :Element;
+    var _huntButton :Element;
+
+    static inline var kBaseEnemySpawnTime :Float = 4;
     static inline var kPlayerDeathTime :Float = 5;
 
     public static var instance(default, null) :BattleManager;
@@ -38,7 +42,7 @@ class BattleManager extends Component {
                 className: 'spawn-bar',
             }),
             new ProgressBar(function() {
-                return _enemySpawnTimer / kEnemySpawnTime;
+                return _enemySpawnPct;
             }),
         ]));
 
@@ -80,6 +84,19 @@ class BattleManager extends Component {
             mem.health = mem.maxHealth();
             mem.mana = mem.maxMana();
         }
+
+        _battleScreen = Browser.document.getElementById('battle-screen');
+
+        _huntButton = Browser.document.createButtonElement();
+        _huntButton.className = 'hunt-button';
+        _huntButton.onclick = function(event) {
+            _player.huntType = switch _player.huntType {
+                case Normal: Hunting;
+                case Hunting: Hiding;
+                case Hiding: Normal;
+            };
+        };
+        _battleScreen.appendChild(_huntButton);
     }
 
     public function spawnLevel() :Int {
@@ -107,7 +124,7 @@ class BattleManager extends Component {
 
         if (_isPlayerDead && _player.health == _player.maxHealth()) {
             _isPlayerDead = false;
-            _enemySpawnTimer = 0;
+            _enemySpawnPct = 0;
         }
     }
 
@@ -117,16 +134,21 @@ class BattleManager extends Component {
         regenUpdate();
 
         var inTown = MapGenerator.instance.isInTown();
-        Browser.document.getElementById('battle-screen').style.display = !inTown ? '' : 'none';
+        _battleScreen.style.display = !inTown ? '' : 'none';
+        _huntButton.innerText = switch _player.huntType {
+            case Normal: 'Normal';
+            case Hunting: 'Hunting';
+            case Hiding: 'Hiding';
+        };
         if (inTown) {
-            _enemySpawnTimer = 0;
+            _enemySpawnPct = 0;
             return;
         }
 
         if (!hasEnemySpawned) {
-            _enemySpawnTimer += Time.dt;
+            _enemySpawnPct += Time.dt / enemySpawnTime();
 
-            if (_enemySpawnTimer >= kEnemySpawnTime) {
+            if (_enemySpawnPct >= 1) {
                 spawnEnemies();
             }
 
@@ -248,7 +270,7 @@ class BattleManager extends Component {
                 for (mem in _battleMembers) {
                     mem.attackTimer = 0;
                 }
-                _enemySpawnTimer = 0;
+                _enemySpawnPct = 0;
             }
         }
     }
@@ -288,7 +310,7 @@ class BattleManager extends Component {
     }
 
     public function isInBattle() :Bool {
-        return _enemySpawnTimer >= kEnemySpawnTime && !_isPlayerDead;
+        return _enemies.length > 0 && !_isPlayerDead;
     }
 
     public function getKillCount() :Int {
@@ -296,6 +318,10 @@ class BattleManager extends Component {
     }
     public function resetKillCount() :Void {
         _killCount = 0;
+    }
+
+    public function enemySpawnTime() :Float {
+        return kBaseEnemySpawnTime * _player.enemySpawnModifier();
     }
 
     public function getPlayer() :BattleMember {

@@ -110,6 +110,12 @@ class StatRenderer extends Component {
             new StatElement(list, 'Move Speed', function() {
                 return '+' + Util.formatFloat(100 * (_member.moveSpeed() - 1), 0) + '%';
             }),
+            new StatElement(list, 'Hunting', function() {
+                return Util.format(_member.huntSkill());
+            }),
+            new StatElement(list, 'Enemy spawn time', function() {
+                return Util.formatFloat(BattleManager.instance.enemySpawnTime()) + 's';
+            }),
             new StatElement(list, 'STR', function() {
                 return Util.format(_member.strength());
             }),

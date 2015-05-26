@@ -143,6 +143,14 @@ div {
     background: #ffaa00;
 }
 
+.hunt-button {
+    position: absolute;
+    left: 330px;
+    top: 200px;
+    width: 100px;
+    height: 36px;
+}
+
 .move-bar {
     width: 250px;
     height: 18px;
