@@ -122,7 +122,7 @@ class Inventory extends Component
         var item = new Item(type, maxLevel);
         item.setDropLevel(Random.randomIntRange(1, maxLevel));
         var affixOdds = [
-            7 => 0.01,
+            // 7 => 0.01,
             4 => 0.05,
             3 => 0.08,
             2 => 0.12,

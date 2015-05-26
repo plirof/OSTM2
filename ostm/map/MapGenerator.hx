@@ -5,7 +5,7 @@ import js.html.*;
 
 import jengine.*;
 import jengine.SaveManager;
-import jengine.util.*;
+import jengine.util.Util;
 
 import ostm.TownManager;
 import ostm.battle.*;
@@ -354,7 +354,7 @@ class MapGenerator extends Component
                 var hiDist = dists[hiInd];
                 var totDist = loDist + hiDist;
                 lev = Math.round(Util.lerp(loDist / totDist, 1, kLevelsPerCellDist));
-                lev = Util.clampInt(lev + Random.randomElement([-1, 0, 0, 1]), 1, kLevelsPerCellDist);
+                lev = Util.clampInt(lev + _rand.randomElement([-1, 0, 0, 1]), 1, kLevelsPerCellDist);
             }
 
             node.level = lev + cellLevel;
