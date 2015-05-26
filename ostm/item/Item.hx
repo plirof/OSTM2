@@ -314,6 +314,10 @@ class Item {
         return Math.round(Math.pow(buyValue(), 0.85) * 0.5);
     }
 
+    public function numAffixes() :Int {
+        return affixes.length;
+    }
+
     function get_tier() :Int {
         return Math.floor(this.level / kTierLevels);
     }

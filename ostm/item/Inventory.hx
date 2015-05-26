@@ -44,17 +44,6 @@ class Inventory extends Component
         count.innerText = 'Capacity: ' + _inventory.length + ' / ' + capacity();
         inventory.appendChild(count);
 
-        var clear = Browser.document.createButtonElement();
-        clear.innerText = 'Discard All';
-        clear.onclick = function (event) {
-            var inv = _inventory.copy();
-            for (item in inv) {
-                item.discard();
-            }
-            updateInventoryHtml();
-        };
-        inventory.appendChild(clear);
-
         var sortBtn = Browser.document.createButtonElement();
         sortBtn.innerText = 'Sort Value';
         sortBtn.onclick = function (event) {
@@ -64,6 +53,25 @@ class Inventory extends Component
             updateInventoryHtml();
         };
         inventory.appendChild(sortBtn);
+
+        inventory.appendChild(Browser.document.createBRElement());
+
+        var discardTexts = ['Basic', 'Magic', 'All'];
+        var discardAffixes = [0, 2, 999];
+        for (i in 0...discardTexts.length) {
+            var clear = Browser.document.createButtonElement();
+            clear.innerText = 'Discard ' + discardTexts[i];
+            clear.onclick = function (event) {
+                var inv = _inventory.copy();
+                for (item in inv) {
+                    if (item.numAffixes() <= discardAffixes[i]) {
+                        item.discard();
+                    }
+                }
+                updateInventoryHtml();
+            };
+            inventory.appendChild(clear);
+        }
 
         inventory.appendChild(Browser.document.createBRElement());
 
