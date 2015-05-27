@@ -40,13 +40,21 @@ class PassiveSkill {
         }
     }
 
-    public function hasMetRequirements() :Bool {
+    public function hasMetRequirements(tree :SkillTree) :Bool {
+        var spendReq = requiredPointsSpent();
+        if (spendReq > 0 && tree.spentSkillPoints() < spendReq) {
+            return false;
+        }
         for (req in requirements) {
             if (req.level > 0) {
                 return true;
             }
         }
         return requirements.length == 0;
+    }
+
+    public function requiredPointsSpent() :Int {
+        return pos.y * 4 - 2;
     }
 
     public function levelUp() :Void {

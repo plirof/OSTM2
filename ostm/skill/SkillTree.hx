@@ -19,6 +19,7 @@ class SkillTree extends Component
 
     var _skillNodes = new Array<SkillNode>();
     var _skillPoints :Element;
+    var _spentPoints :Element;
 
     public var skills(default, null) :Array<PassiveSkill>;
 
@@ -33,6 +34,11 @@ class SkillTree extends Component
         var screen = Browser.document.getElementById('skill-screen');
         JsUtil.createSpan('Skill points: ', screen);
         _skillPoints = JsUtil.createSpan('', screen);
+
+        screen.appendChild(Browser.document.createBRElement());
+
+        JsUtil.createSpan('Spent points: ', screen);
+        _spentPoints = JsUtil.createSpan('', screen);
 
         for (skill in skills) {
             for (s2 in skills) {
@@ -49,22 +55,7 @@ class SkillTree extends Component
 
     public override function update() :Void {
         _skillPoints.innerText = Util.format(availableSkillPoints());
-
-        for (node in _skillNodes) {
-            var bg;
-            if (node.skill.level > 0) {
-                bg = '#ff3333';
-            }
-            else if (node.skill.hasMetRequirements() && availableSkillPoints() > 0) {
-                bg = '#992222';
-            }
-            else {
-                bg = '#444444';
-            }
-            if (node.elem != null) {
-                node.elem.style.backgroundColor = bg;
-            }
-        }
+        _spentPoints.innerText = Util.format(spentSkillPoints());
     }
 
     function maxSkillPoints() :Int {
@@ -72,7 +63,7 @@ class SkillTree extends Component
         return player.level - 1;
     }
 
-    function spentSkillPoints() :Int {
+    public function spentSkillPoints() :Int {
         var count = 0;
         for (skill in skills) {
             count += skill.level;
@@ -112,7 +103,7 @@ class SkillTree extends Component
     function updateScrollBounds() :Void {
         var topLeft = new Vec2(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
-        var origin :Vec2 = new Vec2(25, 25);
+        var origin :Vec2 = new Vec2(25, 50);
         for (node in _skillNodes) {
             var pos = node.getOffset();
             topLeft = Vec2.min(topLeft, pos);
@@ -149,6 +140,7 @@ class SkillTree extends Component
 class SkillNode extends GameNode {
     public var skill(default, null) :PassiveSkill;
     var _description :Element;
+    var _reqSpent :Element;
     var _curValue :Element;
     var _nextValue :Element;
     var _count :Element;
@@ -174,6 +166,13 @@ class SkillNode extends GameNode {
         JsUtil.createSpan(skill.name, _description);
         _description.appendChild(doc.createBRElement());
         JsUtil.createSpan(skill.description, _description);
+
+        if (skill.requiredPointsSpent() > 0) {
+            _description.appendChild(doc.createBRElement());
+
+            JsUtil.createSpan('Req. Points Spent: ', _description);
+            _reqSpent = JsUtil.createSpan(cast skill.requiredPointsSpent(), _description);
+        }
 
         _description.appendChild(doc.createBRElement());
 
@@ -201,6 +200,22 @@ class SkillNode extends GameNode {
         _count.innerText = Util.format(skill.level);
         _curValue.innerText = Util.format(skill.currentValue());
         _nextValue.innerText = Util.format(skill.nextValue());
+
+        if (_reqSpent != null) {
+            _reqSpent.style.color = skill.hasMetRequirements(_tree) ? '#ffffff' : '#ff2222';
+        }
+
+        var bg;
+        if (skill.level > 0) {
+            bg = '#ff3333';
+        }
+        else if (skill.hasMetRequirements(_tree) && _tree.availableSkillPoints() > 0) {
+            bg = '#992222';
+        }
+        else {
+            bg = '#444444';
+        }
+        elem.style.backgroundColor = bg;
     }
 
     public override function onMouseOver(event :MouseEvent) :Void {
@@ -215,7 +230,7 @@ class SkillNode extends GameNode {
 
     override function onClick(event) {
         if (_tree.availableSkillPoints() > 0 &&
-            skill.hasMetRequirements()) {
+            skill.hasMetRequirements(_tree)) {
             skill.levelUp();
 
             BattleManager.instance.getPlayer().updateCachedAffixes();
