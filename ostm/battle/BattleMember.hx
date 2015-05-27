@@ -157,9 +157,9 @@ class BattleMember implements Saveable {
     }
     public function maxHealth() :Int {
         var mod = sumAffixes();
-        var hp = vitality() * 10;
+        var hp = vitality() * 5 + 20;
         if (isPlayer) {
-            hp += 50;
+            hp += 55;
         }
         hp += mod.flatHealth;
         hp = Math.round(hp * (1 + mod.percentHealth / 100));
@@ -179,13 +179,13 @@ class BattleMember implements Saveable {
         return reg;
     }
     function baseHealthRegenOutOfCombat() :Float {
-        var reg = 4 + maxHealth() * 0.01;
+        var reg = 6 + maxHealth() * 0.0125;
         return reg;
     }
     public function healthRegenInCombat() :Float {
         var rIn = baseHealthRegenInCombat();
         var rOut = baseHealthRegenOutOfCombat();
-        return rIn + 0.2 * rOut;
+        return rIn + 0.15 * rOut;
     }
     public function healthRegenOutOfCombat() :Float {
         var rIn = baseHealthRegenInCombat();

@@ -48,11 +48,11 @@ class ClassType {
     public static var playerType = new ClassType({
         name: 'Adventurer',
         image: 'classes/Adventurer.png',
-        str: new StatType(5, 2.5),
-        dex: new StatType(5, 2.5),
-        int: new StatType(5, 2.5),
-        vit: new StatType(5, 2.5),
-        end: new StatType(5, 2.5),
+        str: new StatType(5, 1.5),
+        dex: new StatType(5, 1.5),
+        int: new StatType(5, 1.5),
+        vit: new StatType(5, 1.5),
+        end: new StatType(5, 1.5),
     });
     public static var enemyTypes = [
         new ClassType({
