@@ -141,8 +141,7 @@ class SkillNode extends GameNode {
     public var skill(default, null) :PassiveSkill;
     var _description :Element;
     var _reqSpent :Element;
-    var _curValue :Element;
-    var _nextValue :Element;
+    var _values :Array<Element>;
     var _count :Element;
     var _tree :SkillTree;
 
@@ -164,8 +163,6 @@ class SkillNode extends GameNode {
 
         _description = doc.createUListElement();
         JsUtil.createSpan(skill.name, _description);
-        _description.appendChild(doc.createBRElement());
-        JsUtil.createSpan(skill.description, _description);
 
         if (skill.requiredPointsSpent() > 0) {
             _description.appendChild(doc.createBRElement());
@@ -174,17 +171,13 @@ class SkillNode extends GameNode {
             _reqSpent = JsUtil.createSpan(cast skill.requiredPointsSpent(), _description);
         }
 
-        _description.appendChild(doc.createBRElement());
-
-        JsUtil.createSpan('Current: ', _description);
-        _curValue = JsUtil.createSpan('', _description);
-        if (skill.isPercent) { JsUtil.createSpan('%', _description); }
-
-        _description.appendChild(doc.createBRElement());
-
-        JsUtil.createSpan('Next: ', _description);
-        _nextValue = JsUtil.createSpan('', _description);
-        if (skill.isPercent) { JsUtil.createSpan('%', _description); }
+        _values = [];
+        var nextMods = skill.nextValue().getDisplayData();
+        for (m in nextMods) {
+            _description.appendChild(doc.createBRElement());
+            JsUtil.createSpan(m.name, _description);
+            _values.push(JsUtil.createSpan('', _description));
+        }
 
         _description.style.display = 'none';
         _description.style.position = 'absolute';
@@ -198,11 +191,23 @@ class SkillNode extends GameNode {
 
     public override function update() :Void {
         _count.innerText = Util.format(skill.level);
-        _curValue.innerText = Util.format(skill.currentValue());
-        _nextValue.innerText = Util.format(skill.nextValue());
+
+        var curMods = skill.currentValue().getDisplayData();
+        var nextMods = skill.nextValue().getDisplayData();
+        for (i in 0..._values.length) {
+            var mod = nextMods[i];
+            var cur = i < curMods.length ? curMods[i].value : 0;
+            var next = mod.value;
+
+            var str = ' ' + Util.formatFloat(cur);
+            if (mod.isPercent) { str += '%'; }
+            str += ' -> ' + Util.formatFloat(next);
+            if (mod.isPercent) { str += '%'; }
+            _values[i].innerText = str;
+        }
 
         if (_reqSpent != null) {
-            _reqSpent.style.color = skill.hasMetRequirements(_tree) ? '#ffffff' : '#ff2222';
+            _reqSpent.style.color = skill.hasSpentEnoughPoints(_tree) ? '#ffffff' : '#ff2222';
         }
 
         var bg;
@@ -220,7 +225,7 @@ class SkillNode extends GameNode {
 
     public override function onMouseOver(event :MouseEvent) :Void {
         _description.style.display = '';
-        _description.style.left = cast event.x;
+        _description.style.left = cast (event.x - 275);
         _description.style.top = cast event.y;
     }
 

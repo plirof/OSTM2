@@ -11,12 +11,9 @@ class PassiveSkill {
     public var requirementIds(default, null) :Array<String>;
     public var abbreviation(default, null) :String;
     public var name(default, null) :String;
-    public var description(default, null) :String;
-    public var isPercent(default, null) :Bool;
     public var level(default, null) :Int = 0;
     public var requirements(default, null) :Array<PassiveSkill> = [];
     public var pos(default, null) :Point;
-    var levelValueFunction :Int -> Int;
     var modifierFunction :Int -> StatModifier -> Void;
 
     public function new(data :Dynamic) {
@@ -24,9 +21,6 @@ class PassiveSkill {
         requirementIds = data.requirements != null ? data.requirements : [];
         name = data.name;
         abbreviation = data.icon;
-        description = data.description;
-        isPercent = data.isPercent != null ? data.isPercent : false;
-        levelValueFunction = data.leveling;
         modifierFunction = data.modifier;
         pos = data.pos;
     }
@@ -40,9 +34,13 @@ class PassiveSkill {
         }
     }
 
-    public function hasMetRequirements(tree :SkillTree) :Bool {
+    public function hasSpentEnoughPoints(tree :SkillTree) :Bool {
         var spendReq = requiredPointsSpent();
-        if (spendReq > 0 && tree.spentSkillPoints() < spendReq) {
+        return spendReq <= 0 || tree.spentSkillPoints() >= spendReq;
+    }
+
+    public function hasMetRequirements(tree :SkillTree) :Bool {
+        if (!hasSpentEnoughPoints(tree)) {
             return false;
         }
         for (req in requirements) {
@@ -63,15 +61,19 @@ class PassiveSkill {
         untyped ga('send', 'event', 'player', 'spend-skill-point', id, level);
     }
 
-    public function currentValue() :Int {
-        return levelValueFunction(level);
+    public function currentValue() :StatModifier {
+        var mod = new StatModifier();
+        modifierFunction(level, mod);
+        return mod;
     }
-    public function nextValue() :Int {
-        return levelValueFunction(level + 1);
+    public function nextValue() :StatModifier {
+        var mod = new StatModifier();
+        modifierFunction(level + 1, mod);
+        return mod;
     }
 
     public function sumAffixes(mod :StatModifier) {
-        modifierFunction(currentValue(), mod);
+        modifierFunction(level, mod);
     }
 
     public function serialize() :Dynamic {

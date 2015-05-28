@@ -174,7 +174,7 @@ class BattleMember implements Saveable {
     }
     function baseHealthRegenInCombat() :Float {
         var mod = sumAffixes();
-        var reg = 0;
+        var reg = 0.0;
         reg += mod.flatHealthRegen;
         return reg;
     }

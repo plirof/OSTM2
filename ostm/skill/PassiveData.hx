@@ -7,40 +7,38 @@ class PassiveData {
             icon: 'STR+',
             pos: {x: 0, y: 0},
             name: 'Strength+',
-            description: 'Increases strength',
-            leveling: function(level) {
-                return 3 * level;
-            },
-            modifier: function(value, mod) {
-                mod.flatStrength += value;
+            modifier: function(level, mod) {
+                mod.flatStrength += 3 * level;
             },
         }),
         new PassiveSkill({
             id: 'dex',
             icon: 'DEX+',
-            pos: {x: 1, y: 0},
+            pos: {x: 2, y: 0},
             name: 'Dexterity+',
-            description: 'Increases dexterity',
-            leveling: function(level) {
-                return 3 * level;
-            },
-            modifier: function(value, mod) {
-                mod.flatDexterity += value;
+            modifier: function(level, mod) {
+                mod.flatDexterity += 3 * level;
             },
         }),
+            new PassiveSkill({
+                id: 'danger',
+                requirements: ['str', 'dex'],
+                icon: 'DNG',
+                pos: {x: 1, y: 1},
+                name: 'Dangerousness',
+                modifier: function(level, mod) {
+                    mod.flatDexterity += level;
+                    mod.percentAttackSpeed += 3 * level;
+                },
+            }),
             new PassiveSkill({
                 id: 'atk-spd',
                 requirements: ['dex'],
                 icon: 'ASPD',
                 pos: {x: 1, y: 1},
                 name: 'AttackSpeed+',
-                description: 'Increases attack speed',
-                isPercent: true,
-                leveling: function(level) {
-                    return 3 * level;
-                },
-                modifier: function(value, mod) {
-                    mod.percentAttackSpeed += value;
+                modifier: function(level, mod) {
+                    mod.percentAttackSpeed += 3 * level;
                 },
             }),
                 new PassiveSkill({
@@ -49,13 +47,8 @@ class PassiveData {
                     icon: 'MSPD',
                     pos: {x: 0, y: 1},
                     name: 'MoveSpeed+',
-                    description: 'Increases movement speed',
-                    isPercent: true,
-                    leveling: function(level) {
-                        return 8 * level;
-                    },
-                    modifier: function(value, mod) {
-                        mod.percentMoveSpeed += value;
+                    modifier: function(level, mod) {
+                        mod.percentMoveSpeed += 8 * level;
                     },
                 }),
             new PassiveSkill({
@@ -64,13 +57,8 @@ class PassiveData {
                 icon: 'CRT+',
                 pos: {x: 0, y: 1},
                 name: 'Crit Rating+',
-                description: 'Increases critical rating',
-                isPercent: true,
-                leveling: function(level) {
-                    return 6 * level;
-                },
-                modifier: function(value, mod) {
-                    mod.percentCritRating += value;
+                modifier: function(level, mod) {
+                    mod.percentCritRating += 6 * level;
                 },
             }),
                 new PassiveSkill({
@@ -79,13 +67,8 @@ class PassiveData {
                     icon: 'CCH+',
                     pos: {x: -1, y: 1},
                     name: 'Crit Chance+',
-                    description: 'Increases global critical hit chance',
-                    isPercent: true,
-                    leveling: function(level) {
-                        return 8 * level;
-                    },
-                    modifier: function(value, mod) {
-                        mod.percentCritChance += value;
+                    modifier: function(level, mod) {
+                        mod.percentCritChance += 8 * level;
                     },
                 }),
                 new PassiveSkill({
@@ -94,26 +77,17 @@ class PassiveData {
                     icon: 'CDM+',
                     pos: {x: 0, y: 1},
                     name: 'Crit Damage+',
-                    description: 'Increases global critical hit damage',
-                    isPercent: true,
-                    leveling: function(level) {
-                        return 12 * level;
-                    },
-                    modifier: function(value, mod) {
-                        mod.percentCritDamage += value;
+                    modifier: function(level, mod) {
+                        mod.percentCritDamage += 12 * level;
                     },
                 }),
         new PassiveSkill({
             id: 'int',
             icon: 'INT+',
-            pos: {x: 3, y: 0},
+            pos: {x: 4, y: 0},
             name: 'Intelligence+',
-            description: 'Increases intelligence',
-            leveling: function(level) {
-                return 3 * level;
-            },
-            modifier: function(value, mod) {
-                mod.flatIntelligence += value;
+            modifier: function(level, mod) {
+                mod.flatIntelligence += 3 * level;
             },
         }),
             new PassiveSkill({
@@ -122,12 +96,8 @@ class PassiveData {
                 icon: 'MP+',
                 pos: {x: 0, y: 1},
                 name: 'Mana+',
-                description: 'Increases mana',
-                leveling: function(level) {
-                    return 8 * level;
-                },
-                modifier: function(value, mod) {
-                    mod.flatMana += value;
+                modifier: function(level, mod) {
+                    mod.flatMana += 8 * level;
                 },
             }),
                 new PassiveSkill({
@@ -136,39 +106,26 @@ class PassiveData {
                     icon: 'MPRe',
                     pos: {x: 0, y: 1},
                     name: 'Mana Regen+',
-                    description: 'Increases mana regen',
-                    isPercent: true,
-                    leveling: function(level) {
-                        return 10 * level;
-                    },
-                    modifier: function(value, mod) {
-                        mod.percentManaRegen += value;
+                    modifier: function(level, mod) {
+                        mod.percentManaRegen += 10 * level;
                     },
                 }),
         new PassiveSkill({
             id: 'vit',
             icon: 'VIT+',
-            pos: {x: 4, y: 0},
+            pos: {x: 5, y: 0},
             name: 'Vitality+',
-            description: 'Increases vitality',
-            leveling: function(level) {
-                return 3 * level;
-            },
-            modifier: function(value, mod) {
-                mod.flatVitality += value;
+            modifier: function(level, mod) {
+                mod.flatVitality += 3 * level;
             },
         }),
         new PassiveSkill({
             id: 'end',
             icon: 'END+',
-            pos: {x: 6, y: 0},
+            pos: {x: 7, y: 0},
             name: 'Endurance+',
-            description: 'Increases endurance',
-            leveling: function(level) {
-                return 3 * level;
-            },
-            modifier: function(value, mod) {
-                mod.flatEndurance += value;
+            modifier: function(level, mod) {
+                mod.flatEndurance += 3 * level;
             },
         }),
             new PassiveSkill({
@@ -177,13 +134,8 @@ class PassiveData {
                 requirements: ['vit', 'end'],
                 pos: {x: 1, y: 1},
                 name: 'Health+',
-                description: 'Increases health',
-                isPercent: true,
-                leveling: function(level) {
-                    return 2.5 * level;
-                },
-                modifier: function(value, mod) {
-                    mod.percentHealth += value;
+                modifier: function(level, mod) {
+                    mod.percentHealth += 2.5 * level;
                 },
             }),
                 new PassiveSkill({
@@ -192,12 +144,8 @@ class PassiveData {
                     requirements: ['hp'],
                     pos: {x: 0, y: 1},
                     name: 'Health Regen+',
-                    description: 'Increases health regen',
-                    leveling: function(level) {
-                        return 0.5 * level;
-                    },
-                    modifier: function(value, mod) {
-                        mod.flatHealthRegen += value;
+                    modifier: function(level, mod) {
+                        mod.flatHealthRegen += 0.5 * level;
                     },
                 }),
             new PassiveSkill({
@@ -206,12 +154,8 @@ class PassiveData {
                 requirements: ['end'],
                 pos: {x: 0, y: 1},
                 name: 'Armor+',
-                description: 'Increases armor',
-                leveling: function(level) {
-                    return 1 * level;
-                },
-                modifier: function(value, mod) {
-                    mod.flatDefense += value;
+                modifier: function(level, mod) {
+                    mod.flatDefense += level;
                 },
             }),
     ];

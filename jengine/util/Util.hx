@@ -53,6 +53,9 @@ class Util {
         var mul = Math.floor(Math.pow(10, digits));
         var int = Math.round(num * mul);
         var hi = format(Math.floor(int / mul));
+        if (int % mul == 0) {
+            return hi;
+        }
         var lo = new String(cast int % mul);
         while (lo.length < digits) {
             lo = '0' + lo;
