@@ -21,6 +21,8 @@ class SkillTree extends Component
     var _skillPoints :Element;
     var _spentPoints :Element;
 
+    var _cachedPoints :Int = -1;
+
     public var skills(default, null) :Array<PassiveSkill>;
 
     public override function init() :Void {
@@ -54,8 +56,17 @@ class SkillTree extends Component
     }
 
     public override function update() :Void {
-        _skillPoints.innerText = Util.format(availableSkillPoints());
-        _spentPoints.innerText = Util.format(spentSkillPoints());
+        var avail = availableSkillPoints();
+        if (avail != _cachedPoints) {
+            _cachedPoints = avail;
+
+            _skillPoints.innerText = Util.format(availableSkillPoints());
+            _spentPoints.innerText = Util.format(spentSkillPoints());
+
+            for (node in _skillNodes) {
+                node.markDirty();
+            }
+        }
     }
 
     function maxSkillPoints() :Int {
@@ -145,6 +156,8 @@ class SkillNode extends GameNode {
     var _count :Element;
     var _tree :SkillTree;
 
+    var _isDirty :Bool = true;
+
     public function new(skill :PassiveSkill, tree :SkillTree) {
         super(skill.pos.y, skill.pos.x);
 
@@ -168,7 +181,7 @@ class SkillNode extends GameNode {
             _description.appendChild(doc.createBRElement());
 
             JsUtil.createSpan('Req. Points Spent: ', _description);
-            _reqSpent = JsUtil.createSpan(cast skill.requiredPointsSpent(), _description);
+            _reqSpent = JsUtil.createSpan('', _description);
         }
 
         _values = [];
@@ -190,37 +203,44 @@ class SkillNode extends GameNode {
     }
 
     public override function update() :Void {
-        _count.innerText = Util.format(skill.level);
+        if (_isDirty) {
+            _isDirty = false;
 
-        var curMods = skill.currentValue().getDisplayData();
-        var nextMods = skill.nextValue().getDisplayData();
-        for (i in 0..._values.length) {
-            var mod = nextMods[i];
-            var cur = i < curMods.length ? curMods[i].value : 0;
-            var next = mod.value;
+            _count.innerText = Util.format(skill.level);
 
-            var str = ' ' + Util.formatFloat(cur);
-            if (mod.isPercent) { str += '%'; }
-            str += ' -> ' + Util.formatFloat(next);
-            if (mod.isPercent) { str += '%'; }
-            _values[i].innerText = str;
-        }
+            var curMods = skill.currentValue().getDisplayData();
+            var nextMods = skill.nextValue().getDisplayData();
+            for (i in 0..._values.length) {
+                var mod = nextMods[i];
+                var cur = i < curMods.length ? curMods[i].value : 0;
+                var next = mod.value;
 
-        if (_reqSpent != null) {
-            _reqSpent.style.color = skill.hasSpentEnoughPoints(_tree) ? '#ffffff' : '#ff2222';
-        }
+                var str = ' ' + Util.formatFloat(cur);
+                if (mod.isPercent) { str += '%'; }
+                str += ' -> ' + Util.formatFloat(next);
+                if (mod.isPercent) { str += '%'; }
+                _values[i].innerText = str;
+            }
 
-        var bg;
-        if (skill.level > 0) {
-            bg = '#ff3333';
+            if (_reqSpent != null) {
+                _reqSpent.innerText = Util.format(skill.requiredPointsSpent());
+                _reqSpent.style.color = skill.hasSpentEnoughPoints(_tree) ? '#ffffff' : '#ff2222';
+            }
+
+            var bgPoints = 0;
+            if (skill.level > 0) { bgPoints++; }
+            if (skill.hasMetRequirements(_tree) && _tree.availableSkillPoints() > 0) { bgPoints++; }
+            var bg = switch bgPoints {
+                case 2: '#ff3333';
+                case 1: '#992222';
+                default: '#444444';
+            };
+            elem.style.backgroundColor = bg;
         }
-        else if (skill.hasMetRequirements(_tree) && _tree.availableSkillPoints() > 0) {
-            bg = '#992222';
-        }
-        else {
-            bg = '#444444';
-        }
-        elem.style.backgroundColor = bg;
+    }
+
+    public function markDirty() :Void {
+        _isDirty = true;
     }
 
     public override function onMouseOver(event :MouseEvent) :Void {
@@ -238,6 +258,7 @@ class SkillNode extends GameNode {
             skill.hasMetRequirements(_tree)) {
             skill.levelUp();
 
+            markDirty();
             BattleManager.instance.getPlayer().updateCachedAffixes();
         }
     }

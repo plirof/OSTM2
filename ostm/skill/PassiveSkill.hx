@@ -52,7 +52,7 @@ class PassiveSkill {
     }
 
     public function requiredPointsSpent() :Int {
-        return pos.y * 4 - 2;
+        return pos.y * (4 + level) - 2;
     }
 
     public function levelUp() :Void {
