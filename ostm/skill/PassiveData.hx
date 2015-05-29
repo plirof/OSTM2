@@ -11,26 +11,26 @@ class PassiveData {
                 mod.flatStrength += 3 * level;
             },
         }),
+            new PassiveSkill({
+                id: 'dam',
+                requirements: ['str'],
+                icon: 'DAM',
+                pos: {x: 0, y: 1},
+                name: 'Damage',
+                modifier: function(level, mod) {
+                    mod.flatStrength += Math.floor(1.5 * level);
+                    mod.percentAttack += 8 * level;
+                },
+            }),
         new PassiveSkill({
             id: 'dex',
             icon: 'DEX+',
-            pos: {x: 2, y: 0},
+            pos: {x: 4, y: 0},
             name: 'Dexterity+',
             modifier: function(level, mod) {
                 mod.flatDexterity += 3 * level;
             },
         }),
-            new PassiveSkill({
-                id: 'danger',
-                requirements: ['str', 'dex'],
-                icon: 'DNG',
-                pos: {x: 1, y: 1},
-                name: 'Dangerousness',
-                modifier: function(level, mod) {
-                    mod.flatDexterity += level;
-                    mod.percentAttackSpeed += 3 * level;
-                },
-            }),
             new PassiveSkill({
                 id: 'atk-spd',
                 requirements: ['dex'],
@@ -38,19 +38,10 @@ class PassiveData {
                 pos: {x: 1, y: 1},
                 name: 'AttackSpeed+',
                 modifier: function(level, mod) {
+                    mod.flatDexterity += Math.floor(1.5 * level);
                     mod.percentAttackSpeed += 3 * level;
                 },
             }),
-                new PassiveSkill({
-                    id: 'spd',
-                    requirements: ['atk-spd'],
-                    icon: 'MSPD',
-                    pos: {x: 0, y: 1},
-                    name: 'MoveSpeed+',
-                    modifier: function(level, mod) {
-                        mod.percentMoveSpeed += 8 * level;
-                    },
-                }),
             new PassiveSkill({
                 id: 'crt',
                 requirements: ['dex'],
@@ -81,20 +72,20 @@ class PassiveData {
                         mod.percentCritDamage += 12 * level;
                     },
                 }),
-        new PassiveSkill({
-            id: 'int',
-            icon: 'INT+',
-            pos: {x: 4, y: 0},
-            name: 'Intelligence+',
-            modifier: function(level, mod) {
-                mod.flatIntelligence += 3 * level;
-            },
-        }),
+        // new PassiveSkill({
+        //     id: 'int',
+        //     icon: 'INT+',
+        //     pos: {x: 4, y: 0},
+        //     name: 'Intelligence+',
+        //     modifier: function(level, mod) {
+        //         mod.flatIntelligence += 3 * level;
+        //     },
+        // }),
             new PassiveSkill({
                 id: 'mp',
-                requirements: ['int'],
+                // requirements: ['int'],
                 icon: 'MP+',
-                pos: {x: 0, y: 1},
+                pos: {x: 8, y: 1},
                 name: 'Mana+',
                 modifier: function(level, mod) {
                     mod.flatMana += 8 * level;

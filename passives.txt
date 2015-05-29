@@ -1,0 +1,38 @@
+passives:
+
+flat stats:
+str
+dex
+int
+vit
+end
+
+basics:
+attack damage % / str
+attack speed % / dex
+crit rating / dex
+mana / int
+flat regen / vit
+health % / end
+
+advanced:
+attack damage / health / str
+crit chance / flat crit rating / dex
+mana regen % / int
+health regen % / vit
+flat armor / end
+
+niche:
+armor pierce / damage / str / end
+damage / speed / str / dex
+speed / crit damage / dex / int
+movespeed / hunting / dex / int
+flat damage / health % / dex / end
+
+
+TECH:
+
+str stacks before global % damage
+%-health regen
+armor piercing
+enemy armor
