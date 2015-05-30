@@ -148,6 +148,7 @@ class BattleMember implements Saveable {
 
             _cachedStatMod.flatAttack = 0;
             _cachedStatMod.flatDefense = 0;
+            _cachedStatMod.flatCritRating = 0;
             
             for (passive in SkillTree.instance.skills) {
                 passive.sumAffixes(_cachedStatMod);
@@ -167,10 +168,10 @@ class BattleMember implements Saveable {
     }
     public function maxMana() :Int {
         var mod = sumAffixes();
-        var mp = 100;
+        var mp = 100.0;
         mp += mod.flatMana;
-        mp = Math.round(mp * (1 + mod.percentMana / 100));
-        return mp;
+        mp *= 1 + mod.percentMana / 100;
+        return Math.round(mp);
     }
     function baseHealthRegenInCombat() :Float {
         var mod = sumAffixes();
@@ -182,15 +183,22 @@ class BattleMember implements Saveable {
         var reg = 6 + maxHealth() * 0.0125;
         return reg;
     }
-    public function healthRegenInCombat() :Float {
+    function healthRegen(inCombat :Bool) :Float {
         var rIn = baseHealthRegenInCombat();
         var rOut = baseHealthRegenOutOfCombat();
-        return rIn + 0.15 * rOut;
+        if (inCombat) {
+            rOut *= 0.15;
+        }
+        var reg = rIn + rOut;
+        var mod = sumAffixes();
+        reg *= 1 + mod.percentHealthRegen / 100;
+        return reg;
+    }
+    public function healthRegenInCombat() :Float {
+        return healthRegen(true);
     }
     public function healthRegenOutOfCombat() :Float {
-        var rIn = baseHealthRegenInCombat();
-        var rOut = baseHealthRegenOutOfCombat();
-        return rIn + rOut;
+        return healthRegen(false);
     }
     public function manaRegen() :Float {
         var mod = sumAffixes();
@@ -199,6 +207,11 @@ class BattleMember implements Saveable {
         return reg;
     }
     
+    public function armorPierce() :Int {
+        var mod = sumAffixes();
+        return mod.flatArmorPierce;
+    }
+
     public function damage() :Int {
         var mod = sumAffixes();
         var atk :Float = 0;
@@ -209,7 +222,7 @@ class BattleMember implements Saveable {
             atk += item != null ? item.attack() : 0;
         }
         atk *= curSkill.damage;
-        atk *= 1 + strength() * 0.02;
+        atk *= 1 + strength() * 0.015;
         atk *= 1 + mod.percentAttack / 100;
         return Math.round(atk);
     }
@@ -226,7 +239,8 @@ class BattleMember implements Saveable {
         var mod = sumAffixes();
         
         var floatRating :Float = wep != null ? wep.critRating() : 3;
-        floatRating *= 1 + dexterity() * 0.02;
+        floatRating += mod.flatCritRating;
+        floatRating *= 1 + dexterity() * 0.025;
         floatRating *= 1 + mod.percentCritRating / 100;
         var rating = Math.round(floatRating);
 
@@ -260,7 +274,7 @@ class BattleMember implements Saveable {
     }
 
     public function defense() :Int {
-        var def :Float = 0;
+        var def :Float = classType.baseArmor.value(level);
         var mod = sumAffixes();
         for (item in equipment) {
             def += item != null ? item.defense() : 0;

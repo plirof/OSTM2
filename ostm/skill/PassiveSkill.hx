@@ -16,7 +16,7 @@ class PassiveSkill {
     public var pos(default, null) :Point;
     var modifierFunction :Int -> StatModifier -> Void;
 
-    public function new(data :Dynamic) {
+    public function new(data) {
         id = data.id;
         requirementIds = data.requirements != null ? data.requirements : [];
         name = data.name;
@@ -52,7 +52,7 @@ class PassiveSkill {
     }
 
     public function requiredPointsSpent() :Int {
-        return pos.y * (4 + level) - 2;
+        return Math.floor(pos.y * (4 + 1.5 * level) - 2);
     }
 
     public function levelUp() :Void {

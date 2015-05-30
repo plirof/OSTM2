@@ -28,6 +28,7 @@ class ClassType {
     public var name(default, null) :String;
     public var image(default, null) :String;
     public var unarmedAttack(default, null) :StatType;
+    public var baseArmor(default, null) :StatType;
     public var strength(default, null) :StatType;
     public var dexterity(default, null) :StatType;
     public var intelligence(default, null) :StatType;
@@ -38,6 +39,7 @@ class ClassType {
         name = data.name;
         image = data.image;
         unarmedAttack = data.attack != null ? data.attack : new StatType(2, 0);
+        baseArmor = data.armor != null ? data.armor : new StatType(0, 0);
         strength = data.str;
         dexterity = data.dex;
         intelligence = data.int;
@@ -59,6 +61,7 @@ class ClassType {
             name: 'Slime',
             image: 'enemies/Slime.png',
             attack: new StatType(1.5, 0.75),
+            armor: new StatType(1, 1.25),
             str: new ExpStatType(2.2, 0.6),
             dex: new ExpStatType(2.2, 0.6),
             int: new ExpStatType(2.2, 0.6),
@@ -69,6 +72,7 @@ class ClassType {
             name: 'Snake',
             image: 'enemies/Snake.png',
             attack: new StatType(2.25, 1.15),
+            armor: new StatType(1, 1.25),
             str: new ExpStatType(4.6, 1.1),
             dex: new ExpStatType(5.2, 1.3),
             int: new ExpStatType(2.2, 0.8),
@@ -79,6 +83,7 @@ class ClassType {
             name: 'Goblin',
             image: 'enemies/Goblin.png',
             attack: new StatType(2, 1.1),
+            armor: new StatType(1, 1.25),
             str: new ExpStatType(3.5, 0.9),
             dex: new ExpStatType(5, 1.2),
             int: new ExpStatType(3.2, 0.8),

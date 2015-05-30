@@ -10,6 +10,7 @@ class StatModifier {
     public var flatAttack :Int = 0;
     public var flatDefense :Int = 0;
     public var flatCritRating :Int = 0;
+    public var flatArmorPierce :Int = 0;
     public var flatHealth :Int = 0;
     public var flatHealthRegen :Float = 0;
     public var flatMana :Int = 0;
@@ -22,6 +23,7 @@ class StatModifier {
     public var flatIntelligence :Int = 0;
 
     public var percentHealth :Float = 0;
+    public var percentHealthRegen :Int = 0;
     public var percentMana :Int = 0;
     public var percentManaRegen :Int = 0;
     public var percentAttack :Int = 0;
@@ -52,6 +54,10 @@ class StatModifier {
             }, {
                 value: flatCritRating,
                 name: 'Crit Rating',
+                isPercent: false,
+            }, {
+                value: flatArmorPierce,
+                name: 'Armor Piercing',
                 isPercent: false,
             }, {
                 value: flatHealth,
@@ -92,6 +98,10 @@ class StatModifier {
             }, {
                 value: percentHealth,
                 name: 'Health',
+                isPercent: true,
+            }, {
+                value: percentHealthRegen,
+                name: 'Health Regen',
                 isPercent: true,
             }, {
                 value: percentMana,
