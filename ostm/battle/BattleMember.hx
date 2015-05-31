@@ -283,8 +283,9 @@ class BattleMember implements Saveable {
         def *= 1 + endurance() * 0.02;
         return Math.round(def);
     }
-    public function damageReduction(attackerLevel :Int) :Float {
+    public function damageReduction(attackerLevel :Int, armorPierce :Int = 0) :Float {
         var def = defense();
+        def -= armorPierce;
         return def / (10 + 2.5 * attackerLevel + def);
     }
     public function ehp(attackerLevel :Int) :Float {

@@ -37,7 +37,7 @@ class PassiveData {
             id: 'vit',
             requirements: [],
             icon: 'VIT+',
-            pos: {x: 5, y: 0},
+            pos: {x: 4, y: 0},
             name: 'Vitality+',
             modifier: function(level, mod) {
                 mod.flatVitality += 3 * level;
@@ -47,7 +47,7 @@ class PassiveData {
             id: 'end',
             requirements: [],
             icon: 'END+',
-            pos: {x: 7, y: 0},
+            pos: {x: 5, y: 0},
             name: 'Endurance+',
             modifier: function(level, mod) {
                 mod.flatEndurance += 3 * level;
@@ -93,7 +93,7 @@ class PassiveData {
             requirements: [],
             // requirements: ['int'],
             icon: 'MP+',
-            pos: {x: 8, y: 1},
+            pos: {x: 3, y: 1},
             name: 'Mana+',
             modifier: function(level, mod) {
                 mod.flatMana += 8 * level;
@@ -139,7 +139,7 @@ class PassiveData {
             id: 'cch',
             requirements: ['crt'],
             icon: 'CCH+',
-            pos: {x: 1, y: 1},
+            pos: {x: 0, y: 1},
             name: 'Crit Chance+',
             modifier: function(level, mod) {
                 mod.flatDexterity += Math.floor(1.5 * level);
@@ -172,12 +172,12 @@ class PassiveData {
         new PassiveSkill({
             id: 'arm',
             icon: 'ARM+',
-            requirements: ['end'],
+            requirements: ['hp'],
             pos: {x: 0, y: 1},
             name: 'Armor+',
             modifier: function(level, mod) {
                 mod.flatEndurance += Math.floor(1.5 * level);
-                mod.flatDefense += level;
+                mod.flatDefense += 2 * level;
             },
         }),
 
@@ -196,6 +196,19 @@ class PassiveData {
             },
         }),
         new PassiveSkill({
+            id: 'ruth',
+            requirements: ['atk-spd'],
+            icon: 'RTH',
+            pos: {x: 0, y: 2},
+            name: 'Ruthlessness',
+            modifier: function(level, mod) {
+                mod.flatStrength += level;
+                mod.flatDexterity += level;
+                mod.percentAttack += 7 * level;
+                mod.percentAttackSpeed += 2 * level;
+            },
+        }),
+        new PassiveSkill({
             id: 'cdm',
             requirements: ['cch'],
             icon: 'CDM+',
@@ -206,6 +219,32 @@ class PassiveData {
                 mod.flatIntelligence += level;
                 mod.percentAttackSpeed += Math.floor(2.5 * level);
                 mod.percentCritDamage += 12 * level;
+            },
+        }),
+        new PassiveSkill({
+            id: 'hnt',
+            requirements: ['mp-reg'],
+            icon: 'HNT+',
+            pos: {x: 0, y: 1},
+            name: 'Hunting',
+            modifier: function(level, mod) {
+                mod.flatDexterity += level;
+                mod.flatIntelligence += level;
+                mod.flatHuntSkill += Math.floor(3.5 * level);
+                mod.percentMoveSpeed += 8 * level;
+            },
+        }),
+        new PassiveSkill({
+            id: 'jgr',
+            requirements: ['arm'],
+            icon: 'JGR',
+            pos: {x: 0, y: 1},
+            name: 'Juggernaut',
+            modifier: function(level, mod) {
+                mod.flatDexterity += level;
+                mod.flatEndurance += level;
+                mod.flatAttack += Math.floor(1.5 * level);
+                mod.percentHealth += 2 * level;
             },
         }),
     ];
