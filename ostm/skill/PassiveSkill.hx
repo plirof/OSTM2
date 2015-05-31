@@ -61,6 +61,10 @@ class PassiveSkill {
         untyped ga('send', 'event', 'player', 'spend-skill-point', id, level);
     }
 
+    public function respec() :Void {
+        level = 0;
+    }
+
     public function currentValue() :StatModifier {
         var mod = new StatModifier();
         modifierFunction(level, mod);

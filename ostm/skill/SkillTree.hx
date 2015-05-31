@@ -20,6 +20,7 @@ class SkillTree extends Component
     var _skillNodes = new Array<SkillNode>();
     var _skillPoints :Element;
     var _spentPoints :Element;
+    var _respecCost :Element;
 
     var _cachedPoints :Int = -1;
 
@@ -42,6 +43,28 @@ class SkillTree extends Component
         JsUtil.createSpan('Spent points: ', screen);
         _spentPoints = JsUtil.createSpan('', screen);
 
+        screen.appendChild(Browser.document.createBRElement());
+
+        var respecBtn = Browser.document.createButtonElement();
+        respecBtn.innerText = 'Refund Spent Points';
+        respecBtn.onclick = function(event) {
+            var player = BattleManager.instance.getPlayer();
+            if (player.gems >= respecCost()) {
+                player.addGems(-respecCost());
+                for (skill in skills) {
+                    skill.respec();
+                }
+                for (node in _skillNodes) {
+                    node.markDirty();
+                }
+                player.updateCachedAffixes();
+
+                untyped ga('send', 'event', 'player', 'respec-skill-points');
+            }
+        };
+        screen.appendChild(respecBtn);
+        _respecCost = JsUtil.createSpan('', screen);
+
         for (skill in skills) {
             for (s2 in skills) {
                 if (skill.requirementIds.indexOf(s2.id) != -1) {
@@ -62,6 +85,7 @@ class SkillTree extends Component
 
             _skillPoints.innerText = Util.format(availableSkillPoints());
             _spentPoints.innerText = Util.format(spentSkillPoints());
+            _respecCost.innerText = ' Cost: ' + Util.format(respecCost()) + 'Gems';
 
             for (node in _skillNodes) {
                 node.markDirty();
@@ -84,6 +108,10 @@ class SkillTree extends Component
 
     public function availableSkillPoints() :Int {
         return maxSkillPoints() - spentSkillPoints();
+    }
+
+    function respecCost() :Int {
+        return spentSkillPoints();
     }
 
     function addNode(skill :PassiveSkill) :SkillNode {
@@ -114,7 +142,7 @@ class SkillTree extends Component
     function updateScrollBounds() :Void {
         var topLeft = new Vec2(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
         var botRight = new Vec2(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
-        var origin :Vec2 = new Vec2(25, 50);
+        var origin :Vec2 = new Vec2(25, 70);
         for (node in _skillNodes) {
             var pos = node.getOffset();
             topLeft = Vec2.min(topLeft, pos);

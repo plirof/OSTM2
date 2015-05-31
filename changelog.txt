@@ -1,9 +1,10 @@
 OSTM2 - CHANGELOG
 
----=== v0.0.3 - May ?? 2015 ===---
+---=== v0.0.3 - May 30 2015 ===---
 * !!SAVE WIPE!!
 * Tweak map generation
 * More and more interesting passive skills
+* Add respec button
 * Add Hunting toggle
 * Short-format some numbers
 * Change scaling on some affixes (nerfs)

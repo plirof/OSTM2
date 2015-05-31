@@ -221,6 +221,7 @@ class BattleMember implements Saveable {
         for (item in equipment) {
             atk += item != null ? item.attack() : 0;
         }
+        atk += mod.flatAttack;
         atk *= curSkill.damage;
         atk *= 1 + strength() * 0.015;
         atk *= 1 + mod.percentAttack / 100;
@@ -286,6 +287,7 @@ class BattleMember implements Saveable {
     public function damageReduction(attackerLevel :Int, armorPierce :Int = 0) :Float {
         var def = defense();
         def -= armorPierce;
+        def = Math.floor(Math.max(0, def));
         return def / (10 + 2.5 * attackerLevel + def);
     }
     public function ehp(attackerLevel :Int) :Float {
