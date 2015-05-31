@@ -568,12 +568,15 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 		jengine.HtmlRenderer.styleElement(this._elem,this._options.style);
 		parent.appendChild(this._elem);
 	}
+	,start: function() {
+		this._transform = this.entity.getComponent(jengine.Transform);
+	}
 	,deinit: function() {
 		this._elem.parentElement.removeChild(this._elem);
 	}
 	,getPos: function() {
-		if(this.entity.getComponent(jengine.Transform) == null) return null;
-		var pos = this.entity.getComponent(jengine.Transform).pos;
+		if(this._transform == null) return null;
+		var pos = this._transform.pos;
 		if(this.floating) {
 			var container = this._elem.parentElement;
 			var scroll = jengine._Vec2.Vec2_Impl_._new(container.scrollLeft,container.scrollTop);
@@ -729,7 +732,7 @@ jengine.SaveManager.prototype = $extend(jengine.Component.prototype,{
 		var keys = this._toSave.keys();
 		var keyArray = [];
 		this.deserialize(Reflect.getProperty(save,this.saveId));
-		if(this.loadedVersion < 8) return;
+		if(this.loadedVersion < 9) return;
 		while( keys.hasNext() ) {
 			var k = keys.next();
 			if(k == this.saveId) continue;
@@ -739,7 +742,7 @@ jengine.SaveManager.prototype = $extend(jengine.Component.prototype,{
 		}
 	}
 	,serialize: function() {
-		return { saveVersion : 8};
+		return { saveVersion : 9};
 	}
 	,deserialize: function(data) {
 		this.loadedVersion = data.saveVersion;
@@ -935,10 +938,23 @@ jengine.util.Util.formatFloat = function(num,digits) {
 	var mul = Math.floor(Math.pow(10,digits));
 	var $int = Math.round(num * mul);
 	var hi = jengine.util.Util.format(Math.floor($int / mul));
+	if($int % mul == 0) return hi;
 	var lo = new String($int % mul);
 	while(lo.length < digits) lo = "0" + lo;
 	while(lo.length > 1 && lo.charAt(lo.length - 1) == "0") lo = lo.substring(0,lo.length - 1);
 	return hi + "." + lo;
+};
+jengine.util.Util.shortFormat = function(num,digits) {
+	if(digits == null) digits = 2;
+	var suffixes = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","Nn","Dc"];
+	var k = num;
+	var i = 0;
+	while(k >= 1000 && i < suffixes.length) {
+		k /= 1000;
+		i++;
+	}
+	if(i == 0) return new String(num);
+	return jengine.util.Util.formatFloat(k,digits) + suffixes[i];
 };
 jengine.util.Util.contains = function(array,item) {
 	return HxOverrides.indexOf(array,item,0) != -1;
@@ -1599,7 +1615,7 @@ ostm.battle.ActiveSkillButton.prototype = $extend(jengine.Component.prototype,{
 ostm.battle.BattleManager = function() {
 	this._killCount = 0;
 	this._isPlayerDead = false;
-	this._enemySpawnTimer = 0;
+	this._enemySpawnPct = 0;
 	this._enemies = [];
 	this._activeButtons = [];
 	this._battleMembers = [];
@@ -1615,7 +1631,7 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 		var _g = this;
 		this._player = this.addBattleMember(true,jengine._Vec2.Vec2_Impl_._new(75,80));
 		this.entity.getSystem().addEntity(new jengine.Entity([new jengine.HtmlRenderer({ parent : "battle-screen", className : "spawn-bar"}),new ostm.ProgressBar(function() {
-			return _g._enemySpawnTimer / 4;
+			return _g._enemySpawnPct;
 		})]));
 		this.entity.getSystem().addEntity(new jengine.Entity([new jengine.HtmlRenderer({ parent : "battle-screen", className : "xp-bar"}),new ostm.ProgressBar(function() {
 			return _g._player.xp / _g._player.xpToNextLevel();
@@ -1650,6 +1666,25 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 			mem.health = mem.maxHealth();
 			mem.mana = mem.maxMana();
 		}
+		this._battleScreen = window.document.getElementById("battle-screen");
+		var _this = window.document;
+		this._huntButton = _this.createElement("button");
+		this._huntButton.className = "hunt-button";
+		this._huntButton.onclick = function(event) {
+			var _g13 = _g._player.huntType;
+			switch(_g13[1]) {
+			case 0:
+				_g._player.huntType = ostm.battle.HuntType.Hunting;
+				break;
+			case 1:
+				_g._player.huntType = ostm.battle.HuntType.Hiding;
+				break;
+			case 2:
+				_g._player.huntType = ostm.battle.HuntType.Normal;
+				break;
+			}
+		};
+		this._battleScreen.appendChild(this._huntButton);
 	}
 	,spawnLevel: function() {
 		return ostm.map.MapGenerator.instance.selectedNode.areaLevel();
@@ -1674,28 +1709,40 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 		}
 		if(this._isPlayerDead && this._player.health == this._player.maxHealth()) {
 			this._isPlayerDead = false;
-			this._enemySpawnTimer = 0;
+			this._enemySpawnPct = 0;
 		}
 	}
 	,update: function() {
 		var hasEnemySpawned = this.isInBattle();
 		this.regenUpdate();
 		var inTown = ostm.map.MapGenerator.instance.isInTown();
-		if(!inTown) window.document.getElementById("battle-screen").style.display = ""; else window.document.getElementById("battle-screen").style.display = "none";
+		if(!inTown) this._battleScreen.style.display = ""; else this._battleScreen.style.display = "none";
+		var _g = this._player.huntType;
+		switch(_g[1]) {
+		case 0:
+			this._huntButton.innerText = "Normal";
+			break;
+		case 1:
+			this._huntButton.innerText = "Hunting";
+			break;
+		case 2:
+			this._huntButton.innerText = "Hiding";
+			break;
+		}
 		if(inTown) {
-			this._enemySpawnTimer = 0;
+			this._enemySpawnPct = 0;
 			return;
 		}
 		if(!hasEnemySpawned) {
-			this._enemySpawnTimer += jengine.Time.dt;
-			if(this._enemySpawnTimer >= 4) this.spawnEnemies();
+			this._enemySpawnPct += jengine.Time.dt / this.enemySpawnTime();
+			if(this._enemySpawnPct >= 1) this.spawnEnemies();
 			return;
 		}
-		var _g = 0;
-		var _g1 = this._battleMembers;
-		while(_g < _g1.length) {
-			var mem = _g1[_g];
-			++_g;
+		var _g1 = 0;
+		var _g11 = this._battleMembers;
+		while(_g1 < _g11.length) {
+			var mem = _g11[_g1];
+			++_g1;
 			mem.attackTimer += jengine.Time.dt;
 			var attackTime = 1.0 / mem.attackSpeed();
 			if(mem.attackTimer > attackTime) {
@@ -1726,7 +1773,7 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 	}
 	,dealDamage: function(target,attacker) {
 		var baseDamage = attacker.damage();
-		var damage = Math.round(baseDamage * (1 - target.damageReduction(attacker.level)));
+		var damage = Math.round(baseDamage * (1 - target.damageReduction(attacker.level,attacker.armorPierce())));
 		var crit = attacker.critInfo(target.level);
 		var isCrit = jengine.util.Random.randomBool(crit.chance);
 		if(isCrit) damage = Math.round(damage * (1 + crit.damage));
@@ -1791,7 +1838,7 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 					++_g1;
 					mem.attackTimer = 0;
 				}
-				this._enemySpawnTimer = 0;
+				this._enemySpawnPct = 0;
 			}
 		}
 	}
@@ -1819,7 +1866,7 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 		return this._isPlayerDead;
 	}
 	,isInBattle: function() {
-		return this._enemySpawnTimer >= 4 && !this._isPlayerDead;
+		return this._enemies.length > 0 && !this._isPlayerDead;
 	}
 	,getKillCount: function() {
 		return this._killCount;
@@ -1827,12 +1874,28 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 	,resetKillCount: function() {
 		this._killCount = 0;
 	}
+	,enemySpawnTime: function() {
+		return 4 * this._player.enemySpawnModifier();
+	}
 	,getPlayer: function() {
 		return this._player;
 	}
 	,__class__: ostm.battle.BattleManager
 });
+ostm.battle.HuntType = { __ename__ : true, __constructs__ : ["Normal","Hunting","Hiding"] };
+ostm.battle.HuntType.Normal = ["Normal",0];
+ostm.battle.HuntType.Normal.toString = $estr;
+ostm.battle.HuntType.Normal.__enum__ = ostm.battle.HuntType;
+ostm.battle.HuntType.Hunting = ["Hunting",1];
+ostm.battle.HuntType.Hunting.toString = $estr;
+ostm.battle.HuntType.Hunting.__enum__ = ostm.battle.HuntType;
+ostm.battle.HuntType.Hiding = ["Hiding",2];
+ostm.battle.HuntType.Hiding.toString = $estr;
+ostm.battle.HuntType.Hiding.__enum__ = ostm.battle.HuntType;
+ostm.battle.HuntType.__empty_constructs__ = [ostm.battle.HuntType.Normal,ostm.battle.HuntType.Hunting,ostm.battle.HuntType.Hiding];
 ostm.battle.BattleMember = function(isPlayer) {
+	this._cachedStatMod = null;
+	this.huntType = ostm.battle.HuntType.Normal;
 	this.attackTimer = 0;
 	this.manaPartial = 0;
 	this.mana = 0;
@@ -1868,6 +1931,7 @@ ostm.battle.BattleMember.__interfaces__ = [jengine.Saveable];
 ostm.battle.BattleMember.prototype = {
 	levelUp: function() {
 		this.level++;
+		this._cachedStatMod = null;
 		ga("send","event","player","level-up","",this.level);
 	}
 	,addXp: function(xp) {
@@ -1923,64 +1987,79 @@ ostm.battle.BattleMember.prototype = {
 		val += mod.flatEndurance;
 		return Math.round(val);
 	}
+	,updateCachedAffixes: function() {
+		this._cachedStatMod = null;
+	}
 	,sumAffixes: function() {
-		var mod = new ostm.battle.StatModifier();
-		var $it0 = this.equipment.iterator();
-		while( $it0.hasNext() ) {
-			var item = $it0.next();
-			if(item != null) item.sumAffixes(mod);
+		if(this._cachedStatMod == null) {
+			this._cachedStatMod = new ostm.battle.StatModifier();
+			var $it0 = this.equipment.iterator();
+			while( $it0.hasNext() ) {
+				var item = $it0.next();
+				if(item != null) item.sumAffixes(this._cachedStatMod);
+			}
+			this._cachedStatMod.flatAttack = 0;
+			this._cachedStatMod.flatDefense = 0;
+			this._cachedStatMod.flatCritRating = 0;
+			var _g = 0;
+			var _g1 = ostm.skill.SkillTree.instance.skills;
+			while(_g < _g1.length) {
+				var passive = _g1[_g];
+				++_g;
+				passive.sumAffixes(this._cachedStatMod);
+			}
 		}
-		mod.flatAttack = 0;
-		mod.flatDefense = 0;
-		var _g = 0;
-		var _g1 = ostm.skill.SkillTree.instance.skills;
-		while(_g < _g1.length) {
-			var passive = _g1[_g];
-			++_g;
-			passive.sumAffixes(mod);
-		}
-		return mod;
+		return this._cachedStatMod;
 	}
 	,maxHealth: function() {
 		var mod = this.sumAffixes();
-		var hp = this.vitality() * 10;
-		if(this.isPlayer) hp += 50;
+		var hp = this.vitality() * 5 + 20;
+		if(this.isPlayer) hp += 55;
 		hp += mod.flatHealth;
 		hp = Math.round(hp * (1 + mod.percentHealth / 100));
 		return hp;
 	}
 	,maxMana: function() {
 		var mod = this.sumAffixes();
-		var mp = 100;
+		var mp = 100.0;
 		mp += mod.flatMana;
-		mp = Math.round(mp * (1 + mod.percentMana / 100));
-		return mp;
+		mp *= 1 + mod.percentMana / 100;
+		return Math.round(mp);
 	}
 	,baseHealthRegenInCombat: function() {
 		var mod = this.sumAffixes();
-		var reg = 0;
+		var reg = 0.0;
 		reg += mod.flatHealthRegen;
 		return reg;
 	}
 	,baseHealthRegenOutOfCombat: function() {
-		var reg = 4 + this.maxHealth() * 0.01;
+		var reg = 6 + this.maxHealth() * 0.0125;
+		return reg;
+	}
+	,healthRegen: function(inCombat) {
+		var rIn = this.baseHealthRegenInCombat();
+		var rOut = this.baseHealthRegenOutOfCombat();
+		if(inCombat) rOut *= 0.15;
+		var reg = rIn + rOut;
+		var mod = this.sumAffixes();
+		reg *= 1 + mod.percentHealthRegen / 100;
 		return reg;
 	}
 	,healthRegenInCombat: function() {
-		var rIn = this.baseHealthRegenInCombat();
-		var rOut = this.baseHealthRegenOutOfCombat();
-		return rIn + 0.2 * rOut;
+		return this.healthRegen(true);
 	}
 	,healthRegenOutOfCombat: function() {
-		var rIn = this.baseHealthRegenInCombat();
-		var rOut = this.baseHealthRegenOutOfCombat();
-		return rIn + rOut;
+		return this.healthRegen(false);
 	}
 	,manaRegen: function() {
 		var mod = this.sumAffixes();
 		var reg = 2 + this.maxMana() * 0.015;
 		reg *= 1 + mod.percentManaRegen / 100;
 		return reg;
+	}
+	,armorPierce: function() {
+		var mod = this.sumAffixes();
+		return mod.flatArmorPierce;
 	}
 	,damage: function() {
 		var mod = this.sumAffixes();
@@ -1991,8 +2070,9 @@ ostm.battle.BattleMember.prototype = {
 			var item = $it0.next();
 			if(item != null) atk += item.attack(); else atk += 0;
 		}
+		atk += mod.flatAttack;
 		atk *= this.curSkill.damage;
-		atk *= 1 + this.strength() * 0.02;
+		atk *= 1 + this.strength() * 0.015;
 		atk *= 1 + mod.percentAttack / 100;
 		return Math.round(atk);
 	}
@@ -2010,7 +2090,8 @@ ostm.battle.BattleMember.prototype = {
 		var mod = this.sumAffixes();
 		var floatRating;
 		if(wep != null) floatRating = wep.critRating(); else floatRating = 3;
-		floatRating *= 1 + this.dexterity() * 0.02;
+		floatRating += mod.flatCritRating;
+		floatRating *= 1 + this.dexterity() * 0.025;
 		floatRating *= 1 + mod.percentCritRating / 100;
 		var rating = Math.round(floatRating);
 		var offense = 0.02 * rating;
@@ -2034,7 +2115,7 @@ ostm.battle.BattleMember.prototype = {
 		return atk * spd * critMod;
 	}
 	,defense: function() {
-		var def = 0;
+		var def = this.classType.baseArmor.value(this.level);
 		var mod = this.sumAffixes();
 		var $it0 = this.equipment.iterator();
 		while( $it0.hasNext() ) {
@@ -2045,8 +2126,11 @@ ostm.battle.BattleMember.prototype = {
 		def *= 1 + this.endurance() * 0.02;
 		return Math.round(def);
 	}
-	,damageReduction: function(attackerLevel) {
+	,damageReduction: function(attackerLevel,armorPierce) {
+		if(armorPierce == null) armorPierce = 0;
 		var def = this.defense();
+		def -= armorPierce;
+		def = Math.floor(Math.max(0,def));
 		return def / (10 + 2.5 * attackerLevel + def);
 	}
 	,ehp: function(attackerLevel) {
@@ -2068,10 +2152,12 @@ ostm.battle.BattleMember.prototype = {
 		if(oldItem != null) oldItem.cleanupElement();
 		this.equipment.set(item.type.slot,item);
 		item;
+		this.updateCachedAffixes();
 	}
 	,unequip: function(item) {
 		this.equipment.set(item.type.slot,null);
 		null;
+		this.updateCachedAffixes();
 	}
 	,setActiveSkill: function(skill) {
 		if(this.curSkill != skill && skill.manaCost <= this.mana) this.curSkill = skill;
@@ -2091,6 +2177,24 @@ ostm.battle.BattleMember.prototype = {
 		this.manaPartial -= dMana;
 		if(this.mana >= this.maxMana()) this.mana = this.maxMana();
 	}
+	,huntSkill: function() {
+		var mod = this.sumAffixes();
+		var hunt = 10;
+		hunt += mod.flatHuntSkill;
+		return hunt;
+	}
+	,enemySpawnModifier: function() {
+		var mod = this.huntSkill() / 40;
+		var _g = this.huntType;
+		switch(_g[1]) {
+		case 0:
+			return 1;
+		case 1:
+			return 1 / (1 + mod);
+		case 2:
+			return 1 + mod;
+		}
+	}
 	,serialize: function() {
 		var equips = [];
 		var $it0 = this.equipment.iterator();
@@ -2098,7 +2202,7 @@ ostm.battle.BattleMember.prototype = {
 			var item = $it0.next();
 			if(item != null) equips.push(item.serialize());
 		}
-		return { xp : this.xp, gold : this.gold, gems : this.gems, level : this.level, health : this.health, mana : this.mana, equipment : equips};
+		return { xp : this.xp, gold : this.gold, gems : this.gems, level : this.level, health : this.health, mana : this.mana, equipment : equips, hunt : this.huntType};
 	}
 	,deserialize: function(data) {
 		this.xp = data.xp;
@@ -2107,6 +2211,7 @@ ostm.battle.BattleMember.prototype = {
 		this.level = data.level;
 		this.health = data.health;
 		this.mana = data.mana;
+		if(data.hunt != null) this.huntType = data.hunt; else this.huntType = ostm.battle.HuntType.Normal;
 		var $it0 = this.equipment.keys();
 		while( $it0.hasNext() ) {
 			var k = $it0.next();
@@ -2122,6 +2227,7 @@ ostm.battle.BattleMember.prototype = {
 			this.equipment.set(item.type.slot,item);
 			item;
 		}
+		this._cachedStatMod = null;
 	}
 	,__class__: ostm.battle.BattleMember
 };
@@ -2182,7 +2288,7 @@ ostm.battle.BattleRenderer.prototype = $extend(jengine.Component.prototype,{
 		}(this))})]);
 		this._spawnedEnts.push(levelEnt);
 		var powerEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(barX,-59)),new jengine.HtmlRenderer({ parent : id, size : barSize, textFunc : function() {
-			return "Pow: " + jengine.util.Util.format(_g1._member.power(_g1._member.level));
+			return "Pow: " + jengine.util.Util.shortFormat(_g1._member.power(_g1._member.level));
 		}, style : (function($this) {
 			var $r;
 			var _g2 = new haxe.ds.StringMap();
@@ -2321,6 +2427,7 @@ ostm.battle.ClassType = function(data) {
 	this.name = data.name;
 	this.image = data.image;
 	if(data.attack != null) this.unarmedAttack = data.attack; else this.unarmedAttack = new ostm.battle.StatType(2,0);
+	if(data.armor != null) this.baseArmor = data.armor; else this.baseArmor = new ostm.battle.StatType(0,0);
 	this.strength = data.str;
 	this.dexterity = data.dex;
 	this.intelligence = data["int"];
@@ -2417,22 +2524,42 @@ ostm.battle.StatModifier = function() {
 	this.percentAttack = 0;
 	this.percentManaRegen = 0;
 	this.percentMana = 0;
+	this.percentHealthRegen = 0;
 	this.percentHealth = 0;
 	this.flatIntelligence = 0;
 	this.flatEndurance = 0;
 	this.flatVitality = 0;
 	this.flatDexterity = 0;
 	this.flatStrength = 0;
+	this.flatHuntSkill = 0;
 	this.flatMana = 0;
 	this.flatHealthRegen = 0;
 	this.flatHealth = 0;
+	this.flatArmorPierce = 0;
 	this.flatCritRating = 0;
 	this.flatDefense = 0;
 	this.flatAttack = 0;
 };
 ostm.battle.StatModifier.__name__ = true;
 ostm.battle.StatModifier.prototype = {
-	__class__: ostm.battle.StatModifier
+	rawDisplayData: function() {
+		return [{ value : this.flatAttack, name : "Attack", isPercent : false},{ value : this.flatDefense, name : "Defense", isPercent : false},{ value : this.flatCritRating, name : "Crit Rating", isPercent : false},{ value : this.flatArmorPierce, name : "Armor Piercing", isPercent : false},{ value : this.flatHealth, name : "Health", isPercent : false},{ value : this.flatHealthRegen, name : "Health Regen", isPercent : false},{ value : this.flatMana, name : "Mana", isPercent : false},{ value : this.flatHuntSkill, name : "Hunting", isPercent : false},{ value : this.flatStrength, name : "Strength", isPercent : false},{ value : this.flatDexterity, name : "Dexterity", isPercent : false},{ value : this.flatVitality, name : "Vitality", isPercent : false},{ value : this.flatEndurance, name : "Endurance", isPercent : false},{ value : this.flatIntelligence, name : "Intelligence", isPercent : false},{ value : this.percentHealth, name : "Health", isPercent : true},{ value : this.percentHealthRegen, name : "Health Regen", isPercent : true},{ value : this.percentMana, name : "Mana", isPercent : true},{ value : this.percentManaRegen, name : "Mana Regen", isPercent : true},{ value : this.percentAttack, name : "Attack", isPercent : true},{ value : this.percentDefense, name : "Defense", isPercent : true},{ value : this.percentAttackSpeed, name : "Attack Speed", isPercent : true},{ value : this.percentMoveSpeed, name : "Move Speed", isPercent : true},{ value : this.percentCritRating, name : "Crit Rating", isPercent : true},{ value : this.percentCritChance, name : "Crit Chance", isPercent : true},{ value : this.percentCritDamage, name : "Crit Damage", isPercent : true},{ value : this.localPercentAttack, name : "Attack", isPercent : true},{ value : this.localPercentDefense, name : "Defense", isPercent : true},{ value : this.localPercentAttackSpeed, name : "Attack Speed", isPercent : true},{ value : this.localPercentCritRating, name : "Crit Rating", isPercent : true}];
+	}
+	,getDisplayData: function() {
+		var stats = this.rawDisplayData();
+		var toReturn = [];
+		var _g = 0;
+		while(_g < stats.length) {
+			var s = stats[_g];
+			++_g;
+			if(s.value > 0) toReturn.push(s);
+		}
+		return toReturn;
+	}
+	,getDisplayDataAllowingZeroes: function() {
+		return this.rawDisplayData();
+	}
+	,__class__: ostm.battle.StatModifier
 };
 ostm.battle.StatElement = function(parent,title,body) {
 	this.elem = window.document.createElement("li");
@@ -2467,11 +2594,11 @@ ostm.battle.StatRenderer.prototype = $extend(jengine.Component.prototype,{
 		this._elements = [new ostm.battle.StatElement(list,"Level",function() {
 			return jengine.util.Util.format(_g._member.level);
 		}),new ostm.battle.StatElement(list,"XP",function() {
-			return jengine.util.Util.format(_g._member.xp) + " / " + jengine.util.Util.format(_g._member.xpToNextLevel());
+			return jengine.util.Util.shortFormat(_g._member.xp) + " / " + jengine.util.Util.shortFormat(_g._member.xpToNextLevel());
 		}),new ostm.battle.StatElement(list,"Gold",function() {
-			return jengine.util.Util.format(_g._member.gold);
+			return jengine.util.Util.shortFormat(_g._member.gold);
 		}),new ostm.battle.StatElement(list,"Gems",function() {
-			return jengine.util.Util.format(_g._member.gems);
+			return jengine.util.Util.shortFormat(_g._member.gems);
 		}),new ostm.battle.StatElement(list,"Health",function() {
 			return jengine.util.Util.format(_g._member.health) + " / " + jengine.util.Util.format(_g._member.maxHealth());
 		}),new ostm.battle.StatElement(list,"Mana",function() {
@@ -2502,6 +2629,10 @@ ostm.battle.StatRenderer.prototype = $extend(jengine.Component.prototype,{
 			return jengine.util.Util.formatFloat(_g._member.damageReduction(lev3) * 100) + "% (against level " + jengine.util.Util.format(lev3) + " enemies)";
 		}),new ostm.battle.StatElement(list,"Move Speed",function() {
 			return "+" + jengine.util.Util.formatFloat(100 * (_g._member.moveSpeed() - 1),0) + "%";
+		}),new ostm.battle.StatElement(list,"Hunting",function() {
+			return jengine.util.Util.format(_g._member.huntSkill());
+		}),new ostm.battle.StatElement(list,"Enemy spawn time",function() {
+			return jengine.util.Util.formatFloat(ostm.battle.BattleManager.instance.enemySpawnTime()) + "s";
 		}),new ostm.battle.StatElement(list,"STR",function() {
 			return jengine.util.Util.format(_g._member.strength());
 		}),new ostm.battle.StatElement(list,"DEX",function() {
@@ -2586,18 +2717,19 @@ ostm.battle.StatRenderer.prototype = $extend(jengine.Component.prototype,{
 	,__class__: ostm.battle.StatRenderer
 });
 ostm.item = {};
-ostm.item.AffixType = function(id,description,base,perLevel,modifierFunc,multipliers) {
-	this.id = id;
-	this.description = description;
-	this.baseValue = base;
-	this.valuePerLevel = perLevel;
-	this.modifierFunc = modifierFunc;
-	this.slotMultipliers = multipliers;
+ostm.item.AffixType = function(data) {
+	this.id = data.id;
+	this.description = data.description;
+	this.baseValue = data.base;
+	this.valuePerLevel = data.perLevel;
+	if(data.levelPower != null) this.levelPower = data.levelPower; else this.levelPower = 1;
+	this.modifierFunc = data.modifierFunc;
+	this.slotMultipliers = data.multipliers;
 };
 ostm.item.AffixType.__name__ = true;
 ostm.item.AffixType.prototype = {
 	levelModifier: function(baseLevel) {
-		return 0;
+		return Math.round(Math.pow(baseLevel,this.levelPower) + 2);
 	}
 	,multiplierFor: function(slot) {
 		var mult = this.slotMultipliers.get(slot);
@@ -2617,48 +2749,6 @@ ostm.item.AffixType.prototype = {
 	}
 	,__class__: ostm.item.AffixType
 };
-ostm.item.LinearAffixType = function(id,description,base,perLevel,modifierFunc,multipliers) {
-	ostm.item.AffixType.call(this,id,description,base,perLevel,modifierFunc,multipliers);
-};
-ostm.item.LinearAffixType.__name__ = true;
-ostm.item.LinearAffixType.__super__ = ostm.item.AffixType;
-ostm.item.LinearAffixType.prototype = $extend(ostm.item.AffixType.prototype,{
-	levelModifier: function(baseLevel) {
-		return baseLevel + 2;
-	}
-	,__class__: ostm.item.LinearAffixType
-});
-ostm.item.SqrtAffixType = function(id,description,base,perLevel,modifierFunc,multipliers) {
-	ostm.item.AffixType.call(this,id,description,base,perLevel,modifierFunc,multipliers);
-};
-ostm.item.SqrtAffixType.__name__ = true;
-ostm.item.SqrtAffixType.__super__ = ostm.item.AffixType;
-ostm.item.SqrtAffixType.prototype = $extend(ostm.item.AffixType.prototype,{
-	levelModifier: function(baseLevel) {
-		return Math.round(Math.sqrt(baseLevel) + 2);
-	}
-	,__class__: ostm.item.SqrtAffixType
-});
-ostm.item.ItemSlot = { __ename__ : true, __constructs__ : ["Weapon","Body","Helmet","Boots","Gloves","Ring"] };
-ostm.item.ItemSlot.Weapon = ["Weapon",0];
-ostm.item.ItemSlot.Weapon.toString = $estr;
-ostm.item.ItemSlot.Weapon.__enum__ = ostm.item.ItemSlot;
-ostm.item.ItemSlot.Body = ["Body",1];
-ostm.item.ItemSlot.Body.toString = $estr;
-ostm.item.ItemSlot.Body.__enum__ = ostm.item.ItemSlot;
-ostm.item.ItemSlot.Helmet = ["Helmet",2];
-ostm.item.ItemSlot.Helmet.toString = $estr;
-ostm.item.ItemSlot.Helmet.__enum__ = ostm.item.ItemSlot;
-ostm.item.ItemSlot.Boots = ["Boots",3];
-ostm.item.ItemSlot.Boots.toString = $estr;
-ostm.item.ItemSlot.Boots.__enum__ = ostm.item.ItemSlot;
-ostm.item.ItemSlot.Gloves = ["Gloves",4];
-ostm.item.ItemSlot.Gloves.toString = $estr;
-ostm.item.ItemSlot.Gloves.__enum__ = ostm.item.ItemSlot;
-ostm.item.ItemSlot.Ring = ["Ring",5];
-ostm.item.ItemSlot.Ring.toString = $estr;
-ostm.item.ItemSlot.Ring.__enum__ = ostm.item.ItemSlot;
-ostm.item.ItemSlot.__empty_constructs__ = [ostm.item.ItemSlot.Weapon,ostm.item.ItemSlot.Body,ostm.item.ItemSlot.Helmet,ostm.item.ItemSlot.Boots,ostm.item.ItemSlot.Gloves,ostm.item.ItemSlot.Ring];
 ostm.item.Affix = function(type,slot) {
 	this.type = type;
 	this.slot = slot;
@@ -2666,7 +2756,7 @@ ostm.item.Affix = function(type,slot) {
 ostm.item.Affix.__name__ = true;
 ostm.item.Affix.loadAffix = function(data) {
 	var _g = 0;
-	var _g1 = ostm.item.Affix.affixTypes;
+	var _g1 = ostm.item.AffixData.affixTypes;
 	while(_g < _g1.length) {
 		var type = _g1[_g];
 		++_g;
@@ -2698,6 +2788,39 @@ ostm.item.Affix.prototype = {
 	}
 	,__class__: ostm.item.Affix
 };
+ostm.item.SqrtAffixType = function(data) {
+	ostm.item.AffixType.call(this,data);
+};
+ostm.item.SqrtAffixType.__name__ = true;
+ostm.item.SqrtAffixType.__super__ = ostm.item.AffixType;
+ostm.item.SqrtAffixType.prototype = $extend(ostm.item.AffixType.prototype,{
+	levelModifier: function(baseLevel) {
+		return Math.round(Math.sqrt(baseLevel) + 2);
+	}
+	,__class__: ostm.item.SqrtAffixType
+});
+ostm.item.ItemSlot = { __ename__ : true, __constructs__ : ["Weapon","Body","Helmet","Boots","Gloves","Ring"] };
+ostm.item.ItemSlot.Weapon = ["Weapon",0];
+ostm.item.ItemSlot.Weapon.toString = $estr;
+ostm.item.ItemSlot.Weapon.__enum__ = ostm.item.ItemSlot;
+ostm.item.ItemSlot.Body = ["Body",1];
+ostm.item.ItemSlot.Body.toString = $estr;
+ostm.item.ItemSlot.Body.__enum__ = ostm.item.ItemSlot;
+ostm.item.ItemSlot.Helmet = ["Helmet",2];
+ostm.item.ItemSlot.Helmet.toString = $estr;
+ostm.item.ItemSlot.Helmet.__enum__ = ostm.item.ItemSlot;
+ostm.item.ItemSlot.Boots = ["Boots",3];
+ostm.item.ItemSlot.Boots.toString = $estr;
+ostm.item.ItemSlot.Boots.__enum__ = ostm.item.ItemSlot;
+ostm.item.ItemSlot.Gloves = ["Gloves",4];
+ostm.item.ItemSlot.Gloves.toString = $estr;
+ostm.item.ItemSlot.Gloves.__enum__ = ostm.item.ItemSlot;
+ostm.item.ItemSlot.Ring = ["Ring",5];
+ostm.item.ItemSlot.Ring.toString = $estr;
+ostm.item.ItemSlot.Ring.__enum__ = ostm.item.ItemSlot;
+ostm.item.ItemSlot.__empty_constructs__ = [ostm.item.ItemSlot.Weapon,ostm.item.ItemSlot.Body,ostm.item.ItemSlot.Helmet,ostm.item.ItemSlot.Boots,ostm.item.ItemSlot.Gloves,ostm.item.ItemSlot.Ring];
+ostm.item.AffixData = function() { };
+ostm.item.AffixData.__name__ = true;
 ostm.item.Inventory = function() {
 	this._sizeUpgrades = 0;
 	this._inventory = [];
@@ -2731,26 +2854,11 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		count = _this.createElement("li");
 		count.innerText = "Capacity: " + this._inventory.length + " / " + this.capacity();
 		inventory.appendChild(count);
-		var clear;
-		var _this1 = window.document;
-		clear = _this1.createElement("button");
-		clear.innerText = "Discard All";
-		clear.onclick = function(event) {
-			var inv = _g._inventory.slice();
-			var _g12 = 0;
-			while(_g12 < inv.length) {
-				var item1 = inv[_g12];
-				++_g12;
-				item1.discard();
-			}
-			_g.updateInventoryHtml();
-		};
-		inventory.appendChild(clear);
 		var sortBtn;
-		var _this2 = window.document;
-		sortBtn = _this2.createElement("button");
+		var _this1 = window.document;
+		sortBtn = _this1.createElement("button");
 		sortBtn.innerText = "Sort Value";
-		sortBtn.onclick = function(event1) {
+		sortBtn.onclick = function(event) {
 			_g._inventory.sort(function(it1,it2) {
 				return -Reflect.compare(it1.buyValue(),it2.buyValue());
 			});
@@ -2759,15 +2867,45 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		inventory.appendChild(sortBtn);
 		inventory.appendChild((function($this) {
 			var $r;
-			var _this3 = window.document;
-			$r = _this3.createElement("br");
+			var _this2 = window.document;
+			$r = _this2.createElement("br");
 			return $r;
 		}(this)));
-		var _g2 = 0;
+		var discardTexts = ["Basic","Magic","All"];
+		var discardAffixes = [0,2,999];
+		var _g12 = 0;
+		var _g2 = discardTexts.length;
+		while(_g12 < _g2) {
+			var i = [_g12++];
+			var clear;
+			var _this3 = window.document;
+			clear = _this3.createElement("button");
+			clear.innerText = "Discard " + discardTexts[i[0]];
+			clear.onclick = (function(i) {
+				return function(event1) {
+					var inv = _g._inventory.slice();
+					var _g21 = 0;
+					while(_g21 < inv.length) {
+						var item1 = inv[_g21];
+						++_g21;
+						if(item1.numAffixes() <= discardAffixes[i[0]]) item1.discard();
+					}
+					_g.updateInventoryHtml();
+				};
+			})(i);
+			inventory.appendChild(clear);
+		}
+		inventory.appendChild((function($this) {
+			var $r;
+			var _this4 = window.document;
+			$r = _this4.createElement("br");
+			return $r;
+		}(this)));
+		var _g3 = 0;
 		var _g13 = this._inventory;
-		while(_g2 < _g13.length) {
-			var item2 = _g13[_g2];
-			++_g2;
+		while(_g3 < _g13.length) {
+			var item2 = _g13[_g3];
+			++_g3;
 			this.appendItemHtml(item2);
 		}
 	}
@@ -2819,7 +2957,6 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		item.setDropLevel(jengine.util.Random.randomIntRange(1,maxLevel));
 		var affixOdds;
 		var _g = new haxe.ds.IntMap();
-		_g.set(7,0.01);
 		_g.set(4,0.05);
 		_g.set(3,0.08);
 		_g.set(2,0.12);
@@ -2891,7 +3028,7 @@ ostm.item.Item.prototype = {
 	}
 	,rollAffixes: function(nAffixes) {
 		var _g = this;
-		var possibleAffixes = ostm.item.Affix.affixTypes.filter(function(affixType) {
+		var possibleAffixes = ostm.item.AffixData.affixTypes.filter(function(affixType) {
 			return affixType.canGoInSlot(_g.type.slot);
 		});
 		var selectedAffixes = jengine.util.Random.randomElements(possibleAffixes,nAffixes);
@@ -3064,12 +3201,12 @@ ostm.item.Item.prototype = {
 		var buy;
 		var _this12 = window.document;
 		buy = _this12.createElement("li");
-		buy.innerText = "Buy Price: " + jengine.util.Util.format(this.buyValue());
+		buy.innerText = "Buy Price: " + jengine.util.Util.shortFormat(this.buyValue());
 		this._body.appendChild(buy);
 		var sell;
 		var _this13 = window.document;
 		sell = _this13.createElement("li");
-		sell.innerText = "Sell Price: " + jengine.util.Util.format(this.sellValue());
+		sell.innerText = "Sell Price: " + jengine.util.Util.shortFormat(this.sellValue());
 		this._body.appendChild(sell);
 		window.document.getElementById("popup-container").appendChild(this._body);
 		return _elem;
@@ -3147,6 +3284,9 @@ ostm.item.Item.prototype = {
 	}
 	,sellValue: function() {
 		return Math.round(Math.pow(this.buyValue(),0.85) * 0.5);
+	}
+	,numAffixes: function() {
+		return this.affixes.length;
 	}
 	,get_tier: function() {
 		return Math.floor(this.level / 5);
@@ -3302,7 +3442,7 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		}
 	}
 	,cellSeed: function(x,y) {
-		return 3724684 + 21487 * x + 54013 * y + 127 * x * y;
+		return 4613767 + 21487 * x + 54013 * y + 147 * x * y;
 	}
 	,didGenerateCell: function(x,y) {
 		if(this._gridGeneratedFlags.get(x) == null) {
@@ -3316,6 +3456,7 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 	,generateGridCell: function(x,y) {
 		var _g = this;
 		if(this.didGenerateCell(x,y)) return;
+		if(x == 1 && y == 0) return;
 		var this1 = this._gridGeneratedFlags.get(x);
 		this1.set(y,true);
 		true;
@@ -3340,21 +3481,10 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		if(HxOverrides.indexOf(startNodes,up,0) == -1) startNodes.push(up);
 		if(HxOverrides.indexOf(startNodes,down,0) == -1) startNodes.push(down);
 		var cellNodes = startNodes.slice();
-		var distToOrigin = Math.floor(Math.abs(x) + Math.abs(y));
-		var cellLevel = distToOrigin * 5;
-		var cellRegion = this._rand.randomInt(Math.round(jengine.util.Util.clamp(distToOrigin,2,3)));
-		if(isOriginCell) cellRegion = 0;
-		var _g1 = 0;
-		while(_g1 < startNodes.length) {
-			var node = startNodes[_g1];
-			++_g1;
-			node.level = cellLevel + 1;
-			node.region = cellRegion;
-		}
 		var findPathWithinCell = function(start,end) {
-			return _g.bfsPath(start,function(node1) {
-				return node1 == end;
-			},function(node2) {
+			return _g.bfsPath(start,function(node) {
+				return node == end;
+			},function(node1) {
 				return true;
 			});
 		};
@@ -3364,51 +3494,33 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		var xs = [-1,1,0,0];
 		var ys = [0,0,-1,1];
 		while(!isDone()) {
-			var node3 = this._rand.randomElement(cellNodes);
+			var node2 = this._rand.randomElement(cellNodes);
 			var k = this._rand.randomInt(xs.length);
-			var i = node3.depth + xs[k];
-			var j = node3.height + ys[k];
+			var i = node2.depth + xs[k];
+			var j = node2.height + ys[k];
 			if(i >= pos.i && i < pos.i + 5 && j >= pos.j && j < pos.j + 5) {
 				var n = this.getNode(i,j);
 				if(n == null) {
-					n = this.addNode(node3,i,j);
-					var lev;
-					lev = node3.level + (this._rand.randomBool(0.65)?1:0);
-					n.level = jengine.util.Util.intMin(lev,cellLevel + 5);
-					n.region = node3.region;
+					n = this.addNode(node2,i,j);
 					cellNodes.push(n);
-				} else if(this._rand.randomBool(0.1)) n.addNeighbor(node3);
+				} else if(this._rand.randomBool(0.1)) n.addNeighbor(node2);
 			}
 		}
-		var canTrim = function(node4) {
-			return HxOverrides.indexOf(startNodes,node4,0) == -1 && node4.neighbors.length == 1;
+		var canTrim = function(node3) {
+			return HxOverrides.indexOf(startNodes,node3,0) == -1 && node3.neighbors.length == 1;
 		};
 		var trimmable = function() {
 			return cellNodes.filter(canTrim);
 		};
 		while(trimmable().length > 0) {
 			var toTrim = trimmable();
-			var _g2 = 0;
-			while(_g2 < toTrim.length) {
-				var node5 = toTrim[_g2];
-				++_g2;
-				this.removeNode(node5.depth,node5.height);
-				HxOverrides.remove(cellNodes,node5);
+			var _g1 = 0;
+			while(_g1 < toTrim.length) {
+				var node4 = toTrim[_g1];
+				++_g1;
+				this.removeNode(node4.depth,node4.height);
+				HxOverrides.remove(cellNodes,node4);
 			}
-		}
-		if(isOriginCell) {
-			var minLevelNode = null;
-			var _g3 = 0;
-			while(_g3 < cellNodes.length) {
-				var node6 = cellNodes[_g3];
-				++_g3;
-				if(minLevelNode == null || minLevelNode.level > node6.level) minLevelNode = node6;
-			}
-			this._start = minLevelNode;
-			this._start.town = true;
-		} else {
-			var townNode = this._rand.randomElement(cellNodes);
-			townNode.town = true;
 		}
 		var tryConnect = function(i1,j1,i2,j2,force) {
 			if(force == null) force = false;
@@ -3420,13 +3532,80 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		tryConnect(right.depth + 1,right.height,right.depth,right.height,true);
 		tryConnect(down.depth,down.height - 1,down.depth,down.height,true);
 		tryConnect(up.depth,up.height + 1,up.depth,up.height,true);
-		var _g4 = 0;
-		while(_g4 < 5) {
-			var k1 = _g4++;
+		var _g2 = 0;
+		while(_g2 < 5) {
+			var k1 = _g2++;
 			tryConnect(pos.i + k1,pos.j,pos.i + k1,pos.j - 1);
 			tryConnect(pos.i + k1,pos.j + 5 - 1,pos.i + k1,pos.j + 5);
 			tryConnect(pos.i,pos.j + k1,pos.i - 1,pos.j + k1);
 			tryConnect(pos.i + 5 - 1,pos.j + k1,pos.i + 5,pos.j + k1);
+		}
+		var distToOrigin = Math.floor(Math.abs(x) + Math.abs(y));
+		var cellLevel = distToOrigin * 6;
+		var cellRegion = this._rand.randomInt(Math.round(jengine.util.Util.clamp(distToOrigin,2,3)));
+		if(isOriginCell) cellRegion = 0;
+		var _g3 = 0;
+		while(_g3 < cellNodes.length) {
+			var node5 = cellNodes[_g3];
+			++_g3;
+			node5.level = cellLevel + 1;
+			node5.region = cellRegion;
+		}
+		var leftLev;
+		if(Math.abs(x - 1) > Math.abs(x)) leftLev = 6; else leftLev = 1;
+		var rightLev;
+		if(Math.abs(x + 1) > Math.abs(x)) rightLev = 6; else rightLev = 1;
+		var downLev;
+		if(Math.abs(y - 1) > Math.abs(y)) downLev = 6; else downLev = 1;
+		var upLev;
+		if(Math.abs(y + 1) > Math.abs(y)) upLev = 6; else upLev = 1;
+		if(isOriginCell) rightLev = 1;
+		startNodes = [left,right,down,up];
+		var startLevels = [leftLev,rightLev,downLev,upLev];
+		var _g4 = 0;
+		while(_g4 < cellNodes.length) {
+			var node6 = cellNodes[_g4];
+			++_g4;
+			var lev;
+			if(HxOverrides.indexOf(startNodes,node6,0) != -1) lev = startLevels[HxOverrides.indexOf(startNodes,node6,0)]; else {
+				var dists = [];
+				var _g11 = 0;
+				while(_g11 < startNodes.length) {
+					var s = startNodes[_g11];
+					++_g11;
+					dists.push(findPathWithinCell(node6,s).length - 1);
+				}
+				var loDist = 50;
+				var _g21 = 0;
+				var _g12 = dists.length;
+				while(_g21 < _g12) {
+					var i3 = _g21++;
+					var d = dists[i3];
+					if(d < loDist && startLevels[i3] == 1) loDist = d;
+				}
+				var loInd = HxOverrides.indexOf(dists,loDist,0);
+				var hiInd;
+				hiInd = (loInd + 1) % 2 + (loInd >= 2?2:0);
+				var hiDist = dists[hiInd];
+				var totDist = loDist + hiDist;
+				lev = Math.round(jengine.util.Util.clamp(loDist / totDist,0,1) * 5 + 1);
+				lev = jengine.util.Util.clampInt(lev + this._rand.randomElement([-1,0,0,1]),1,6);
+			}
+			node6.level = lev + cellLevel;
+		}
+		if(!isOriginCell) {
+			var townNode = this._rand.randomElement(cellNodes);
+			townNode.town = true;
+		} else {
+			var minLevelNode = null;
+			var _g5 = 0;
+			while(_g5 < cellNodes.length) {
+				var node7 = cellNodes[_g5];
+				++_g5;
+				if(minLevelNode == null || minLevelNode.level > node7.level) minLevelNode = node7;
+			}
+			this._start = minLevelNode;
+			this._start.town = true;
 		}
 		this.updateScrollBounds();
 	}
@@ -4027,9 +4206,6 @@ ostm.skill.PassiveSkill = function(data) {
 	if(data.requirements != null) this.requirementIds = data.requirements; else this.requirementIds = [];
 	this.name = data.name;
 	this.abbreviation = data.icon;
-	this.description = data.description;
-	if(data.isPercent != null) this.isPercent = data.isPercent; else this.isPercent = false;
-	this.levelValueFunction = data.leveling;
 	this.modifierFunction = data.modifier;
 	this.pos = data.pos;
 };
@@ -4041,7 +4217,12 @@ ostm.skill.PassiveSkill.prototype = {
 			this.requirements.push(req);
 		}
 	}
-	,hasMetRequirements: function() {
+	,hasSpentEnoughPoints: function(tree) {
+		var spendReq = this.requiredPointsSpent();
+		return spendReq <= 0 || tree.spentSkillPoints() >= spendReq;
+	}
+	,hasMetRequirements: function(tree) {
+		if(!this.hasSpentEnoughPoints(tree)) return false;
 		var _g = 0;
 		var _g1 = this.requirements;
 		while(_g < _g1.length) {
@@ -4051,18 +4232,28 @@ ostm.skill.PassiveSkill.prototype = {
 		}
 		return this.requirements.length == 0;
 	}
+	,requiredPointsSpent: function() {
+		return Math.floor(this.pos.y * (4 + 1.5 * this.level) - 2);
+	}
 	,levelUp: function() {
 		this.level++;
 		ga("send","event","player","spend-skill-point",this.id,this.level);
 	}
+	,respec: function() {
+		this.level = 0;
+	}
 	,currentValue: function() {
-		return this.levelValueFunction(this.level);
+		var mod = new ostm.battle.StatModifier();
+		this.modifierFunction(this.level,mod);
+		return mod;
 	}
 	,nextValue: function() {
-		return this.levelValueFunction(this.level + 1);
+		var mod = new ostm.battle.StatModifier();
+		this.modifierFunction(this.level + 1,mod);
+		return mod;
 	}
 	,sumAffixes: function(mod) {
-		this.modifierFunction(this.currentValue(),mod);
+		this.modifierFunction(this.level,mod);
 	}
 	,serialize: function() {
 		return { id : this.id, level : this.level};
@@ -4075,6 +4266,7 @@ ostm.skill.PassiveSkill.prototype = {
 ostm.skill.PassiveData = function() { };
 ostm.skill.PassiveData.__name__ = true;
 ostm.skill.SkillTree = function() {
+	this._cachedPoints = -1;
 	this._skillNodes = new Array();
 	this.saveId = "skill-tree";
 	jengine.Component.call(this);
@@ -4088,36 +4280,83 @@ ostm.skill.SkillTree.prototype = $extend(jengine.Component.prototype,{
 		this.skills = ostm.skill.PassiveData.skills.slice();
 	}
 	,start: function() {
+		var _g = this;
 		jengine.SaveManager.instance.addItem(this);
 		var screen = window.document.getElementById("skill-screen");
 		jengine.util.JsUtil.createSpan("Skill points: ",screen);
 		this._skillPoints = jengine.util.JsUtil.createSpan("",screen);
-		var _g = 0;
-		var _g1 = this.skills;
-		while(_g < _g1.length) {
-			var skill = _g1[_g];
-			++_g;
-			var _g2 = 0;
-			var _g3 = this.skills;
-			while(_g2 < _g3.length) {
-				var s2 = _g3[_g2];
-				++_g2;
-				if(HxOverrides.indexOf(skill.requirementIds,s2.id,0) != -1) skill.addRequirement(s2);
+		screen.appendChild((function($this) {
+			var $r;
+			var _this = window.document;
+			$r = _this.createElement("br");
+			return $r;
+		}(this)));
+		jengine.util.JsUtil.createSpan("Spent points: ",screen);
+		this._spentPoints = jengine.util.JsUtil.createSpan("",screen);
+		screen.appendChild((function($this) {
+			var $r;
+			var _this1 = window.document;
+			$r = _this1.createElement("br");
+			return $r;
+		}(this)));
+		var respecBtn;
+		var _this2 = window.document;
+		respecBtn = _this2.createElement("button");
+		respecBtn.innerText = "Refund Spent Points";
+		respecBtn.onclick = function(event) {
+			var player = ostm.battle.BattleManager.instance.getPlayer();
+			if(player.gems >= _g.respecCost()) {
+				player.addGems(-_g.respecCost());
+				var _g1 = 0;
+				var _g2 = _g.skills;
+				while(_g1 < _g2.length) {
+					var skill = _g2[_g1];
+					++_g1;
+					skill.respec();
+				}
+				var _g11 = 0;
+				var _g21 = _g._skillNodes;
+				while(_g11 < _g21.length) {
+					var node = _g21[_g11];
+					++_g11;
+					node.markDirty();
+				}
+				player.updateCachedAffixes();
+				ga("send","event","player","respec-skill-points");
 			}
-			this.addNode(skill);
+		};
+		screen.appendChild(respecBtn);
+		this._respecCost = jengine.util.JsUtil.createSpan("",screen);
+		var _g3 = 0;
+		var _g12 = this.skills;
+		while(_g3 < _g12.length) {
+			var skill1 = _g12[_g3];
+			++_g3;
+			var _g22 = 0;
+			var _g31 = this.skills;
+			while(_g22 < _g31.length) {
+				var s2 = _g31[_g22];
+				++_g22;
+				if(HxOverrides.indexOf(skill1.requirementIds,s2.id,0) != -1) skill1.addRequirement(s2);
+			}
+			this.addNode(skill1);
 		}
 		this.updateScrollBounds();
 	}
 	,update: function() {
-		this._skillPoints.innerText = jengine.util.Util.format(this.availableSkillPoints());
-		var _g = 0;
-		var _g1 = this._skillNodes;
-		while(_g < _g1.length) {
-			var node = _g1[_g];
-			++_g;
-			var bg;
-			if(node.skill.level > 0) bg = "#ff3333"; else if(node.skill.hasMetRequirements() && this.availableSkillPoints() > 0) bg = "#992222"; else bg = "#444444";
-			if(node.elem != null) node.elem.style.backgroundColor = bg;
+		var avail = this.availableSkillPoints();
+		if(avail != this._cachedPoints) {
+			this._cachedPoints = avail;
+			this._skillPoints.innerText = jengine.util.Util.format(this.availableSkillPoints());
+			this._spentPoints.innerText = jengine.util.Util.format(this.spentSkillPoints());
+			this._respecCost.innerText = " Cost: " + jengine.util.Util.format(this.respecCost()) + "Gems";
+			var _g = 0;
+			var _g1 = this._skillNodes;
+			while(_g < _g1.length) {
+				var node = _g1[_g];
+				++_g;
+				node.markDirty();
+			}
 		}
 	}
 	,maxSkillPoints: function() {
@@ -4137,6 +4376,9 @@ ostm.skill.SkillTree.prototype = $extend(jengine.Component.prototype,{
 	}
 	,availableSkillPoints: function() {
 		return this.maxSkillPoints() - this.spentSkillPoints();
+	}
+	,respecCost: function() {
+		return this.spentSkillPoints();
 	}
 	,addNode: function(skill) {
 		var size = jengine._Vec2.Vec2_Impl_._new(50,50);
@@ -4162,7 +4404,7 @@ ostm.skill.SkillTree.prototype = $extend(jengine.Component.prototype,{
 	,updateScrollBounds: function() {
 		var topLeft = jengine._Vec2.Vec2_Impl_._new(Math.POSITIVE_INFINITY,Math.POSITIVE_INFINITY);
 		var botRight = jengine._Vec2.Vec2_Impl_._new(Math.NEGATIVE_INFINITY,Math.NEGATIVE_INFINITY);
-		var origin = jengine._Vec2.Vec2_Impl_._new(25,25);
+		var origin = jengine._Vec2.Vec2_Impl_._new(25,70);
 		var _g = 0;
 		var _g1 = this._skillNodes;
 		while(_g < _g1.length) {
@@ -4209,6 +4451,7 @@ ostm.skill.SkillTree.prototype = $extend(jengine.Component.prototype,{
 	,__class__: ostm.skill.SkillTree
 });
 ostm.skill.SkillNode = function(skill,tree) {
+	this._isDirty = true;
 	ostm.GameNode.call(this,skill.pos.y,skill.pos.x);
 	this.skill = skill;
 	this._tree = tree;
@@ -4224,16 +4467,21 @@ ostm.skill.SkillNode.prototype = $extend(ostm.GameNode.prototype,{
 		this._count = jengine.util.JsUtil.createSpan("",this.elem);
 		this._description = doc.createElement("ul");
 		jengine.util.JsUtil.createSpan(this.skill.name,this._description);
-		this._description.appendChild(doc.createElement("br"));
-		jengine.util.JsUtil.createSpan(this.skill.description,this._description);
-		this._description.appendChild(doc.createElement("br"));
-		jengine.util.JsUtil.createSpan("Current: ",this._description);
-		this._curValue = jengine.util.JsUtil.createSpan("",this._description);
-		if(this.skill.isPercent) jengine.util.JsUtil.createSpan("%",this._description);
-		this._description.appendChild(doc.createElement("br"));
-		jengine.util.JsUtil.createSpan("Next: ",this._description);
-		this._nextValue = jengine.util.JsUtil.createSpan("",this._description);
-		if(this.skill.isPercent) jengine.util.JsUtil.createSpan("%",this._description);
+		if(this.skill.requiredPointsSpent() > 0) {
+			this._description.appendChild(doc.createElement("br"));
+			jengine.util.JsUtil.createSpan("Req. Points Spent: ",this._description);
+			this._reqSpent = jengine.util.JsUtil.createSpan("",this._description);
+		}
+		this._values = [];
+		var nextMods = this.skill.nextValue().getDisplayData();
+		var _g = 0;
+		while(_g < nextMods.length) {
+			var m = nextMods[_g];
+			++_g;
+			this._description.appendChild(doc.createElement("br"));
+			jengine.util.JsUtil.createSpan(m.name,this._description);
+			this._values.push(jengine.util.JsUtil.createSpan("",this._description));
+		}
 		this._description.style.display = "none";
 		this._description.style.position = "absolute";
 		this._description.style.background = "#444444";
@@ -4243,20 +4491,63 @@ ostm.skill.SkillNode.prototype = $extend(ostm.GameNode.prototype,{
 		doc.getElementById("popup-container").appendChild(this._description);
 	}
 	,update: function() {
-		this._count.innerText = jengine.util.Util.format(this.skill.level);
-		this._curValue.innerText = jengine.util.Util.format(this.skill.currentValue());
-		this._nextValue.innerText = jengine.util.Util.format(this.skill.nextValue());
+		if(this._isDirty) {
+			this._isDirty = false;
+			this._count.innerText = jengine.util.Util.format(this.skill.level);
+			var curMods = this.skill.currentValue().getDisplayData();
+			var nextMods = this.skill.nextValue().getDisplayData();
+			var _g1 = 0;
+			var _g = this._values.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				var mod = nextMods[i];
+				var cur;
+				if(i < curMods.length) cur = curMods[i].value; else cur = 0;
+				var next = mod.value;
+				var str = " " + jengine.util.Util.formatFloat(cur);
+				if(mod.isPercent) str += "%";
+				str += " -> " + jengine.util.Util.formatFloat(next);
+				if(mod.isPercent) str += "%";
+				this._values[i].innerText = str;
+			}
+			if(this._reqSpent != null) {
+				this._reqSpent.innerText = jengine.util.Util.format(this.skill.requiredPointsSpent());
+				if(this.skill.hasSpentEnoughPoints(this._tree)) this._reqSpent.style.color = "#ffffff"; else this._reqSpent.style.color = "#ff2222";
+			}
+			var bgPoints = 0;
+			if(this.skill.level > 0) bgPoints++;
+			if(this.skill.hasMetRequirements(this._tree) && this._tree.availableSkillPoints() > 0) bgPoints++;
+			var bg;
+			switch(bgPoints) {
+			case 2:
+				bg = "#ff3333";
+				break;
+			case 1:
+				bg = "#992222";
+				break;
+			default:
+				bg = "#444444";
+			}
+			this.elem.style.backgroundColor = bg;
+		}
+	}
+	,markDirty: function() {
+		this._isDirty = true;
 	}
 	,onMouseOver: function(event) {
 		this._description.style.display = "";
-		this._description.style.left = event.x;
+		this._description.style.left = event.x - 275;
 		this._description.style.top = event.y;
 	}
 	,onMouseOut: function(event) {
 		this._description.style.display = "none";
 	}
 	,onClick: function(event) {
-		if(this._tree.availableSkillPoints() > 0 && this.skill.hasMetRequirements()) this.skill.levelUp();
+		if(this._tree.availableSkillPoints() > 0 && this.skill.hasMetRequirements(this._tree)) {
+			this.skill.levelUp();
+			this.markDirty();
+			ostm.battle.BattleManager.instance.getPlayer().updateCachedAffixes();
+		}
 	}
 	,__class__: ostm.skill.SkillNode
 });
@@ -4311,20 +4602,20 @@ if(Array.prototype.filter == null) Array.prototype.filter = function(f1) {
 haxe.ds.ObjectMap.count = 0;
 jengine.SaveManager.kSaveTime = 15;
 jengine.SaveManager.kSaveKey = "ostm2";
-jengine.SaveManager.kCurrentSaveVersion = 8;
-jengine.SaveManager.kLastCompatibleSaveVersion = 8;
+jengine.SaveManager.kCurrentSaveVersion = 9;
+jengine.SaveManager.kLastCompatibleSaveVersion = 9;
 jengine.Time.timeMultiplier = 1;
 ostm.TabManager.kNumColumns = 3;
 ostm.TownManager.kShopRefreshTime = 300;
 ostm.battle.ActiveSkill.skills = [new ostm.battle.ActiveSkill("Attack",0,1,1),new ostm.battle.ActiveSkill("Quick Attack",12,1,1.6),new ostm.battle.ActiveSkill("Power Attack",16,2.2,0.65)];
-ostm.battle.BattleManager.kEnemySpawnTime = 4;
+ostm.battle.BattleManager.kBaseEnemySpawnTime = 4;
 ostm.battle.BattleManager.kPlayerDeathTime = 5;
-ostm.battle.ClassType.playerType = new ostm.battle.ClassType({ name : "Adventurer", image : "classes/Adventurer.png", str : new ostm.battle.StatType(5,2.5), dex : new ostm.battle.StatType(5,2.5), 'int' : new ostm.battle.StatType(5,2.5), vit : new ostm.battle.StatType(5,2.5), end : new ostm.battle.StatType(5,2.5)});
-ostm.battle.ClassType.enemyTypes = [new ostm.battle.ClassType({ name : "Slime", image : "enemies/Slime.png", attack : new ostm.battle.StatType(1.5,0.75), str : new ostm.battle.ExpStatType(2.2,0.6), dex : new ostm.battle.ExpStatType(2.2,0.6), 'int' : new ostm.battle.ExpStatType(2.2,0.6), vit : new ostm.battle.ExpStatType(4.2,1.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Snake", image : "enemies/Snake.png", attack : new ostm.battle.StatType(2.25,1.15), str : new ostm.battle.ExpStatType(4.6,1.1), dex : new ostm.battle.ExpStatType(5.2,1.3), 'int' : new ostm.battle.ExpStatType(2.2,0.8), vit : new ostm.battle.ExpStatType(2.8,0.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Goblin", image : "enemies/Goblin.png", attack : new ostm.battle.StatType(2,1.1), str : new ostm.battle.ExpStatType(3.5,0.9), dex : new ostm.battle.ExpStatType(5,1.2), 'int' : new ostm.battle.ExpStatType(3.2,0.8), vit : new ostm.battle.ExpStatType(3.8,0.9), end : new ostm.battle.ExpStatType(3.2,0.8)})];
+ostm.battle.ClassType.playerType = new ostm.battle.ClassType({ name : "Adventurer", image : "classes/Adventurer.png", str : new ostm.battle.StatType(5,1.5), dex : new ostm.battle.StatType(5,1.5), 'int' : new ostm.battle.StatType(5,1.5), vit : new ostm.battle.StatType(5,1.5), end : new ostm.battle.StatType(5,1.5)});
+ostm.battle.ClassType.enemyTypes = [new ostm.battle.ClassType({ name : "Slime", image : "enemies/Slime.png", attack : new ostm.battle.StatType(1.5,0.75), armor : new ostm.battle.StatType(1,1.25), str : new ostm.battle.ExpStatType(2.2,0.6), dex : new ostm.battle.ExpStatType(2.2,0.6), 'int' : new ostm.battle.ExpStatType(2.2,0.6), vit : new ostm.battle.ExpStatType(4.2,1.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Snake", image : "enemies/Snake.png", attack : new ostm.battle.StatType(2.25,1.15), armor : new ostm.battle.StatType(1,1.25), str : new ostm.battle.ExpStatType(4.6,1.1), dex : new ostm.battle.ExpStatType(5.2,1.3), 'int' : new ostm.battle.ExpStatType(2.2,0.8), vit : new ostm.battle.ExpStatType(2.8,0.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Goblin", image : "enemies/Goblin.png", attack : new ostm.battle.StatType(2,1.1), armor : new ostm.battle.StatType(1,1.25), str : new ostm.battle.ExpStatType(3.5,0.9), dex : new ostm.battle.ExpStatType(5,1.2), 'int' : new ostm.battle.ExpStatType(3.2,0.8), vit : new ostm.battle.ExpStatType(3.8,0.9), end : new ostm.battle.ExpStatType(3.2,0.8)})];
 ostm.item.AffixType.kMaxRolls = 1000;
-ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attack",2,1,function(value,mod) {
+ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", description : "Attack", base : 2, perLevel : 1, levelPower : 0.75, modifierFunc : function(value,mod) {
 	mod.flatAttack += value;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g = new haxe.ds.EnumValueMap();
 	_g.set(ostm.item.ItemSlot.Weapon,1.0);
@@ -4332,25 +4623,25 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g;
 	return $r;
-}(this))),new ostm.item.SqrtAffixType("local-percent-attack-speed","% Attack Speed",5,1,function(value1,mod1) {
+}(this))}),new ostm.item.AffixType({ id : "local-percent-attack-speed", description : "% Attack Speed", base : 5, perLevel : 1, levelPower : 0.5, modifierFunc : function(value1,mod1) {
 	mod1.localPercentAttackSpeed += value1;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g1 = new haxe.ds.EnumValueMap();
 	_g1.set(ostm.item.ItemSlot.Weapon,1.0);
 	$r = _g1;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("local-percent-attack","% Attack",5,1.5,function(value2,mod2) {
+}(this))}),new ostm.item.AffixType({ id : "local-percent-attack", description : "% Attack", base : 5, perLevel : 1.5, modifierFunc : function(value2,mod2) {
 	mod2.localPercentAttack += value2;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g2 = new haxe.ds.EnumValueMap();
 	_g2.set(ostm.item.ItemSlot.Weapon,1.0);
 	$r = _g2;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-crit-rating","Crit Rating",4,2,function(value3,mod3) {
+}(this))}),new ostm.item.AffixType({ id : "flat-crit-rating", description : "Crit Rating", base : 4, perLevel : 2, modifierFunc : function(value3,mod3) {
 	mod3.flatCritRating += value3;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g3 = new haxe.ds.EnumValueMap();
 	_g3.set(ostm.item.ItemSlot.Weapon,1.0);
@@ -4358,17 +4649,17 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g3.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g3;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("local-percent-crit-rating","% Crit Rating",5,1,function(value4,mod4) {
+}(this))}),new ostm.item.AffixType({ id : "local-percent-crit-rating", description : "% Crit Rating", base : 5, perLevel : 1, modifierFunc : function(value4,mod4) {
 	mod4.localPercentCritRating += value4;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g4 = new haxe.ds.EnumValueMap();
 	_g4.set(ostm.item.ItemSlot.Weapon,1.0);
 	$r = _g4;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-defense","Defense",2,1.25,function(value5,mod5) {
+}(this))}),new ostm.item.AffixType({ id : "flat-defense", description : "Defense", base : 2, perLevel : 1.25, levelPower : 0.75, modifierFunc : function(value5,mod5) {
 	mod5.flatDefense += value5;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g5 = new haxe.ds.EnumValueMap();
 	_g5.set(ostm.item.ItemSlot.Body,1.0);
@@ -4377,26 +4668,26 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g5.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g5;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-hp-regen","Health Regen",1,0.35,function(value6,mod6) {
+}(this))}),new ostm.item.AffixType({ id : "flat-hp-regen", description : "Health Regen", base : 1, perLevel : 0.35, modifierFunc : function(value6,mod6) {
 	mod6.flatHealthRegen += value6;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g6 = new haxe.ds.EnumValueMap();
 	_g6.set(ostm.item.ItemSlot.Body,1.0);
 	_g6.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g6;
 	return $r;
-}(this))),new ostm.item.SqrtAffixType("percent-hp","% Health",8,2,function(value7,mod7) {
+}(this))}),new ostm.item.AffixType({ id : "percent-hp", description : "% Health", base : 8, perLevel : 2, levelPower : 0.5, modifierFunc : function(value7,mod7) {
 	mod7.percentHealth += value7;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g7 = new haxe.ds.EnumValueMap();
 	_g7.set(ostm.item.ItemSlot.Helmet,1.0);
 	$r = _g7;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-mp","Mana",5,2.5,function(value8,mod8) {
+}(this))}),new ostm.item.AffixType({ id : "flat-mp", description : "Mana", base : 5, perLevel : 2.5, levelPower : 0.75, modifierFunc : function(value8,mod8) {
 	mod8.flatMana += value8;
-},(function($this) {
+}, multipliers : (function($this) {
 	var $r;
 	var _g8 = new haxe.ds.EnumValueMap();
 	_g8.set(ostm.item.ItemSlot.Body,0.5);
@@ -4405,76 +4696,74 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g8.set(ostm.item.ItemSlot.Gloves,0.5);
 	$r = _g8;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("percent-mp-regen","% Mana Regen",10,3,function(value9,mod9) {
-	mod9.percentManaRegen += value9;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "flat-hunt", description : "Hunting", base : 3, perLevel : 2, levelPower : 0.75, modifierFunc : function(value9,mod9) {
+	mod9.flatHuntSkill += value9;
+}, multipliers : (function($this) {
 	var $r;
 	var _g9 = new haxe.ds.EnumValueMap();
-	_g9.set(ostm.item.ItemSlot.Helmet,1.0);
+	_g9.set(ostm.item.ItemSlot.Helmet,0.5);
+	_g9.set(ostm.item.ItemSlot.Boots,1.0);
 	_g9.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g9;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("local-percent-defense","% Defense",10,5,function(value10,mod10) {
-	mod10.localPercentDefense += value10;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "percent-mp-regen", description : "% Mana Regen", base : 10, perLevel : 3, modifierFunc : function(value10,mod10) {
+	mod10.percentManaRegen += value10;
+}, multipliers : (function($this) {
 	var $r;
 	var _g10 = new haxe.ds.EnumValueMap();
-	_g10.set(ostm.item.ItemSlot.Body,1.0);
 	_g10.set(ostm.item.ItemSlot.Helmet,1.0);
-	_g10.set(ostm.item.ItemSlot.Boots,0.5);
-	_g10.set(ostm.item.ItemSlot.Gloves,0.5);
+	_g10.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g10;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("percent-attack-speed","% Global Attack Speed",3,1,function(value11,mod11) {
-	mod11.percentAttackSpeed += value11;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "local-percent-defense", description : "% Defense", base : 10, perLevel : 5, modifierFunc : function(value11,mod11) {
+	mod11.localPercentDefense += value11;
+}, multipliers : (function($this) {
 	var $r;
 	var _g11 = new haxe.ds.EnumValueMap();
-	_g11.set(ostm.item.ItemSlot.Gloves,1.0);
-	_g11.set(ostm.item.ItemSlot.Ring,0.5);
+	_g11.set(ostm.item.ItemSlot.Body,1.0);
+	_g11.set(ostm.item.ItemSlot.Helmet,1.0);
+	_g11.set(ostm.item.ItemSlot.Boots,0.5);
+	_g11.set(ostm.item.ItemSlot.Gloves,0.5);
 	$r = _g11;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("percent-crit-chance","% Global Crit Chance",2,1,function(value12,mod12) {
-	mod12.percentCritChance += value12;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "percent-attack-speed", description : "% Global Attack Speed", base : 3, perLevel : 1, levelPower : 0.65, modifierFunc : function(value12,mod12) {
+	mod12.percentAttackSpeed += value12;
+}, multipliers : (function($this) {
 	var $r;
 	var _g12 = new haxe.ds.EnumValueMap();
-	_g12.set(ostm.item.ItemSlot.Weapon,1.0);
+	_g12.set(ostm.item.ItemSlot.Gloves,1.0);
 	_g12.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g12;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("percent-crit-damage","% Global Crit Damage",10,2,function(value13,mod13) {
-	mod13.percentCritDamage += value13;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "percent-crit-chance", description : "% Global Crit Chance", base : 2, perLevel : 1, modifierFunc : function(value13,mod13) {
+	mod13.percentCritChance += value13;
+}, multipliers : (function($this) {
 	var $r;
 	var _g13 = new haxe.ds.EnumValueMap();
 	_g13.set(ostm.item.ItemSlot.Weapon,1.0);
 	_g13.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g13;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("percent-move-speed","% Move Speed",10,2,function(value14,mod14) {
-	mod14.percentMoveSpeed += value14;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "percent-crit-damage", description : "% Global Crit Damage", base : 10, perLevel : 2, modifierFunc : function(value14,mod14) {
+	mod14.percentCritDamage += value14;
+}, multipliers : (function($this) {
 	var $r;
 	var _g14 = new haxe.ds.EnumValueMap();
-	_g14.set(ostm.item.ItemSlot.Boots,1.0);
+	_g14.set(ostm.item.ItemSlot.Weapon,1.0);
+	_g14.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g14;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-strength","Strength",2,0.75,function(value15,mod15) {
-	mod15.flatStrength += value15;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "percent-move-speed", description : "% Move Speed", base : 10, perLevel : 2, modifierFunc : function(value15,mod15) {
+	mod15.percentMoveSpeed += value15;
+}, multipliers : (function($this) {
 	var $r;
 	var _g15 = new haxe.ds.EnumValueMap();
-	_g15.set(ostm.item.ItemSlot.Body,1.0);
-	_g15.set(ostm.item.ItemSlot.Helmet,1.0);
 	_g15.set(ostm.item.ItemSlot.Boots,1.0);
-	_g15.set(ostm.item.ItemSlot.Gloves,1.0);
-	_g15.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g15;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-dexterity","Dexterity",2,0.75,function(value16,mod16) {
-	mod16.flatDexterity += value16;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "flat-strength", description : "Strength", base : 2, perLevel : 0.75, modifierFunc : function(value16,mod16) {
+	mod16.flatStrength += value16;
+}, multipliers : (function($this) {
 	var $r;
 	var _g16 = new haxe.ds.EnumValueMap();
 	_g16.set(ostm.item.ItemSlot.Body,1.0);
@@ -4484,9 +4773,9 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g16.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g16;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-vitality","Vitality",2,0.75,function(value17,mod17) {
-	mod17.flatVitality += value17;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "flat-dexterity", description : "Dexterity", base : 2, perLevel : 0.75, modifierFunc : function(value17,mod17) {
+	mod17.flatDexterity += value17;
+}, multipliers : (function($this) {
 	var $r;
 	var _g17 = new haxe.ds.EnumValueMap();
 	_g17.set(ostm.item.ItemSlot.Body,1.0);
@@ -4496,9 +4785,9 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g17.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g17;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-endurance","Endurance",2,0.75,function(value18,mod18) {
-	mod18.flatEndurance += value18;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "flat-vitality", description : "Vitality", base : 2, perLevel : 0.75, modifierFunc : function(value18,mod18) {
+	mod18.flatVitality += value18;
+}, multipliers : (function($this) {
 	var $r;
 	var _g18 = new haxe.ds.EnumValueMap();
 	_g18.set(ostm.item.ItemSlot.Body,1.0);
@@ -4508,9 +4797,9 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g18.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g18;
 	return $r;
-}(this))),new ostm.item.LinearAffixType("flat-intelligence","Intelligence",2,0.75,function(value19,mod19) {
-	mod19.flatIntelligence += value19;
-},(function($this) {
+}(this))}),new ostm.item.AffixType({ id : "flat-endurance", description : "Endurance", base : 2, perLevel : 0.75, modifierFunc : function(value19,mod19) {
+	mod19.flatEndurance += value19;
+}, multipliers : (function($this) {
 	var $r;
 	var _g19 = new haxe.ds.EnumValueMap();
 	_g19.set(ostm.item.ItemSlot.Body,1.0);
@@ -4520,13 +4809,25 @@ ostm.item.Affix.affixTypes = [new ostm.item.LinearAffixType("flat-attack","Attac
 	_g19.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g19;
 	return $r;
-}(this)))];
+}(this))}),new ostm.item.AffixType({ id : "flat-intelligence", description : "Intelligence", base : 2, perLevel : 0.75, modifierFunc : function(value20,mod20) {
+	mod20.flatIntelligence += value20;
+}, multipliers : (function($this) {
+	var $r;
+	var _g20 = new haxe.ds.EnumValueMap();
+	_g20.set(ostm.item.ItemSlot.Body,1.0);
+	_g20.set(ostm.item.ItemSlot.Helmet,1.0);
+	_g20.set(ostm.item.ItemSlot.Boots,1.0);
+	_g20.set(ostm.item.ItemSlot.Gloves,1.0);
+	_g20.set(ostm.item.ItemSlot.Ring,1.0);
+	$r = _g20;
+	return $r;
+}(this))})];
 ostm.item.Inventory.kBaseInventoryCount = 10;
 ostm.item.Item.kTierLevels = 5;
 ostm.item.ItemData.types = [new ostm.item.WeaponType({ id : "sword", image : "Sword.png", names : ["Rusted Sword","Copper Sword","Short Sword","Long Sword"], attack : 4.1, attackSpeed : 1.55, crit : 5, defense : 0}),new ostm.item.WeaponType({ id : "axe", image : "Axe.png", names : ["Rusted Axe","Hatchet","Tomahawk","Battle Axe"], attack : 5.25, attackSpeed : 1.35, crit : 7, defense : 0}),new ostm.item.WeaponType({ id : "dagger", image : "Dagger.png", names : ["Rusted Dagger","Knife","Dagger","Kris"], attack : 3, attackSpeed : 1.8, crit : 9, defense : 0}),new ostm.item.ItemType({ id : "armor", image : "Armor.png", names : ["Tattered Shirt","Cloth Shirt","Padded Armor","Leather Armor"], slot : ostm.item.ItemSlot.Body, attack : 0, defense : 2}),new ostm.item.ItemType({ id : "helm", image : "Helmet.png", names : ["Hat","Leather Cap","Iron Hat","Chainmail Coif"], slot : ostm.item.ItemSlot.Helmet, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "boots", image : "Boot.png", names : ["Sandals","Leather Shoes","Boots","Studded Boots"], slot : ostm.item.ItemSlot.Boots, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "gloves", image : "Glove.png", names : ["Cuffs","Wool Gloves","Leather Gloves","Studded Gloves"], slot : ostm.item.ItemSlot.Gloves, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "ring", image : "Ring.png", names : ["Ring"], slot : ostm.item.ItemSlot.Ring, attack : 0, defense : 0})];
 ostm.map.MapGenerator.kMoveTime = 12.0;
 ostm.map.MapGenerator.kGridSize = 5;
-ostm.map.MapGenerator.kLevelsPerCellDist = 5;
+ostm.map.MapGenerator.kLevelsPerCellDist = 6;
 ostm.map.MapGenerator.kHalfGrid = Math.floor(2.5);
 ostm.map.MapNode.kMaxRegions = 4;
 ostm.map.MapNode.kMaxVisibleRegion = 4;
@@ -4534,66 +4835,73 @@ ostm.map.MapNode.kLaunchRegions = 4;
 ostm.map.MapNode._highestVisited = 0;
 ostm.map.StaticRandom.kRandMax = 19001;
 ostm.map.StaticRandom.kRandBoolPrecision = 1000;
-ostm.skill.PassiveData.skills = [new ostm.skill.PassiveSkill({ id : "str", icon : "STR+", pos : { x : 0, y : 0}, name : "Strength+", description : "Increases strength", leveling : function(level) {
-	return 3 * level;
-}, modifier : function(value,mod) {
-	mod.flatStrength += value;
-}}),new ostm.skill.PassiveSkill({ id : "dex", icon : "DEX+", pos : { x : 1, y : 0}, name : "Dexterity+", description : "Increases dexterity", leveling : function(level1) {
-	return 3 * level1;
-}, modifier : function(value1,mod1) {
-	mod1.flatDexterity += value1;
-}}),new ostm.skill.PassiveSkill({ id : "atk-spd", requirements : ["dex"], icon : "ASPD", pos : { x : 1, y : 1}, name : "AttackSpeed+", description : "Increases attack speed", isPercent : true, leveling : function(level2) {
-	return 3 * level2;
-}, modifier : function(value2,mod2) {
-	mod2.percentAttackSpeed += value2;
-}}),new ostm.skill.PassiveSkill({ id : "spd", requirements : ["atk-spd"], icon : "MSPD", pos : { x : 0, y : 1}, name : "MoveSpeed+", description : "Increases movement speed", isPercent : true, leveling : function(level3) {
-	return 8 * level3;
-}, modifier : function(value3,mod3) {
-	mod3.percentMoveSpeed += value3;
-}}),new ostm.skill.PassiveSkill({ id : "crt", requirements : ["dex"], icon : "CRT+", pos : { x : 0, y : 1}, name : "Crit Rating+", description : "Increases critical rating", isPercent : true, leveling : function(level4) {
-	return 6 * level4;
-}, modifier : function(value4,mod4) {
-	mod4.percentCritRating += value4;
-}}),new ostm.skill.PassiveSkill({ id : "cch", requirements : ["crt"], icon : "CCH+", pos : { x : -1, y : 1}, name : "Crit Chance+", description : "Increases global critical hit chance", isPercent : true, leveling : function(level5) {
-	return 8 * level5;
-}, modifier : function(value5,mod5) {
-	mod5.percentCritChance += value5;
-}}),new ostm.skill.PassiveSkill({ id : "cdm", requirements : ["crt"], icon : "CDM+", pos : { x : 0, y : 1}, name : "Crit Damage+", description : "Increases global critical hit damage", isPercent : true, leveling : function(level6) {
-	return 12 * level6;
-}, modifier : function(value6,mod6) {
-	mod6.percentCritDamage += value6;
-}}),new ostm.skill.PassiveSkill({ id : "int", icon : "INT+", pos : { x : 3, y : 0}, name : "Intelligence+", description : "Increases intelligence", leveling : function(level7) {
-	return 3 * level7;
-}, modifier : function(value7,mod7) {
-	mod7.flatIntelligence += value7;
-}}),new ostm.skill.PassiveSkill({ id : "mp", requirements : ["int"], icon : "MP+", pos : { x : 0, y : 1}, name : "Mana+", description : "Increases mana", leveling : function(level8) {
-	return 8 * level8;
-}, modifier : function(value8,mod8) {
-	mod8.flatMana += value8;
-}}),new ostm.skill.PassiveSkill({ id : "mp-reg", requirements : ["mp"], icon : "MPRe", pos : { x : 0, y : 1}, name : "Mana Regen+", description : "Increases mana regen", isPercent : true, leveling : function(level9) {
-	return 10 * level9;
-}, modifier : function(value9,mod9) {
-	mod9.percentManaRegen += value9;
-}}),new ostm.skill.PassiveSkill({ id : "vit", icon : "VIT+", pos : { x : 4, y : 0}, name : "Vitality+", description : "Increases vitality", leveling : function(level10) {
-	return 3 * level10;
-}, modifier : function(value10,mod10) {
-	mod10.flatVitality += value10;
-}}),new ostm.skill.PassiveSkill({ id : "end", icon : "END+", pos : { x : 6, y : 0}, name : "Endurance+", description : "Increases endurance", leveling : function(level11) {
-	return 3 * level11;
-}, modifier : function(value11,mod11) {
-	mod11.flatEndurance += value11;
-}}),new ostm.skill.PassiveSkill({ id : "hp", icon : "HP+", requirements : ["vit","end"], pos : { x : 1, y : 1}, name : "Health+", description : "Increases health", isPercent : true, leveling : function(level12) {
-	return 2.5 * level12;
-}, modifier : function(value12,mod12) {
-	mod12.percentHealth += value12;
-}}),new ostm.skill.PassiveSkill({ id : "hp-reg", icon : "HPRe", requirements : ["hp"], pos : { x : 0, y : 1}, name : "Health Regen+", description : "Increases health regen", leveling : function(level13) {
-	return 0.5 * level13;
-}, modifier : function(value13,mod13) {
-	mod13.flatHealthRegen += value13;
-}}),new ostm.skill.PassiveSkill({ id : "arm", icon : "ARM+", requirements : ["end"], pos : { x : 0, y : 1}, name : "Armor+", description : "Increases armor", leveling : function(level14) {
-	return level14;
-}, modifier : function(value14,mod14) {
-	mod14.flatDefense += value14;
+ostm.skill.PassiveData.skills = [new ostm.skill.PassiveSkill({ id : "str", requirements : [], icon : "STR+", pos : { x : 0, y : 0}, name : "Strength+", modifier : function(level,mod) {
+	mod.flatStrength += 3 * level;
+}}),new ostm.skill.PassiveSkill({ id : "dex", requirements : [], icon : "DEX+", pos : { x : 2, y : 0}, name : "Dexterity+", modifier : function(level1,mod1) {
+	mod1.flatDexterity += 3 * level1;
+}}),new ostm.skill.PassiveSkill({ id : "vit", requirements : [], icon : "VIT+", pos : { x : 4, y : 0}, name : "Vitality+", modifier : function(level2,mod2) {
+	mod2.flatVitality += 3 * level2;
+}}),new ostm.skill.PassiveSkill({ id : "end", requirements : [], icon : "END+", pos : { x : 5, y : 0}, name : "Endurance+", modifier : function(level3,mod3) {
+	mod3.flatEndurance += 3 * level3;
+}}),new ostm.skill.PassiveSkill({ id : "dam", requirements : ["str"], icon : "DAM", pos : { x : 0, y : 1}, name : "Damage", modifier : function(level4,mod4) {
+	mod4.flatStrength += 2 * level4;
+	mod4.percentAttack += 9 * level4;
+}}),new ostm.skill.PassiveSkill({ id : "atk-spd", requirements : ["dex"], icon : "ASPD", pos : { x : -1, y : 1}, name : "AttackSpeed+", modifier : function(level5,mod5) {
+	mod5.flatDexterity += 2 * level5;
+	mod5.percentAttackSpeed += Math.floor(3.5 * level5);
+}}),new ostm.skill.PassiveSkill({ id : "crt", requirements : ["dex"], icon : "CRT+", pos : { x : 0, y : 1}, name : "Crit Rating+", modifier : function(level6,mod6) {
+	mod6.flatDexterity += 2 * level6;
+	mod6.percentCritRating += 6 * level6;
+}}),new ostm.skill.PassiveSkill({ id : "mp", requirements : [], icon : "MP+", pos : { x : 3, y : 1}, name : "Mana+", modifier : function(level7,mod7) {
+	mod7.flatMana += 8 * level7;
+}}),new ostm.skill.PassiveSkill({ id : "hp-reg", icon : "HPRe", requirements : ["vit"], pos : { x : 0, y : 1}, name : "Health Regen+", modifier : function(level8,mod8) {
+	mod8.flatVitality += 2 * level8;
+	mod8.flatHealthRegen += 0.5 * level8;
+}}),new ostm.skill.PassiveSkill({ id : "hp", icon : "HP+", requirements : ["vit","end"], pos : { x : 1, y : 1}, name : "Health+", modifier : function(level9,mod9) {
+	mod9.flatEndurance += 2 * level9;
+	mod9.percentHealth += 2.5 * level9;
+}}),new ostm.skill.PassiveSkill({ id : "dam+", requirements : ["dam"], icon : "DAM+", pos : { x : 0, y : 1}, name : "Damage+", modifier : function(level10,mod10) {
+	mod10.flatStrength += Math.floor(1.5 * level10);
+	mod10.percentAttack += 7 * level10;
+	mod10.percentHealth += 2 * level10;
+}}),new ostm.skill.PassiveSkill({ id : "cch", requirements : ["crt"], icon : "CCH+", pos : { x : 0, y : 1}, name : "Crit Chance+", modifier : function(level11,mod11) {
+	mod11.flatDexterity += Math.floor(1.5 * level11);
+	mod11.flatCritRating += 2 * level11;
+	mod11.percentCritChance += 8 * level11;
+}}),new ostm.skill.PassiveSkill({ id : "mp-reg", requirements : ["mp"], icon : "MPRe", pos : { x : 0, y : 1}, name : "Mana Regen+", modifier : function(level12,mod12) {
+	mod12.flatIntelligence += Math.floor(1.5 * level12);
+	mod12.percentManaRegen += 10 * level12;
+}}),new ostm.skill.PassiveSkill({ id : "pct-hp-reg", requirements : ["hp-reg"], icon : "HPR%", pos : { x : 0, y : 1}, name : "Health Regen++", modifier : function(level13,mod13) {
+	mod13.flatVitality += Math.floor(1.5 * level13);
+	mod13.percentHealthRegen += 5 * level13;
+}}),new ostm.skill.PassiveSkill({ id : "arm", icon : "ARM+", requirements : ["hp"], pos : { x : 0, y : 1}, name : "Armor+", modifier : function(level14,mod14) {
+	mod14.flatEndurance += Math.floor(1.5 * level14);
+	mod14.flatDefense += 2 * level14;
+}}),new ostm.skill.PassiveSkill({ id : "prc", requirements : ["dam+"], icon : "PRC+", pos : { x : 0, y : 1}, name : "Pierce+", modifier : function(level15,mod15) {
+	mod15.flatStrength += level15;
+	mod15.flatEndurance += level15;
+	mod15.flatArmorPierce += 5 * level15;
+	mod15.percentAttack += 5 * level15;
+}}),new ostm.skill.PassiveSkill({ id : "ruth", requirements : ["atk-spd"], icon : "RTH", pos : { x : 0, y : 2}, name : "Ruthlessness", modifier : function(level16,mod16) {
+	mod16.flatStrength += level16;
+	mod16.flatDexterity += level16;
+	mod16.percentAttack += 7 * level16;
+	mod16.percentAttackSpeed += 2 * level16;
+}}),new ostm.skill.PassiveSkill({ id : "cdm", requirements : ["cch"], icon : "CDM+", pos : { x : 0, y : 1}, name : "Crit Damage+", modifier : function(level17,mod17) {
+	mod17.flatDexterity += level17;
+	mod17.flatIntelligence += level17;
+	mod17.percentAttackSpeed += Math.floor(2.5 * level17);
+	mod17.percentCritDamage += 12 * level17;
+}}),new ostm.skill.PassiveSkill({ id : "hnt", requirements : ["mp-reg"], icon : "HNT+", pos : { x : 0, y : 1}, name : "Hunting", modifier : function(level18,mod18) {
+	mod18.flatDexterity += level18;
+	mod18.flatIntelligence += level18;
+	mod18.flatHuntSkill += Math.floor(3.5 * level18);
+	mod18.percentMoveSpeed += 8 * level18;
+}}),new ostm.skill.PassiveSkill({ id : "jgr", requirements : ["arm"], icon : "JGR", pos : { x : 0, y : 1}, name : "Juggernaut", modifier : function(level19,mod19) {
+	mod19.flatDexterity += level19;
+	mod19.flatEndurance += level19;
+	mod19.flatAttack += Math.floor(1.5 * level19);
+	mod19.percentHealth += 2 * level19;
 }})];
 ostm.GameMain.main();
 })();
