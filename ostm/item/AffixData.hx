@@ -13,7 +13,6 @@ class AffixData {
     public static var affixTypes = [
         new AffixType({
             id: 'flat-attack',
-            description: 'Attack',
             base: 2,
             perLevel: 1,
             levelPower: 0.75,
@@ -24,7 +23,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'local-percent-attack-speed',
-            description: '% Attack Speed',
             base: 5,
             perLevel: 1,
             levelPower: 0.5,
@@ -35,7 +33,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'local-percent-attack',
-            description: '% Attack',
             base: 5,
             perLevel: 1.5,
             modifierFunc: function(value, mod) {
@@ -45,7 +42,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-crit-rating',
-            description: 'Crit Rating',
             base: 4,
             perLevel: 2,
             modifierFunc: function(value, mod) {
@@ -55,7 +51,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'local-percent-crit-rating',
-            description: '% Crit Rating',
             base: 5,
             perLevel: 1,
             modifierFunc: function(value, mod) {
@@ -65,7 +60,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-defense',
-            description: 'Defense',
             base: 2,
             perLevel: 1.25,
             levelPower: 0.75,
@@ -76,7 +70,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-hp-regen',
-            description: 'Health Regen',
             base: 1,
             perLevel: 0.35,
             modifierFunc: function(value, mod) {
@@ -86,7 +79,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'percent-hp',
-            description: '% Health',
             base: 8,
             perLevel: 2,
             levelPower: 0.5,
@@ -97,7 +89,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-mp',
-            description: 'Mana',
             base: 5,
             perLevel: 2.5,
             levelPower: 0.75,
@@ -108,7 +99,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-hunt',
-            description: 'Hunting',
             base: 3,
             perLevel: 2,
             levelPower: 0.75,
@@ -119,7 +109,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'percent-mp-regen',
-            description: '% Mana Regen',
             base: 10,
             perLevel: 3,
             modifierFunc: function(value, mod) {
@@ -129,7 +118,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'local-percent-defense',
-            description: '% Defense',
             base: 10,
             perLevel: 5,
             modifierFunc: function(value, mod) {
@@ -139,7 +127,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'percent-attack-speed',
-            description: '% Global Attack Speed',
             base: 3,
             perLevel: 1,
             levelPower: 0.65,
@@ -150,7 +137,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'percent-crit-chance',
-            description: '% Global Crit Chance',
             base: 2,
             perLevel: 1,
             modifierFunc: function(value, mod) {
@@ -160,7 +146,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'percent-crit-damage',
-            description: '% Global Crit Damage',
             base: 10,
             perLevel: 2,
             modifierFunc: function(value, mod) {
@@ -170,7 +155,6 @@ class AffixData {
         }),
         new AffixType({
             id: 'percent-move-speed',
-            description: '% Move Speed',
             base: 10,
             perLevel: 2,
             modifierFunc: function(value, mod) {
@@ -180,9 +164,9 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-strength',
-            description: 'Strength',
             base: 2,
             perLevel: 0.75,
+            levelPower: 0.9,
             modifierFunc: function(value, mod) {
                 mod.flatStrength += value;
             },
@@ -190,9 +174,9 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-dexterity',
-            description: 'Dexterity',
             base: 2,
             perLevel: 0.75,
+            levelPower: 0.9,
             modifierFunc: function(value, mod) {
                 mod.flatDexterity += value;
             },
@@ -200,9 +184,9 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-vitality',
-            description: 'Vitality',
             base: 2,
             perLevel: 0.75,
+            levelPower: 0.9,
             modifierFunc: function(value, mod) {
                 mod.flatVitality += value;
             },
@@ -210,9 +194,9 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-endurance',
-            description: 'Endurance',
             base: 2,
             perLevel: 0.75,
+            levelPower: 0.9,
             modifierFunc: function(value, mod) {
                 mod.flatEndurance += value;
             },
@@ -220,13 +204,63 @@ class AffixData {
         }),
         new AffixType({
             id: 'flat-intelligence',
-            description: 'Intelligence',
             base: 2,
             perLevel: 0.75,
+            levelPower: 0.9,
             modifierFunc: function(value, mod) {
                 mod.flatIntelligence += value;
             },
             multipliers: [ Body => 1.0, Helmet => 1.0, Boots => 1.0, Gloves => 1.0, Ring => 1.0 ]
+        }),
+        new AffixType({
+            id: 'xp-gain',
+            base: 2,
+            perLevel: 1,
+            levelPower: 0.8,
+            modifierFunc: function(value, mod) {
+                mod.percentXpGained += value;
+            },
+            multipliers: [ Jewel => 1.0 ],
+        }),
+        new AffixType({
+            id: 'gold-gain',
+            base: 5,
+            perLevel: 2,
+            levelPower: 0.8,
+            modifierFunc: function(value, mod) {
+                mod.percentGoldGained += value;
+            },
+            multipliers: [ Jewel => 1.0 ],
+        }),
+        new AffixType({
+            id: 'gem-drop',
+            base: 2,
+            perLevel: 0.65,
+            levelPower: 0.8,
+            modifierFunc: function(value, mod) {
+                mod.percentGemDropRate += value;
+            },
+            multipliers: [ Jewel => 1.0 ],
+        }),
+        new AffixType({
+            id: 'item-drop',
+            base: 3,
+            perLevel: 1,
+            levelPower: 0.8,
+            modifierFunc: function(value, mod) {
+                mod.percentItemDropRate += value;
+            },
+            multipliers: [ Jewel => 1.0 ],
+        }),
+        new AffixType({
+            id: 'item-rarity',
+            base: 8,
+            perLevel: 2,
+            levelPower: 0.8,
+            modifierFunc: function(value, mod) {
+                mod.percentItemRarity += value;
+            },
+            multipliers: [ Jewel => 1.0 ],
         }),
     ];
 }

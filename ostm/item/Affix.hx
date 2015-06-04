@@ -1,6 +1,7 @@
 package ostm.item;
 
 import jengine.util.Random;
+import jengine.util.Util;
 
 import ostm.battle.StatModifier;
 import ostm.item.ItemType;
@@ -8,7 +9,6 @@ import ostm.item.ItemType;
 @:allow(ostm.item.Affix)
 class AffixType {
     public var id(default, null) :String;
-    var description :String;
     var baseValue :Float;
     var valuePerLevel :Float;
     var levelPower :Float;
@@ -18,7 +18,6 @@ class AffixType {
 
     public function new(data :Dynamic) {
         this.id = data.id;
-        this.description = data.description;
         this.baseValue = data.base;
         this.valuePerLevel = data.perLevel;
         this.levelPower = data.levelPower != null ? data.levelPower : 1;
@@ -57,9 +56,16 @@ class Affix {
     var roll :Int;
     var slot :ItemSlot;
 
+    var displayData :StatDisplayData;
+
     public function new(type :AffixType, slot :ItemSlot) {
         this.type = type;
         this.slot = slot;
+
+        var mod = new StatModifier();
+        type.applyModifier(100, mod);
+        var displays = mod.getDisplayData();
+        this.displayData = displays.length > 0 ? displays[0] : null;
     }
 
     public function rollItemLevel(itemLevel :Int) {
@@ -68,7 +74,15 @@ class Affix {
     }
 
     public function text() :String {
-        return '+' + type.valueForLevel(slot, level, roll) + ' ' + type.description;
+        if (displayData == null) {
+            return '';
+        }
+        var val = type.valueForLevel(slot, level, roll);
+        var str = displayData.name + ' +' + Util.format(val);
+        if (displayData.isPercent) {
+            str += '%';
+        }
+        return str;
     }
 
     public function applyModifier(mod :StatModifier) :Void {
@@ -76,7 +90,7 @@ class Affix {
     }
 
     public function value() :Float {
-        return 1 + 0.2 * level * roll / AffixType.kMaxRolls;
+        return 0.2 * level * roll / AffixType.kMaxRolls;
     }
 
     public function serialize() :Dynamic {

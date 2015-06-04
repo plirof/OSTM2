@@ -34,6 +34,12 @@ class StatModifier {
     public var percentCritChance :Int = 0;
     public var percentCritDamage :Int = 0;
 
+    public var percentXpGained :Int = 0;
+    public var percentGoldGained :Int = 0;
+    public var percentGemDropRate :Int = 0;
+    public var percentItemDropRate :Int = 0;
+    public var percentItemRarity :Int = 0;
+
     public var localPercentAttack :Int = 0;
     public var localPercentDefense :Int = 0;
     public var localPercentAttackSpeed :Int = 0;
@@ -138,6 +144,26 @@ class StatModifier {
             }, {
                 value: percentCritDamage,
                 name: 'Crit Damage',
+                isPercent: true,
+            }, {
+                value: percentXpGained,
+                name: 'XP Gained',
+                isPercent: true,
+            }, {
+                value: percentGoldGained,
+                name: 'Gold Gained',
+                isPercent: true,
+            }, {
+                value: percentGemDropRate,
+                name: 'Gem Drop',
+                isPercent: true,
+            }, {
+                value: percentItemDropRate,
+                name: 'Item Drop',
+                isPercent: true,
+            }, {
+                value: percentItemRarity,
+                name: 'Item Rarity',
                 isPercent: true,
             }, {
                 value: localPercentAttack,

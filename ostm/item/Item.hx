@@ -305,10 +305,11 @@ class Item {
 
     public function buyValue() :Int {
         var value = Math.pow(tier + 1, 2.2) * 10;
+        var mult = 1.0;
         for (affix in affixes) {
-            value *= affix.value();
+            mult += affix.value();
         }
-        return Math.round(value);
+        return Math.round(value * mult);
     }
     public function sellValue() :Int {
         return Math.round(Math.pow(buyValue(), 0.85) * 0.5);

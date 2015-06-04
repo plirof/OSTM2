@@ -7,6 +7,7 @@ enum ItemSlot {
     Boots;
     Gloves;
     Ring;
+    Jewel;
 }
 
 class ItemType {

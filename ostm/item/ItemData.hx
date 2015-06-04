@@ -112,6 +112,16 @@ class ItemData {
                 'Ring',
             ],
             slot: Ring,
+            attack: 0.5,
+            defense: 0.5,
+        }),
+        new ItemType({
+            id: 'jewel',
+            image: '../enemies/Slime.png',
+            names: [
+                'Jewel',
+            ],
+            slot: Jewel,
             attack: 0,
             defense: 0,
         }),

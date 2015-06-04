@@ -100,7 +100,7 @@ class BattleMember implements Saveable {
         return Math.round(Math.pow(level, 2) + 2);
     }
     public function goldReward() :Int {
-        return Math.round(Math.pow(level, 1.75) + 2);
+        return Math.round(0.2 * Math.pow(level, 1.65) + 1);
     }
 
     public function strength() :Int {
