@@ -130,7 +130,9 @@ class Inventory extends Component
     public function randomItem(maxLevel :Int, rarityMult :Float = 1) :Item {
         var type = Random.randomElement(ItemData.types);
         var item = new Item(type, maxLevel);
-        item.setDropLevel(Random.randomIntRange(1, maxLevel));
+        var level = Random.randomIntRange(1, maxLevel);
+        level = Random.randomIntRange(level, maxLevel);
+        item.setDropLevel(level);
         var affixOdds = [
             // 7 => 0.01,
             4 => 0.05,
@@ -157,7 +159,8 @@ class Inventory extends Component
         dropRate *= 1 + mod.percentItemDropRate / 100;
 
         var didAdd = false;
-        while (dropRate > 0 && Random.randomBool(dropRate) && hasSpaceForItem()) {
+        while ((dropRate >= 1 || Random.randomBool(dropRate)) &&
+                hasSpaceForItem()) {
             var rarityMult = 1 + mod.percentItemRarity / 100;
             _inventory.push(randomItem(maxLevel, rarityMult));
             didAdd = true;

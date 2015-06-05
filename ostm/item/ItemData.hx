@@ -112,8 +112,8 @@ class ItemData {
                 'Ring',
             ],
             slot: Ring,
-            attack: 0.5,
-            defense: 0.5,
+            attack: 0.2,
+            defense: 0.3,
         }),
         new ItemType({
             id: 'jewel',

@@ -199,7 +199,7 @@ class Item {
         _body.style.zIndex = cast 10;
 
         var dlvl = Browser.document.createLIElement();
-        dlvl.innerText = 'Drop Lvl: ' + Util.format(level);
+        dlvl.innerText = 'Drop Lvl: ' + Util.format(dropLevel());
         _body.appendChild(dlvl);
 
         var ilvl = Browser.document.createLIElement();
@@ -325,6 +325,11 @@ class Item {
 
     function get_tier() :Int {
         return Math.floor(this.level / kTierLevels);
+    }
+
+    function dropLevel() :Int {
+        var dropLevel = tier * kTierLevels;
+        return dropLevel > 0 ? dropLevel : 1;
     }
 
     public function serialize() :Dynamic {
