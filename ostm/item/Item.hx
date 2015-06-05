@@ -198,6 +198,10 @@ class Item {
         _body.style.width = cast 220;
         _body.style.zIndex = cast 10;
 
+        var dlvl = Browser.document.createLIElement();
+        dlvl.innerText = 'Drop Lvl: ' + Util.format(level);
+        _body.appendChild(dlvl);
+
         var ilvl = Browser.document.createLIElement();
         ilvl.innerText = 'iLvl: ' + Util.format(itemLevel);
         _body.appendChild(ilvl);

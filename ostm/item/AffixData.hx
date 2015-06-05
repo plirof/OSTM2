@@ -105,7 +105,7 @@ class AffixData {
             modifierFunc: function(value, mod) {
                 mod.flatHuntSkill += value;
             },
-            multipliers: [ Helmet => 0.5, Boots => 1.0, Ring => 0.5 ]
+            multipliers: [ Helmet => 0.5, Boots => 1.0, Ring => 0.5, Jewel => 0.5 ]
         }),
         new AffixType({
             id: 'percent-mp-regen',
@@ -160,7 +160,7 @@ class AffixData {
             modifierFunc: function(value, mod) {
                 mod.percentMoveSpeed += value;
             },
-            multipliers: [ Boots => 1.0 ]
+            multipliers: [ Boots => 1.0, Jewel => 0.5 ]
         }),
         new AffixType({
             id: 'flat-strength',

@@ -137,7 +137,7 @@ class BattleMember implements Saveable {
     public function updateCachedAffixes() :Void {
         _cachedStatMod = null;
     }
-    function sumAffixes() :StatModifier {
+    public function sumAffixes() :StatModifier {
         if (_cachedStatMod == null) {
             _cachedStatMod = new StatModifier();
             for (item in equipment) {

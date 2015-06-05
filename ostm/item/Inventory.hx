@@ -8,6 +8,8 @@ import jengine.SaveManager;
 import jengine.util.Random;
 
 import ostm.battle.BattleManager;
+import ostm.battle.BattleMember;
+import ostm.battle.StatModifier;
 import ostm.item.ItemType;
 
 class Inventory extends Component
@@ -125,7 +127,7 @@ class Inventory extends Component
         return _inventory.length < capacity();
     }
 
-    public function randomItem(maxLevel :Int) :Item {
+    public function randomItem(maxLevel :Int, rarityMult :Float = 1) :Item {
         var type = Random.randomElement(ItemData.types);
         var item = new Item(type, maxLevel);
         item.setDropLevel(Random.randomIntRange(1, maxLevel));
@@ -133,12 +135,14 @@ class Inventory extends Component
             // 7 => 0.01,
             4 => 0.05,
             3 => 0.08,
-            2 => 0.12,
-            1 => 0.25,
+            2 => 0.20,
+            1 => 0.30,
         ];
         var nAffixes = 0;
-        for (n in affixOdds.keys()) {
-            if (Random.randomBool(affixOdds[n])) {
+        var keys = [for (i in 0...4) 4 - i];
+        for (n in keys) {
+            var rarity = affixOdds[n] * rarityMult;
+            if (Random.randomBool(rarity)) {
                 nAffixes = n;
                 break;
             }
@@ -147,10 +151,19 @@ class Inventory extends Component
         return item;
     }
 
-    public function tryRewardItem(maxLevel :Int) :Void {
-        if (Random.randomBool(0.35) && hasSpaceForItem()) {
-            _inventory.push(randomItem(maxLevel));
+    public function tryRewardItem(enemy :BattleMember, mod :StatModifier) :Void {
+        var maxLevel = enemy.level;
+        var dropRate = 0.35;
+        dropRate *= 1 + mod.percentItemDropRate / 100;
 
+        var didAdd = false;
+        while (dropRate > 0 && Random.randomBool(dropRate) && hasSpaceForItem()) {
+            var rarityMult = 1 + mod.percentItemRarity / 100;
+            _inventory.push(randomItem(maxLevel, rarityMult));
+            didAdd = true;
+            dropRate -= 1;
+        }
+        if (didAdd) {
             updateInventoryHtml();
         }
     }

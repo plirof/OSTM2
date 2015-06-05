@@ -226,9 +226,14 @@ class BattleManager extends Component {
             }
             else {
                 _killCount++;
+                var mod = _player.sumAffixes();
+
                 var xp = target.xpReward();
+                xp = Math.round(xp * (1 + mod.percentXpGained / 100));
                 var gold = target.goldReward();
-                var gems = Random.randomBool(0.07) ? 1 : 0;
+                gold = Math.round(gold * (1 + mod.percentGoldGained / 100));
+                var gemChance = 0.07 * (1 + mod.percentGemDropRate / 100);
+                var gems = Random.randomBool(gemChance) ? 1 : 0;
                 _player.addXp(xp);
                 _player.addGold(gold);
                 _player.addGems(gems);
@@ -260,7 +265,7 @@ class BattleManager extends Component {
                     ]));
                 }
 
-                Inventory.instance.tryRewardItem(target.level);
+                Inventory.instance.tryRewardItem(target, mod);
 
                 despawnEnemy(target);
                 isBattleDone = _enemies.length == 0;
