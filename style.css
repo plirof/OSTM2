@@ -87,6 +87,7 @@ li {
 .screen {
     width: 100%;
     overflow: auto;
+    box-shadow: inset 0px 0px 7px -1px #000000;
 }
 
 #stat-screen {
