@@ -17,7 +17,7 @@ class AffixData {
             perLevel: 1,
             levelPower: 0.75,
             modifierFunc: function(value, mod) {
-                mod.flatAttack += value;
+                mod.localFlatAttack += value;
             },
             multipliers: [ Weapon => 1.0, Gloves => 0.5, Ring => 0.5 ]
         }),
@@ -45,7 +45,7 @@ class AffixData {
             base: 4,
             perLevel: 2,
             modifierFunc: function(value, mod) {
-                mod.flatCritRating += value;
+                mod.localFlatCritRating += value;
             },
             multipliers: [ Weapon => 1.0, Gloves => 0.5, Ring => 0.5 ]
         }),
@@ -64,7 +64,7 @@ class AffixData {
             perLevel: 1.25,
             levelPower: 0.75,
             modifierFunc: function(value, mod) {
-                mod.flatDefense += value;
+                mod.localFlatDefense += value;
             },
             multipliers: [ Body => 1.0, Boots => 0.5, Helmet => 1.0, Ring => 0.5 ]
         }),

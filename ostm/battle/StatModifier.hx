@@ -40,6 +40,9 @@ class StatModifier {
     public var percentItemDropRate :Int = 0;
     public var percentItemRarity :Int = 0;
 
+    public var localFlatAttack :Int = 0;
+    public var localFlatDefense :Int = 0;
+    public var localFlatCritRating :Int = 0;
     public var localPercentAttack :Int = 0;
     public var localPercentDefense :Int = 0;
     public var localPercentAttackSpeed :Int = 0;
@@ -165,6 +168,18 @@ class StatModifier {
                 value: percentItemRarity,
                 name: 'Item Rarity',
                 isPercent: true,
+            }, {
+                value: localFlatAttack,
+                name: 'Attack',
+                isPercent: false,
+            }, {
+                value: localFlatDefense,
+                name: 'Defense',
+                isPercent: false,
+            }, {
+                value: localFlatCritRating,
+                name: 'Crit Rating',
+                isPercent: false,
             }, {
                 value: localPercentAttack,
                 name: 'Attack',

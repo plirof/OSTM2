@@ -146,10 +146,6 @@ class BattleMember implements Saveable {
                 }
             }
 
-            _cachedStatMod.flatAttack = 0;
-            _cachedStatMod.flatDefense = 0;
-            _cachedStatMod.flatCritRating = 0;
-            
             for (passive in SkillTree.instance.skills) {
                 passive.sumAffixes(_cachedStatMod);
             }
@@ -239,7 +235,12 @@ class BattleMember implements Saveable {
         var wep = equipment.get(Weapon);
         var mod = sumAffixes();
         
-        var floatRating :Float = wep != null ? wep.critRating() : 3;
+        var floatRating :Float = wep == null ? 3 : 0;
+        for (item in equipment) {
+            if (item != null) {
+                floatRating += item.critRating();
+            }
+        }
         floatRating += mod.flatCritRating;
         floatRating *= 1 + dexterity() * 0.025;
         floatRating *= 1 + mod.percentCritRating / 100;

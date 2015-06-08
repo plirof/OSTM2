@@ -272,7 +272,7 @@ class Item {
         var mod = sumAffixes();
         var atk = type.attack;
         atk *= 1 + kTierLevels * 0.4 * tier;
-        atk += mod.flatAttack;
+        atk += mod.localFlatAttack;
         atk *= 1 + mod.localPercentAttack / 100;
         return Math.round(atk);
     }
@@ -294,7 +294,7 @@ class Item {
             crt *= 1 + kTierLevels * 0.1 * tier;
         }
         var mod = sumAffixes();
-        crt += mod.flatCritRating;
+        crt += mod.localFlatCritRating;
         crt *= 1 + mod.localPercentCritRating / 100;        
         return Math.round(crt);
     }
@@ -302,7 +302,7 @@ class Item {
         var mod = sumAffixes();
         var def = type.defense;
         def *= 1 + kTierLevels * 0.4 * tier;
-        def += mod.flatDefense;
+        def += mod.localFlatDefense;
         def *= 1 + mod.localPercentDefense / 100;
         return Math.round(def);
     }
