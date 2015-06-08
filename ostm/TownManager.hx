@@ -82,7 +82,11 @@ class TownManager extends Component
         var inTown = mapNode.isTown();
         Browser.document.getElementById('town-screen').style.display = inTown ? '' : 'none';
 
-        if (inTown) {
+        if (!inTown) {
+            shouldWarp = false;
+            updateWarpButton();
+        }
+        else { // in town
             var shop = _shops[mapNode];
             if (shop == null) {
                 shop = {
@@ -104,10 +108,6 @@ class TownManager extends Component
             updateRestockPrice(mapNode);
 
             Browser.document.getElementById('town-shop-capacity-price').innerText = Util.format(Inventory.instance.capacityUpgradeCost());
-        }
-        else { //not in town
-            shouldWarp = false;
-            updateWarpButton();
         }
 
         _lastNode = mapNode;

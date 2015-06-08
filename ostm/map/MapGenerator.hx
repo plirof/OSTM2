@@ -29,6 +29,7 @@ class MapGenerator extends Component
     var _rand = new StaticRandom();
 
     var _scrollHelper :Entity;
+    var _shouldCenter :Bool = true;
 
     static inline var kMoveTime :Float = 12.0;
     var _moveBarTransform :Transform;
@@ -97,6 +98,14 @@ class MapGenerator extends Component
     public override function update() {
         var rect = _mapScreenElem.getBoundingClientRect();
         _moveBarTransform.pos = new Vec2(rect.left + 20, rect.top + 20);
+
+        if (_shouldCenter && selectedNode.elem != null) {
+            js.Browser.window.setTimeout(function() {
+                selectedNode.elem.scrollIntoViewIfNeeded(true);
+            }, 0);
+            _shouldCenter = false;
+        }
+
 
         if (BattleManager.instance.isInBattle() ||
             BattleManager.instance.isPlayerDead()) {
@@ -175,6 +184,7 @@ class MapGenerator extends Component
         });
 
         updateScrollBounds();
+        centerCurrentNode();
     }
 
     function generateSurroundingCells(i :Int, j :Int) :Void {
@@ -546,22 +556,7 @@ class MapGenerator extends Component
     }
 
     public function centerCurrentNode() :Void {
-        if (selectedNode.elem != null) {
-            var container = selectedNode.elem.parentElement;
-            var size = new Vec2(container.clientWidth, container.clientHeight);
-            var pos = selectedNode.getTransform().pos;
-            var scroll = new Vec2(container.scrollLeft, container.scrollTop);
-            var relPos = pos - scroll;
-            var scrollToPos = new Vec2(scroll.x, scroll.y);
-            var tlBound = size / 3;
-            var brBound = size * 2 / 3;
-            scrollToPos = new Vec2(scroll.x, scroll.y);
-            if (relPos.x < tlBound.x) { scrollToPos.x += relPos.x - tlBound.x; }
-            if (relPos.y < tlBound.y) { scrollToPos.y += relPos.y - tlBound.y; }
-            if (relPos.x > brBound.x) { scrollToPos.x += relPos.x - brBound.x; }
-            if (relPos.y > brBound.y) { scrollToPos.y += relPos.y - brBound.y; }
-            Browser.window.scrollTo(cast scrollToPos.x, cast scrollToPos.y);
-        }
+        _shouldCenter = true;
     }
 
     function isAdjacent(a :MapNode, b :MapNode) :Bool {
@@ -687,5 +682,6 @@ class MapGenerator extends Component
         }
 
         updateScrollBounds();
+        centerCurrentNode();
     }
 }

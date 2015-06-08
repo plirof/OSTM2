@@ -176,6 +176,7 @@ class Item {
         }
 
         _body = Browser.document.createUListElement();
+        _body.className = 'tooltip';
         _body.appendChild(makeNameElem());
         hideBody();
         _buttons.style.display = 'none';
@@ -229,7 +230,7 @@ class Item {
         for (affix in affixes) {
             var aff = Browser.document.createLIElement();
             aff.innerText = affix.text();
-            aff.style.fontStyle = 'italic';
+            aff.className = 'item-affix';
             _body.appendChild(aff);
         }
 
@@ -253,11 +254,19 @@ class Item {
     }
 
     function showBody(atPos :Vec2) :Void {
+        if (_body == null) {
+            return;
+        }
+
         _body.style.display = '';
         _body.style.left = cast atPos.x;
         _body.style.top = cast atPos.y;
     }
     function hideBody() :Void {
+        if (_body == null) {
+            return;
+        }
+        
         _body.style.display = 'none';
     }
 

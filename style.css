@@ -140,6 +140,14 @@ div {
     height: 50px;
     image-rendering: pixelated;
 }
+.item-affix {
+    font-style: italic;
+    color: #88aaff;
+}
+
+li {
+    display: block;
+}
 
 .xp-bar {
     left: 27px;

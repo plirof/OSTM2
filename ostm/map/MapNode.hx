@@ -55,7 +55,9 @@ class MapNode extends GameNode {
 
     public override function start() :Void {
         super.start();
+    }
 
+    public override function postStart() :Void {        
         if (_isOccupied) {
             map.centerCurrentNode();
         }
@@ -260,7 +262,6 @@ class MapNode extends GameNode {
     }
 
     public function areaLevel() :Int {
-        // return depth + Math.floor(Math.abs(height) / 2) + 1;
         return level;
     }
 
