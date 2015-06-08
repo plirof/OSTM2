@@ -13,7 +13,12 @@ class ItemData {
     public static var types = [
         new WeaponType({
             id: 'sword',
-            image: 'Sword.png',
+            images: [
+                'Sword0.png',
+                'Sword1.png',
+                'Sword2.png',
+                'Sword3.png',
+            ],
             names: [
                 'Rusted Sword',
                 'Copper Sword',
@@ -27,7 +32,7 @@ class ItemData {
         }),
         new WeaponType({
             id: 'axe',
-            image: 'Axe.png',
+            images: ['Axe.png'],
             names: [
                 'Rusted Axe',
                 'Hatchet',
@@ -41,7 +46,7 @@ class ItemData {
         }),
         new WeaponType({
             id: 'dagger',
-            image: 'Dagger.png',
+            images: ['Dagger.png'],
             names: [
                 'Rusted Dagger',
                 'Knife',
@@ -55,7 +60,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'armor',
-            image: 'Armor.png',
+            images: ['Armor.png'],
             names: [
                 'Tattered Shirt',
                 'Cloth Shirt',
@@ -68,7 +73,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'helm',
-            image: 'Helmet.png',
+            images: ['Helmet.png'],
             names: [
                 'Hat',
                 'Leather Cap',
@@ -81,7 +86,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'boots',
-            image: 'Boot.png',
+            images: ['Boot.png'],
             names: [
                 'Sandals',
                 'Leather Shoes',
@@ -94,7 +99,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'gloves',
-            image: 'Glove.png',
+            images: ['Glove.png'],
             names: [
                 'Cuffs',
                 'Wool Gloves',
@@ -107,7 +112,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'ring',
-            image: 'Ring.png',
+            images: ['Ring.png'],
             names: [
                 'Ring',
             ],
@@ -117,7 +122,7 @@ class ItemData {
         }),
         new ItemType({
             id: 'jewel',
-            image: '../enemies/Slime.png',
+            images: ['Jewel.png'],
             names: [
                 'Jewel',
             ],

@@ -59,6 +59,11 @@ class Item {
         return name;
     }
 
+    public function image() :String {
+        var image = type.images[tier % type.images.length];
+        return 'img/items/' + image;
+    }
+
     public function equip() {
         var player = BattleManager.instance.getPlayer();
         var cur = player.equipment[type.slot];
@@ -133,9 +138,7 @@ class Item {
         _elem.style.background = getColor();
 
         var img = Browser.document.createImageElement();
-        img.src = 'img/items/' + type.image;
-        img.height = 40;
-        img.style.imageRendering = 'pixelated';
+        img.src = image();
         _elem.appendChild(img);
 
         _buttons = Browser.document.createSpanElement();
