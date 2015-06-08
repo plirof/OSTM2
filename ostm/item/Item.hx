@@ -248,6 +248,8 @@ class Item {
     }
 
     public function cleanupElement() :Void {
+        hideBothBodies();
+        
         if (_body != null) {
             _body.remove();
         }

@@ -125,6 +125,11 @@ class TownManager extends Component
         }
 
         var shop = _shops[mapNode];
+        if (shop.items != null) {
+            for (item in shop.items) {
+                item.cleanupElement();
+            }
+        }
         shop.items = items;
         shop.generateTime = Math.round(Time.raw);
 
