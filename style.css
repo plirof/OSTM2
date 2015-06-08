@@ -76,6 +76,10 @@ div {
     top: 0px;
 }
 
+li {
+    display: block;
+}
+
 .column {
     height: 100%;
 }
@@ -140,14 +144,39 @@ div {
     height: 50px;
     image-rendering: pixelated;
 }
+.item button {
+    z-index: 3;
+}
 .item-affix {
     font-style: italic;
     color: #88aaff;
 }
 
-li {
-    display: block;
+#equip-screen {
+    background-color: #95EAC8;
 }
+.equip-container {
+  width: 180px;
+  height: 180px;
+  left: 60px;
+  top: 20px;
+  position: absolute;
+}
+.equip-container div {
+    width: 50px;
+    height: 50px;
+    background-color: #444444;
+}
+.equip-container .item {
+    margin: 0px;
+}
+.weapon-slot { left: 0px; top: 60px; }
+.body-slot { left: 60px; top: 60px; }
+.helmet-slot { left: 60px; top: 0px; }
+.boots-slot { left: 60px; top: 120px; }
+.gloves-slot { left: 0px; top: 120px; }
+.ring-slot { left: 120px; top: 60px; }
+.jewel-slot { left: 120px; top: 120px; }
 
 .xp-bar {
     left: 27px;

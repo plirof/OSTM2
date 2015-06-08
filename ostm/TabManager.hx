@@ -17,6 +17,10 @@ class TabManager extends Component
             buttonName: 'Stats',
             column: 1,
         }, {
+            id: 'equip-screen',
+            buttonName: 'Equipment',
+            column: 1,
+        }, {
             id: 'main-screen',
             buttonName: null,
             column: 2,

@@ -131,6 +131,9 @@ class StatRenderer extends Component {
             new StatElement(list, 'END', function() {
                 return Util.format(_member.endurance());
             }),
+            new StatElement(list, 'Power', function() {
+                return Util.formatFloat(_member.power(_member.level));
+            }),
             new StatElement(list, 'DPS', function() {
                 var lev = BattleManager.instance.spawnLevel();
                 return Util.formatFloat(_member.dps(lev));
@@ -142,9 +145,13 @@ class StatRenderer extends Component {
         ];
 
         if (_member.isPlayer) {
-            var equip = createAndAddTo('ul', stats);
+            var equipTab = doc.getElementById('equip-screen');
+            var equipContainer = createAndAddTo('div', equipTab);
+            equipContainer.className = 'equip-container';
             for (k in _member.equipment.keys()) {
-                _equipment[k] = createAndAddTo('li', equip);
+                var slot = createAndAddTo('div', equipContainer);
+                slot.className = (k + '-slot').toLowerCase();
+                _equipment[k] = slot;
                 updateEquipSlot(k);
             }
         }
@@ -178,17 +185,7 @@ class StatRenderer extends Component {
             elem.removeChild(elem.firstChild);
         }
         
-        var slotName = Browser.document.createSpanElement();
-        slotName.innerText = slot + ': ';
-        elem.appendChild(slotName);
-
-        if (item == null) {
-            var nullItem = Browser.document.createSpanElement();
-            nullItem.innerText = '(none)';
-            nullItem.style.fontStyle = 'italic';
-            elem.appendChild(nullItem);
-        }
-        else {
+        if (item != null) {
             elem.appendChild(item.createElement([
                 'Unequip' => function(event) {
                     item.unequip();
