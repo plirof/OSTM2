@@ -116,10 +116,12 @@ class TownManager extends Component
     function generateItems(mapNode :MapNode) :Void {
         var items = [];
 
-        var nItems = Random.randomIntRange(4, 6);
-        for (i in 0...nItems) {
+        var nItems = 6;
+        while (items.length < nItems) {
             var item = Inventory.instance.randomItem(mapNode.areaLevel());
-            items.push(item);
+            if (item.numAffixes() > 0) {
+                items.push(item);
+            }
         }
 
         var shop = _shops[mapNode];
