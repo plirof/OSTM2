@@ -300,6 +300,21 @@ class BattleMember implements Saveable {
     public function power() :Int {
         return Math.round(Math.sqrt(dps() * ehp()));
     }
+    public function powerIfEquipped(item :Item) :Int {
+        var slot = item.type.slot;
+        var curItem = equipment[slot];
+        var oldCache = sumAffixes();
+        var newMod = _cachedStatMod.copy();
+        curItem.subtractAffixes(newMod);
+        item.sumAffixes(newMod);
+
+        _cachedStatMod = newMod;
+        equipment[slot] = item;
+        var pow = power();
+        _cachedStatMod = oldCache;
+        equipment[slot] = curItem;
+        return pow;
+    }
 
     public function moveSpeed() :Float {
         var mod = sumAffixes();

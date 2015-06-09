@@ -184,7 +184,6 @@ class Inventory extends Component
         if (SaveManager.instance.loadedVersion < 2) {
             _sizeUpgrades = 0;
         }
-
-        updateInventoryHtml();
+        Browser.window.setTimeout(updateInventoryHtml, 0);
     }
 }

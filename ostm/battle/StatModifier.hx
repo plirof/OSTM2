@@ -49,6 +49,52 @@ class StatModifier {
     public var localPercentCritRating :Int = 0;
 
     public function new() { }
+    public function copy() :StatModifier {
+        var mod = new StatModifier();
+
+        mod.flatAttack = this.flatAttack;
+        mod.flatDefense = this.flatDefense;
+        mod.flatCritRating = this.flatCritRating;
+        mod.flatArmorPierce = this.flatArmorPierce;
+        mod.flatHealth = this.flatHealth;
+        mod.flatHealthRegen = this.flatHealthRegen;
+        mod.flatMana = this.flatMana;
+        mod.flatHuntSkill = this.flatHuntSkill;
+
+        mod.flatStrength = this.flatStrength;
+        mod.flatDexterity = this.flatDexterity;
+        mod.flatVitality = this.flatVitality;
+        mod.flatEndurance = this.flatEndurance;
+        mod.flatIntelligence = this.flatIntelligence;
+
+        mod.percentHealth = this.percentHealth;
+        mod.percentHealthRegen = this.percentHealthRegen;
+        mod.percentMana = this.percentMana;
+        mod.percentManaRegen = this.percentManaRegen;
+        mod.percentAttack = this.percentAttack;
+        mod.percentDefense = this.percentDefense;
+        mod.percentAttackSpeed = this.percentAttackSpeed;
+        mod.percentMoveSpeed = this.percentMoveSpeed;
+        mod.percentCritRating = this.percentCritRating;
+        mod.percentCritChance = this.percentCritChance;
+        mod.percentCritDamage = this.percentCritDamage;
+
+        mod.percentXpGained = this.percentXpGained;
+        mod.percentGoldGained = this.percentGoldGained;
+        mod.percentGemDropRate = this.percentGemDropRate;
+        mod.percentItemDropRate = this.percentItemDropRate;
+        mod.percentItemRarity = this.percentItemRarity;
+
+        mod.localFlatAttack = this.localFlatAttack;
+        mod.localFlatDefense = this.localFlatDefense;
+        mod.localFlatCritRating = this.localFlatCritRating;
+        mod.localPercentAttack = this.localPercentAttack;
+        mod.localPercentDefense = this.localPercentDefense;
+        mod.localPercentAttackSpeed = this.localPercentAttackSpeed;
+        mod.localPercentCritRating = this.localPercentCritRating;
+
+        return mod;
+    }
 
     function rawDisplayData() :Array<StatDisplayData> {
         return [

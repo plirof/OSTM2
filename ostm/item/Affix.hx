@@ -85,8 +85,16 @@ class Affix {
         return str;
     }
 
+    function currentValue() :Int {
+        return type.valueForLevel(slot, level, roll);
+    }
     public function applyModifier(mod :StatModifier) :Void {
-        type.applyModifier(type.valueForLevel(slot, level, roll), mod);
+        var val = currentValue();
+        type.applyModifier(val, mod);
+    }
+    public function subtractModifier(mod :StatModifier) :Void {
+        var val = currentValue();
+        type.applyModifier(-val, mod);
     }
 
     public function value() :Float {

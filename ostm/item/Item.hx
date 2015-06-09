@@ -234,6 +234,13 @@ class Item {
             _body.appendChild(aff);
         }
 
+        var powElem = Browser.document.createLIElement();
+        var oldPow = player.power();
+        var newPow = player.powerIfEquipped(this);
+        trace('powers: ',name(),newPow,oldPow);
+        powElem.innerText = 'Power change: ' + Util.format(newPow - oldPow);
+        _body.appendChild(powElem);
+
         var buy = Browser.document.createLIElement();
         buy.innerText = 'Buy Price: ' + Util.shortFormat(buyValue());
         _body.appendChild(buy);
@@ -278,6 +285,12 @@ class Item {
         }
         for (affix in affixes) {
             affix.applyModifier(mod);
+        }
+        return mod;
+    }
+    public function subtractAffixes(mod :StatModifier) :StatModifier {
+        for (affix in affixes) {
+            affix.subtractModifier(mod);
         }
         return mod;
     }
