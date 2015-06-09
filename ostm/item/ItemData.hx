@@ -32,7 +32,12 @@ class ItemData {
         }),
         new WeaponType({
             id: 'axe',
-            images: ['Axe.png'],
+            images: [
+                'Axe0.png',
+                'Axe1.png',
+                'Axe2.png',
+                'Axe3.png',
+            ],
             names: [
                 'Rusted Axe',
                 'Hatchet',
@@ -46,7 +51,12 @@ class ItemData {
         }),
         new WeaponType({
             id: 'dagger',
-            images: ['Dagger.png'],
+            images: [
+                'Dagger0.png',
+                'Dagger1.png',
+                'Dagger2.png',
+                'Dagger3.png',
+            ],
             names: [
                 'Rusted Dagger',
                 'Knife',
