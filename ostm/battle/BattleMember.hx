@@ -267,10 +267,10 @@ class BattleMember implements Saveable {
         return curSkill.manaCost;
     }
 
-    public function dps(targetLevel :Int) :Float {
+    public function dps() :Float {
         var atk = damage();
         var spd = attackSpeed();
-        var crit = critInfo(targetLevel);
+        var crit = critInfo(level);
         var critMod = 1 + crit.chance * crit.damage;
         return atk * spd * critMod;
     }
@@ -291,14 +291,14 @@ class BattleMember implements Saveable {
         def = Math.floor(Math.max(0, def));
         return def / (10 + 2.5 * attackerLevel + def);
     }
-    public function ehp(attackerLevel :Int) :Float {
+    public function ehp() :Float {
         var hp = maxHealth();
-        var mitigated = 1 / (1 - damageReduction(attackerLevel));
+        var mitigated = 1 / (1 - damageReduction(level));
         return hp * mitigated;
     }
 
-    public function power(targetLevel :Int) :Int {
-        return Math.round(Math.sqrt(dps(targetLevel) * ehp(targetLevel)));
+    public function power() :Int {
+        return Math.round(Math.sqrt(dps() * ehp()));
     }
 
     public function moveSpeed() :Float {

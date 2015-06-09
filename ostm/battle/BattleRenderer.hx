@@ -74,7 +74,7 @@ class BattleRenderer extends Component {
             new HtmlRenderer({
                 parent: id,
                 size: barSize,
-                textFunc: function() { return 'Pow: ' + Util.shortFormat(_member.power(_member.level)); },
+                textFunc: function() { return 'Pow: ' + Util.shortFormat(_member.power()); },
                 style: [
                     'font-size' => '13px',
                     'text-align' => 'right',

@@ -132,15 +132,13 @@ class StatRenderer extends Component {
                 return Util.format(_member.endurance());
             }),
             new StatElement(list, 'Power', function() {
-                return Util.formatFloat(_member.power(_member.level));
+                return Util.formatFloat(_member.power());
             }),
             new StatElement(list, 'DPS', function() {
-                var lev = BattleManager.instance.spawnLevel();
-                return Util.formatFloat(_member.dps(lev));
+                return Util.formatFloat(_member.dps());
             }),
             new StatElement(list, 'EHP', function() {
-                var lev = BattleManager.instance.spawnLevel();
-                return Util.formatFloat(_member.ehp(lev));
+                return Util.formatFloat(_member.ehp());
             }),
         ];
 
