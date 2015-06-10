@@ -237,9 +237,24 @@ class Item {
         var powElem = Browser.document.createLIElement();
         var oldPow = player.power();
         var newPow = player.powerIfEquipped(this);
-        trace('powers: ',name(),newPow,oldPow);
-        powElem.innerText = 'Power change: ' + Util.format(newPow - oldPow);
+        var deltaPow = newPow - oldPow;
+        var powStr = 'Power: ';
+        if (deltaPow > 0) {
+            powElem.className = 'item-power-increase';
+            powStr += '+';
+        }
+        else if (deltaPow < 0) {
+            powElem.className = 'item-power-decrease';
+        }
+        powStr += Util.format(deltaPow);
+        powElem.innerText = powStr;
         _body.appendChild(powElem);
+
+        if (deltaPow > 0) {
+            var eqHint = Browser.document.createSpanElement();
+            eqHint.className = 'item-equip-hint';
+            _elem.appendChild(eqHint);
+        }
 
         var buy = Browser.document.createLIElement();
         buy.innerText = 'Buy Price: ' + Util.shortFormat(buyValue());

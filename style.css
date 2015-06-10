@@ -152,6 +152,19 @@ li {
     font-style: italic;
     color: #88aaff;
 }
+.item-power-increase {
+    color: #44ff66;
+}
+.item-power-decrease {
+    color: #ff4466;
+}
+.item-equip-hint {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    border-radius: 6px;
+    background-color: #44ff66;
+}
 
 #equip-screen {
     background-color: #95EAC8;
