@@ -152,6 +152,7 @@ class TownManager extends Component
                         player.gold >= price) {
                         player.addGold(-price);
                         items.remove(item);
+                        item.cleanupElement();
                         Inventory.instance.push(item);
                         updateShopHtml(mapNode);
                     }
