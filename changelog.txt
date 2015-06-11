@@ -1,5 +1,19 @@
 OSTM2 - CHANGELOG
 
+---=== v0.0.4 - June 11 2015 ===---
+* Add Jewel item slot
+  - Jewels have secondary stats, like bonus XP and item rarity bonuses
+* Level-appropriate items are more likely to drop
+* Weapons have different images for different tiers
+* Shop items are always at least Magic
+* Equipment is moved to its own subscreen
+* Items show how they change calculated player Power on equip
+  - Items that would be an upgrade show a green dot in the inventory and in shops
+  - Note: this doesn't always guarantee increased combat effectiveness;
+    health regen for example isn't included in Power calculations
+. Bugfix: Base crit rating on items works now
+. Bugfix: Fix some cases of item dialog boxes not disappearing
+
 ---=== v0.0.3 - May 30 2015 ===---
 * !!SAVE WIPE!!
 * Tweak map generation
