@@ -1225,8 +1225,6 @@ ostm.KeyboardManager.prototype = $extend(jengine.Component.prototype,{
 		};
 	}
 	,updateKey: function(key,pressed) {
-		if(key == 16) this.isShiftHeld = pressed;
-		if(key == 17 || key == 91) this.isCtrlHeld = pressed;
 	}
 	,__class__: ostm.KeyboardManager
 });
@@ -1274,7 +1272,7 @@ ostm.ProgressBar.prototype = $extend(jengine.Component.prototype,{
 ostm.TabManager = function() {
 	this._shouldRefresh = true;
 	this._enabled = ["main-screen","map-screen"];
-	this._tabs = [{ id : "stat-screen", buttonName : "Stats", column : 1},{ id : "main-screen", buttonName : null, column : 2},{ id : "inventory-screen", buttonName : "Inventory", column : 2},{ id : "map-screen", buttonName : "Map", column : 3},{ id : "skill-screen", buttonName : "Skills", column : 3}];
+	this._tabs = [{ id : "stat-screen", buttonName : "Stats", column : 1},{ id : "equip-screen", buttonName : "Equipment", column : 1},{ id : "main-screen", buttonName : null, column : 2},{ id : "inventory-screen", buttonName : "Inventory", column : 2},{ id : "map-screen", buttonName : "Map", column : 3},{ id : "skill-screen", buttonName : "Skills", column : 3}];
 	this.saveId = "tab-manager";
 	jengine.Component.call(this);
 };
@@ -1434,7 +1432,10 @@ ostm.TownManager.prototype = $extend(jengine.Component.prototype,{
 		var mapNode = ostm.map.MapGenerator.instance.selectedNode;
 		var inTown = mapNode.isTown();
 		if(inTown) window.document.getElementById("town-screen").style.display = ""; else window.document.getElementById("town-screen").style.display = "none";
-		if(inTown) {
+		if(!inTown) {
+			this.shouldWarp = false;
+			this.updateWarpButton();
+		} else {
 			var shop = this._shops.h[mapNode.__id__];
 			if(shop == null) {
 				shop = { generateTime : 0, items : []};
@@ -1447,22 +1448,26 @@ ostm.TownManager.prototype = $extend(jengine.Component.prototype,{
 			if(mapNode != this._lastNode) this.updateShopHtml(mapNode);
 			this.updateRestockPrice(mapNode);
 			window.document.getElementById("town-shop-capacity-price").innerText = jengine.util.Util.format(ostm.item.Inventory.instance.capacityUpgradeCost());
-		} else {
-			this.shouldWarp = false;
-			this.updateWarpButton();
 		}
 		this._lastNode = mapNode;
 	}
 	,generateItems: function(mapNode) {
 		var items = [];
-		var nItems = jengine.util.Random.randomIntRange(4,6);
-		var _g = 0;
-		while(_g < nItems) {
-			var i = _g++;
+		var nItems = 6;
+		while(items.length < nItems) {
 			var item = ostm.item.Inventory.instance.randomItem(mapNode.areaLevel());
-			items.push(item);
+			if(item.numAffixes() > 0) items.push(item);
 		}
 		var shop = this._shops.h[mapNode.__id__];
+		if(shop.items != null) {
+			var _g = 0;
+			var _g1 = shop.items;
+			while(_g < _g1.length) {
+				var item1 = _g1[_g];
+				++_g;
+				item1.cleanupElement();
+			}
+		}
 		shop.items = items;
 		shop.generateTime = Math.round(jengine.Time.get_raw());
 		this.updateShopHtml(mapNode);
@@ -1594,7 +1599,7 @@ ostm.battle.ActiveSkillButton.prototype = $extend(jengine.Component.prototype,{
 		this._body.style.border = "2px solid #000000";
 		this._body.style.width = 220;
 		this._body.style.zIndex = 10;
-		var bodyItems = [this._skill.name,"Mana Cost: " + jengine.util.Util.format(this._skill.manaCost),"Power: " + jengine.util.Util.format(Math.round(100 * this._skill.damage)) + "%","Speed: " + jengine.util.Util.format(Math.round(100 * this._skill.speed)) + "%"];
+		var bodyItems = [this._skill.name,"Keyboard shortcut: " + jengine.util.Util.format(this._idx + 1),"Mana Cost: " + jengine.util.Util.format(this._skill.manaCost),"Power: " + jengine.util.Util.format(Math.round(100 * this._skill.damage)) + "%","Speed: " + jengine.util.Util.format(Math.round(100 * this._skill.speed)) + "%"];
 		var _g1 = 0;
 		while(_g1 < bodyItems.length) {
 			var item = bodyItems[_g1];
@@ -1801,10 +1806,14 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 				isBattleDone = true;
 			} else {
 				this._killCount++;
+				var mod = this._player.sumAffixes();
 				var xp = target.xpReward();
+				xp = Math.round(xp * (1 + mod.percentXpGained / 100));
 				var gold = target.goldReward();
+				gold = Math.round(gold * (1 + mod.percentGoldGained / 100));
+				var gemChance = 0.07 * (1 + mod.percentGemDropRate / 100);
 				var gems;
-				if(jengine.util.Random.randomBool(0.07)) gems = 1; else gems = 0;
+				if(jengine.util.Random.randomBool(gemChance)) gems = 1; else gems = 0;
 				this._player.addXp(xp);
 				this._player.addGold(gold);
 				this._player.addGems(gems);
@@ -1826,7 +1835,7 @@ ostm.battle.BattleManager.prototype = $extend(jengine.Component.prototype,{
 						return $r;
 					}(this))),new jengine.HtmlRenderer({ parent : "popup-container"}),new ostm.battle.PopupNumber(gemStr,"#ff3333",22,170,2.5)]));
 				}
-				ostm.item.Inventory.instance.tryRewardItem(target.level);
+				ostm.item.Inventory.instance.tryRewardItem(target,mod);
 				this.despawnEnemy(target);
 				isBattleDone = this._enemies.length == 0;
 			}
@@ -1955,7 +1964,7 @@ ostm.battle.BattleMember.prototype = {
 		return Math.round(Math.pow(this.level,2) + 2);
 	}
 	,goldReward: function() {
-		return Math.round(Math.pow(this.level,1.75) + 2);
+		return Math.round(0.2 * Math.pow(this.level,1.65) + 1);
 	}
 	,strength: function() {
 		var mod = this.sumAffixes();
@@ -1998,9 +2007,6 @@ ostm.battle.BattleMember.prototype = {
 				var item = $it0.next();
 				if(item != null) item.sumAffixes(this._cachedStatMod);
 			}
-			this._cachedStatMod.flatAttack = 0;
-			this._cachedStatMod.flatDefense = 0;
-			this._cachedStatMod.flatCritRating = 0;
 			var _g = 0;
 			var _g1 = ostm.skill.SkillTree.instance.skills;
 			while(_g < _g1.length) {
@@ -2089,7 +2095,12 @@ ostm.battle.BattleMember.prototype = {
 		var wep = this.equipment.get(ostm.item.ItemSlot.Weapon);
 		var mod = this.sumAffixes();
 		var floatRating;
-		if(wep != null) floatRating = wep.critRating(); else floatRating = 3;
+		if(wep == null) floatRating = 3; else floatRating = 0;
+		var $it0 = this.equipment.iterator();
+		while( $it0.hasNext() ) {
+			var item = $it0.next();
+			if(item != null) floatRating += item.critRating();
+		}
 		floatRating += mod.flatCritRating;
 		floatRating *= 1 + this.dexterity() * 0.025;
 		floatRating *= 1 + mod.percentCritRating / 100;
@@ -2107,10 +2118,10 @@ ostm.battle.BattleMember.prototype = {
 	,manaCost: function() {
 		return this.curSkill.manaCost;
 	}
-	,dps: function(targetLevel) {
+	,dps: function() {
 		var atk = this.damage();
 		var spd = this.attackSpeed();
-		var crit = this.critInfo(targetLevel);
+		var crit = this.critInfo(this.level);
 		var critMod = 1 + crit.chance * crit.damage;
 		return atk * spd * critMod;
 	}
@@ -2133,13 +2144,29 @@ ostm.battle.BattleMember.prototype = {
 		def = Math.floor(Math.max(0,def));
 		return def / (10 + 2.5 * attackerLevel + def);
 	}
-	,ehp: function(attackerLevel) {
+	,ehp: function() {
 		var hp = this.maxHealth();
-		var mitigated = 1 / (1 - this.damageReduction(attackerLevel));
+		var mitigated = 1 / (1 - this.damageReduction(this.level));
 		return hp * mitigated;
 	}
-	,power: function(targetLevel) {
-		return Math.round(Math.sqrt(this.dps(targetLevel) * this.ehp(targetLevel)));
+	,power: function() {
+		return Math.round(Math.sqrt(this.dps() * this.ehp()));
+	}
+	,powerIfEquipped: function(item) {
+		var slot = item.type.slot;
+		var curItem = this.equipment.get(slot);
+		var oldCache = this.sumAffixes();
+		var newMod = this._cachedStatMod.copy();
+		if(curItem != null) curItem.subtractAffixes(newMod);
+		item.sumAffixes(newMod);
+		this._cachedStatMod = newMod;
+		this.equipment.set(slot,item);
+		item;
+		var pow = this.power();
+		this._cachedStatMod = oldCache;
+		this.equipment.set(slot,curItem);
+		curItem;
+		return pow;
 	}
 	,moveSpeed: function() {
 		var mod = this.sumAffixes();
@@ -2288,7 +2315,7 @@ ostm.battle.BattleRenderer.prototype = $extend(jengine.Component.prototype,{
 		}(this))})]);
 		this._spawnedEnts.push(levelEnt);
 		var powerEnt = new jengine.Entity([new jengine.Transform(jengine._Vec2.Vec2_Impl_._new(barX,-59)),new jengine.HtmlRenderer({ parent : id, size : barSize, textFunc : function() {
-			return "Pow: " + jengine.util.Util.shortFormat(_g1._member.power(_g1._member.level));
+			return "Pow: " + jengine.util.Util.shortFormat(_g1._member.power());
 		}, style : (function($this) {
 			var $r;
 			var _g2 = new haxe.ds.StringMap();
@@ -2515,6 +2542,14 @@ ostm.battle.StatModifier = function() {
 	this.localPercentAttackSpeed = 0;
 	this.localPercentDefense = 0;
 	this.localPercentAttack = 0;
+	this.localFlatCritRating = 0;
+	this.localFlatDefense = 0;
+	this.localFlatAttack = 0;
+	this.percentItemRarity = 0;
+	this.percentItemDropRate = 0;
+	this.percentGemDropRate = 0;
+	this.percentGoldGained = 0;
+	this.percentXpGained = 0;
 	this.percentCritDamage = 0;
 	this.percentCritChance = 0;
 	this.percentCritRating = 0;
@@ -2542,8 +2577,48 @@ ostm.battle.StatModifier = function() {
 };
 ostm.battle.StatModifier.__name__ = true;
 ostm.battle.StatModifier.prototype = {
-	rawDisplayData: function() {
-		return [{ value : this.flatAttack, name : "Attack", isPercent : false},{ value : this.flatDefense, name : "Defense", isPercent : false},{ value : this.flatCritRating, name : "Crit Rating", isPercent : false},{ value : this.flatArmorPierce, name : "Armor Piercing", isPercent : false},{ value : this.flatHealth, name : "Health", isPercent : false},{ value : this.flatHealthRegen, name : "Health Regen", isPercent : false},{ value : this.flatMana, name : "Mana", isPercent : false},{ value : this.flatHuntSkill, name : "Hunting", isPercent : false},{ value : this.flatStrength, name : "Strength", isPercent : false},{ value : this.flatDexterity, name : "Dexterity", isPercent : false},{ value : this.flatVitality, name : "Vitality", isPercent : false},{ value : this.flatEndurance, name : "Endurance", isPercent : false},{ value : this.flatIntelligence, name : "Intelligence", isPercent : false},{ value : this.percentHealth, name : "Health", isPercent : true},{ value : this.percentHealthRegen, name : "Health Regen", isPercent : true},{ value : this.percentMana, name : "Mana", isPercent : true},{ value : this.percentManaRegen, name : "Mana Regen", isPercent : true},{ value : this.percentAttack, name : "Attack", isPercent : true},{ value : this.percentDefense, name : "Defense", isPercent : true},{ value : this.percentAttackSpeed, name : "Attack Speed", isPercent : true},{ value : this.percentMoveSpeed, name : "Move Speed", isPercent : true},{ value : this.percentCritRating, name : "Crit Rating", isPercent : true},{ value : this.percentCritChance, name : "Crit Chance", isPercent : true},{ value : this.percentCritDamage, name : "Crit Damage", isPercent : true},{ value : this.localPercentAttack, name : "Attack", isPercent : true},{ value : this.localPercentDefense, name : "Defense", isPercent : true},{ value : this.localPercentAttackSpeed, name : "Attack Speed", isPercent : true},{ value : this.localPercentCritRating, name : "Crit Rating", isPercent : true}];
+	copy: function() {
+		var mod = new ostm.battle.StatModifier();
+		mod.flatAttack = this.flatAttack;
+		mod.flatDefense = this.flatDefense;
+		mod.flatCritRating = this.flatCritRating;
+		mod.flatArmorPierce = this.flatArmorPierce;
+		mod.flatHealth = this.flatHealth;
+		mod.flatHealthRegen = this.flatHealthRegen;
+		mod.flatMana = this.flatMana;
+		mod.flatHuntSkill = this.flatHuntSkill;
+		mod.flatStrength = this.flatStrength;
+		mod.flatDexterity = this.flatDexterity;
+		mod.flatVitality = this.flatVitality;
+		mod.flatEndurance = this.flatEndurance;
+		mod.flatIntelligence = this.flatIntelligence;
+		mod.percentHealth = this.percentHealth;
+		mod.percentHealthRegen = this.percentHealthRegen;
+		mod.percentMana = this.percentMana;
+		mod.percentManaRegen = this.percentManaRegen;
+		mod.percentAttack = this.percentAttack;
+		mod.percentDefense = this.percentDefense;
+		mod.percentAttackSpeed = this.percentAttackSpeed;
+		mod.percentMoveSpeed = this.percentMoveSpeed;
+		mod.percentCritRating = this.percentCritRating;
+		mod.percentCritChance = this.percentCritChance;
+		mod.percentCritDamage = this.percentCritDamage;
+		mod.percentXpGained = this.percentXpGained;
+		mod.percentGoldGained = this.percentGoldGained;
+		mod.percentGemDropRate = this.percentGemDropRate;
+		mod.percentItemDropRate = this.percentItemDropRate;
+		mod.percentItemRarity = this.percentItemRarity;
+		mod.localFlatAttack = this.localFlatAttack;
+		mod.localFlatDefense = this.localFlatDefense;
+		mod.localFlatCritRating = this.localFlatCritRating;
+		mod.localPercentAttack = this.localPercentAttack;
+		mod.localPercentDefense = this.localPercentDefense;
+		mod.localPercentAttackSpeed = this.localPercentAttackSpeed;
+		mod.localPercentCritRating = this.localPercentCritRating;
+		return mod;
+	}
+	,rawDisplayData: function() {
+		return [{ value : this.flatAttack, name : "Attack", isPercent : false},{ value : this.flatDefense, name : "Defense", isPercent : false},{ value : this.flatCritRating, name : "Crit Rating", isPercent : false},{ value : this.flatArmorPierce, name : "Armor Piercing", isPercent : false},{ value : this.flatHealth, name : "Health", isPercent : false},{ value : this.flatHealthRegen, name : "Health Regen", isPercent : false},{ value : this.flatMana, name : "Mana", isPercent : false},{ value : this.flatHuntSkill, name : "Hunting", isPercent : false},{ value : this.flatStrength, name : "Strength", isPercent : false},{ value : this.flatDexterity, name : "Dexterity", isPercent : false},{ value : this.flatVitality, name : "Vitality", isPercent : false},{ value : this.flatEndurance, name : "Endurance", isPercent : false},{ value : this.flatIntelligence, name : "Intelligence", isPercent : false},{ value : this.percentHealth, name : "Health", isPercent : true},{ value : this.percentHealthRegen, name : "Health Regen", isPercent : true},{ value : this.percentMana, name : "Mana", isPercent : true},{ value : this.percentManaRegen, name : "Mana Regen", isPercent : true},{ value : this.percentAttack, name : "Attack", isPercent : true},{ value : this.percentDefense, name : "Defense", isPercent : true},{ value : this.percentAttackSpeed, name : "Attack Speed", isPercent : true},{ value : this.percentMoveSpeed, name : "Move Speed", isPercent : true},{ value : this.percentCritRating, name : "Crit Rating", isPercent : true},{ value : this.percentCritChance, name : "Crit Chance", isPercent : true},{ value : this.percentCritDamage, name : "Crit Damage", isPercent : true},{ value : this.percentXpGained, name : "XP Gained", isPercent : true},{ value : this.percentGoldGained, name : "Gold Gained", isPercent : true},{ value : this.percentGemDropRate, name : "Gem Drop", isPercent : true},{ value : this.percentItemDropRate, name : "Item Drop", isPercent : true},{ value : this.percentItemRarity, name : "Item Rarity", isPercent : true},{ value : this.localFlatAttack, name : "Attack", isPercent : false},{ value : this.localFlatDefense, name : "Defense", isPercent : false},{ value : this.localFlatCritRating, name : "Crit Rating", isPercent : false},{ value : this.localPercentAttack, name : "Attack", isPercent : true},{ value : this.localPercentDefense, name : "Defense", isPercent : true},{ value : this.localPercentAttackSpeed, name : "Attack Speed", isPercent : true},{ value : this.localPercentCritRating, name : "Crit Rating", isPercent : true}];
 	}
 	,getDisplayData: function() {
 		var stats = this.rawDisplayData();
@@ -2643,21 +2718,24 @@ ostm.battle.StatRenderer.prototype = $extend(jengine.Component.prototype,{
 			return jengine.util.Util.format(_g._member.vitality());
 		}),new ostm.battle.StatElement(list,"END",function() {
 			return jengine.util.Util.format(_g._member.endurance());
+		}),new ostm.battle.StatElement(list,"Power",function() {
+			return jengine.util.Util.formatFloat(_g._member.power());
 		}),new ostm.battle.StatElement(list,"DPS",function() {
-			var lev4 = ostm.battle.BattleManager.instance.spawnLevel();
-			return jengine.util.Util.formatFloat(_g._member.dps(lev4));
+			return jengine.util.Util.formatFloat(_g._member.dps());
 		}),new ostm.battle.StatElement(list,"EHP",function() {
-			var lev5 = ostm.battle.BattleManager.instance.spawnLevel();
-			return jengine.util.Util.formatFloat(_g._member.ehp(lev5));
+			return jengine.util.Util.formatFloat(_g._member.ehp());
 		})];
 		if(this._member.isPlayer) {
-			var equip = this.createAndAddTo("ul",stats);
+			var equipTab = doc.getElementById("equip-screen");
+			var equipContainer = this.createAndAddTo("div",equipTab);
+			equipContainer.className = "equip-container";
 			var $it0 = this._member.equipment.keys();
 			while( $it0.hasNext() ) {
 				var k = $it0.next();
-				var v = this.createAndAddTo("li",equip);
-				this._equipment.set(k,v);
-				v;
+				var slot = this.createAndAddTo("div",equipContainer);
+				slot.className = (Std.string(k) + "-slot").toLowerCase();
+				this._equipment.set(k,slot);
+				slot;
 				this.updateEquipSlot(k);
 			}
 		}
@@ -2692,19 +2770,7 @@ ostm.battle.StatRenderer.prototype = $extend(jengine.Component.prototype,{
 		var item = this._member.equipment.get(slot);
 		var elem = this._equipment.get(slot);
 		while(elem.childElementCount > 0) elem.removeChild(elem.firstChild);
-		var slotName;
-		var _this = window.document;
-		slotName = _this.createElement("span");
-		slotName.innerText = Std.string(slot) + ": ";
-		elem.appendChild(slotName);
-		if(item == null) {
-			var nullItem;
-			var _this1 = window.document;
-			nullItem = _this1.createElement("span");
-			nullItem.innerText = "(none)";
-			nullItem.style.fontStyle = "italic";
-			elem.appendChild(nullItem);
-		} else elem.appendChild(item.createElement((function($this) {
+		if(item != null) elem.appendChild(item.createElement((function($this) {
 			var $r;
 			var _g = new haxe.ds.StringMap();
 			_g.set("Unequip",function(event) {
@@ -2719,7 +2785,6 @@ ostm.battle.StatRenderer.prototype = $extend(jengine.Component.prototype,{
 ostm.item = {};
 ostm.item.AffixType = function(data) {
 	this.id = data.id;
-	this.description = data.description;
 	this.baseValue = data.base;
 	this.valuePerLevel = data.perLevel;
 	if(data.levelPower != null) this.levelPower = data.levelPower; else this.levelPower = 1;
@@ -2752,6 +2817,10 @@ ostm.item.AffixType.prototype = {
 ostm.item.Affix = function(type,slot) {
 	this.type = type;
 	this.slot = slot;
+	var mod = new ostm.battle.StatModifier();
+	type.applyModifier(100,mod);
+	var displays = mod.getDisplayData();
+	if(displays.length > 0) this.displayData = displays[0]; else this.displayData = null;
 };
 ostm.item.Affix.__name__ = true;
 ostm.item.Affix.loadAffix = function(data) {
@@ -2775,13 +2844,25 @@ ostm.item.Affix.prototype = {
 		this.roll = jengine.util.Random.randomIntRange(1,1000);
 	}
 	,text: function() {
-		return "+" + this.type.valueForLevel(this.slot,this.level,this.roll) + " " + this.type.description;
+		if(this.displayData == null) return "";
+		var val = this.type.valueForLevel(this.slot,this.level,this.roll);
+		var str = this.displayData.name + " +" + jengine.util.Util.format(val);
+		if(this.displayData.isPercent) str += "%";
+		return str;
+	}
+	,currentValue: function() {
+		return this.type.valueForLevel(this.slot,this.level,this.roll);
 	}
 	,applyModifier: function(mod) {
-		this.type.applyModifier(this.type.valueForLevel(this.slot,this.level,this.roll),mod);
+		var val = this.currentValue();
+		this.type.applyModifier(val,mod);
+	}
+	,subtractModifier: function(mod) {
+		var val = this.currentValue();
+		this.type.applyModifier(-val,mod);
 	}
 	,value: function() {
-		return 1 + 0.2 * this.level * this.roll / 1000;
+		return 0.2 * this.level * this.roll / 1000;
 	}
 	,serialize: function() {
 		return { id : this.type.id, level : this.level, roll : this.roll, slot : this.slot};
@@ -2799,7 +2880,7 @@ ostm.item.SqrtAffixType.prototype = $extend(ostm.item.AffixType.prototype,{
 	}
 	,__class__: ostm.item.SqrtAffixType
 });
-ostm.item.ItemSlot = { __ename__ : true, __constructs__ : ["Weapon","Body","Helmet","Boots","Gloves","Ring"] };
+ostm.item.ItemSlot = { __ename__ : true, __constructs__ : ["Weapon","Body","Helmet","Boots","Gloves","Ring","Jewel"] };
 ostm.item.ItemSlot.Weapon = ["Weapon",0];
 ostm.item.ItemSlot.Weapon.toString = $estr;
 ostm.item.ItemSlot.Weapon.__enum__ = ostm.item.ItemSlot;
@@ -2818,7 +2899,10 @@ ostm.item.ItemSlot.Gloves.__enum__ = ostm.item.ItemSlot;
 ostm.item.ItemSlot.Ring = ["Ring",5];
 ostm.item.ItemSlot.Ring.toString = $estr;
 ostm.item.ItemSlot.Ring.__enum__ = ostm.item.ItemSlot;
-ostm.item.ItemSlot.__empty_constructs__ = [ostm.item.ItemSlot.Weapon,ostm.item.ItemSlot.Body,ostm.item.ItemSlot.Helmet,ostm.item.ItemSlot.Boots,ostm.item.ItemSlot.Gloves,ostm.item.ItemSlot.Ring];
+ostm.item.ItemSlot.Jewel = ["Jewel",6];
+ostm.item.ItemSlot.Jewel.toString = $estr;
+ostm.item.ItemSlot.Jewel.__enum__ = ostm.item.ItemSlot;
+ostm.item.ItemSlot.__empty_constructs__ = [ostm.item.ItemSlot.Weapon,ostm.item.ItemSlot.Body,ostm.item.ItemSlot.Helmet,ostm.item.ItemSlot.Boots,ostm.item.ItemSlot.Gloves,ostm.item.ItemSlot.Ring,ostm.item.ItemSlot.Jewel];
 ostm.item.AffixData = function() { };
 ostm.item.AffixData.__name__ = true;
 ostm.item.Inventory = function() {
@@ -2951,22 +3035,35 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 	,hasSpaceForItem: function() {
 		return this._inventory.length < this.capacity();
 	}
-	,randomItem: function(maxLevel) {
+	,randomItem: function(maxLevel,rarityMult) {
+		if(rarityMult == null) rarityMult = 1;
 		var type = jengine.util.Random.randomElement(ostm.item.ItemData.types);
 		var item = new ostm.item.Item(type,maxLevel);
-		item.setDropLevel(jengine.util.Random.randomIntRange(1,maxLevel));
+		var level = jengine.util.Random.randomIntRange(1,maxLevel);
+		level = jengine.util.Random.randomIntRange(level,maxLevel);
+		item.setDropLevel(level);
 		var affixOdds;
 		var _g = new haxe.ds.IntMap();
 		_g.set(4,0.05);
 		_g.set(3,0.08);
-		_g.set(2,0.12);
-		_g.set(1,0.25);
+		_g.set(2,0.20);
+		_g.set(1,0.30);
 		affixOdds = _g;
 		var nAffixes = 0;
-		var $it0 = affixOdds.keys();
-		while( $it0.hasNext() ) {
-			var n = $it0.next();
-			if(jengine.util.Random.randomBool(affixOdds.get(n))) {
+		var keys;
+		var _g1 = [];
+		var _g2 = 0;
+		while(_g2 < 4) {
+			var i = _g2++;
+			_g1.push(4 - i);
+		}
+		keys = _g1;
+		var _g21 = 0;
+		while(_g21 < keys.length) {
+			var n = keys[_g21];
+			++_g21;
+			var rarity = affixOdds.get(n) * rarityMult;
+			if(jengine.util.Random.randomBool(rarity)) {
 				nAffixes = n;
 				break;
 			}
@@ -2974,11 +3071,18 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		item.rollAffixes(nAffixes);
 		return item;
 	}
-	,tryRewardItem: function(maxLevel) {
-		if(jengine.util.Random.randomBool(0.35) && this.hasSpaceForItem()) {
-			this._inventory.push(this.randomItem(maxLevel));
-			this.updateInventoryHtml();
+	,tryRewardItem: function(enemy,mod) {
+		var maxLevel = enemy.level;
+		var dropRate = 0.35;
+		dropRate *= 1 + mod.percentItemDropRate / 100;
+		var didAdd = false;
+		while((dropRate >= 1 || jengine.util.Random.randomBool(dropRate)) && this.hasSpaceForItem()) {
+			var rarityMult = 1 + mod.percentItemRarity / 100;
+			this._inventory.push(this.randomItem(maxLevel,rarityMult));
+			didAdd = true;
+			dropRate -= 1;
 		}
+		if(didAdd) this.updateInventoryHtml();
 	}
 	,serialize: function() {
 		return { items : this._inventory.map(function(item) {
@@ -2991,7 +3095,7 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		});
 		this._sizeUpgrades = data.size;
 		if(jengine.SaveManager.instance.loadedVersion < 2) this._sizeUpgrades = 0;
-		this.updateInventoryHtml();
+		window.setTimeout($bind(this,this.updateInventoryHtml),0);
 	}
 	,__class__: ostm.item.Inventory
 });
@@ -3048,6 +3152,10 @@ ostm.item.Item.prototype = {
 		if(t > 1 && this.type.names.length > 1) name = "T" + t + " " + name;
 		return name;
 	}
+	,image: function() {
+		var image = this.type.images[this.get_tier() % this.type.images.length];
+		return "img/items/" + image;
+	}
 	,equip: function() {
 		var player = ostm.battle.BattleManager.instance.getPlayer();
 		var cur = player.equipment.get(this.type.slot);
@@ -3102,13 +3210,11 @@ ostm.item.Item.prototype = {
 		var img;
 		var _this2 = window.document;
 		img = _this2.createElement("img");
-		img.src = "img/items/" + this.type.image;
-		img.height = 40;
-		img.style.imageRendering = "pixelated";
+		img.src = this.image();
 		_elem.appendChild(img);
 		var _this3 = window.document;
 		this._buttons = _this3.createElement("span");
-		_elem.appendChild(this._buttons);
+		this._buttons.className = "item-buttons";
 		var index = 0;
 		var clickFuncs = [];
 		var $it0 = buttons.keys();
@@ -3135,6 +3241,7 @@ ostm.item.Item.prototype = {
 		};
 		var _this5 = window.document;
 		this._body = _this5.createElement("ul");
+		this._body.className = "tooltip";
 		this._body.appendChild(makeNameElem());
 		this.hideBody();
 		this._buttons.style.display = "none";
@@ -3159,31 +3266,36 @@ ostm.item.Item.prototype = {
 		this._body.style.border = "2px solid #000000";
 		this._body.style.width = 220;
 		this._body.style.zIndex = 10;
-		var ilvl;
+		var dlvl;
 		var _this6 = window.document;
-		ilvl = _this6.createElement("li");
+		dlvl = _this6.createElement("li");
+		dlvl.innerText = "Drop Lvl: " + jengine.util.Util.format(this.dropLevel());
+		this._body.appendChild(dlvl);
+		var ilvl;
+		var _this7 = window.document;
+		ilvl = _this7.createElement("li");
 		ilvl.innerText = "iLvl: " + jengine.util.Util.format(this.itemLevel);
 		this._body.appendChild(ilvl);
 		var atk;
-		var _this7 = window.document;
-		atk = _this7.createElement("li");
+		var _this8 = window.document;
+		atk = _this8.createElement("li");
 		atk.innerText = "Attack: " + jengine.util.Util.format(this.attack());
 		this._body.appendChild(atk);
 		if(js.Boot.__instanceof(this.type,ostm.item.WeaponType)) {
 			var spd;
-			var _this8 = window.document;
-			spd = _this8.createElement("li");
+			var _this9 = window.document;
+			spd = _this9.createElement("li");
 			spd.innerText = "Speed: " + jengine.util.Util.formatFloat(this.attackSpeed()) + "/s";
 			this._body.appendChild(spd);
 			var crt;
-			var _this9 = window.document;
-			crt = _this9.createElement("li");
+			var _this10 = window.document;
+			crt = _this10.createElement("li");
 			crt.innerText = "Crit Rating: " + jengine.util.Util.format(this.critRating());
 			this._body.appendChild(crt);
 		}
 		var def;
-		var _this10 = window.document;
-		def = _this10.createElement("li");
+		var _this11 = window.document;
+		def = _this11.createElement("li");
 		def.innerText = "Defense: " + jengine.util.Util.format(this.defense());
 		this._body.appendChild(def);
 		var _g3 = 0;
@@ -3192,34 +3304,59 @@ ostm.item.Item.prototype = {
 			var affix = _g11[_g3];
 			++_g3;
 			var aff;
-			var _this11 = window.document;
-			aff = _this11.createElement("li");
+			var _this12 = window.document;
+			aff = _this12.createElement("li");
 			aff.innerText = affix.text();
-			aff.style.fontStyle = "italic";
+			aff.className = "item-affix";
 			this._body.appendChild(aff);
 		}
+		var powElem;
+		var _this13 = window.document;
+		powElem = _this13.createElement("li");
+		var oldPow = player.power();
+		var newPow = player.powerIfEquipped(this);
+		var deltaPow = newPow - oldPow;
+		var powStr = "Power: ";
+		if(deltaPow > 0) {
+			powElem.className = "item-power-increase";
+			powStr += "+";
+		} else if(deltaPow < 0) powElem.className = "item-power-decrease";
+		powStr += jengine.util.Util.format(deltaPow);
+		powElem.innerText = powStr;
+		this._body.appendChild(powElem);
 		var buy;
-		var _this12 = window.document;
-		buy = _this12.createElement("li");
+		var _this14 = window.document;
+		buy = _this14.createElement("li");
 		buy.innerText = "Buy Price: " + jengine.util.Util.shortFormat(this.buyValue());
 		this._body.appendChild(buy);
 		var sell;
-		var _this13 = window.document;
-		sell = _this13.createElement("li");
+		var _this15 = window.document;
+		sell = _this15.createElement("li");
 		sell.innerText = "Sell Price: " + jengine.util.Util.shortFormat(this.sellValue());
 		this._body.appendChild(sell);
+		if(deltaPow > 0) {
+			var eqHint;
+			var _this16 = window.document;
+			eqHint = _this16.createElement("div");
+			eqHint.className = "item-equip-hint";
+			_elem.appendChild(eqHint);
+		}
+		_elem.appendChild(this._buttons);
 		window.document.getElementById("popup-container").appendChild(this._body);
 		return _elem;
 	}
 	,cleanupElement: function() {
+		this.hideBothBodies();
 		if(this._body != null) this._body.remove();
 	}
 	,showBody: function(atPos) {
+		if(this._body == null) return;
 		this._body.style.display = "";
 		this._body.style.left = atPos.x;
 		this._body.style.top = atPos.y;
 	}
 	,hideBody: function() {
+		if(this._body == null) return;
 		this._body.style.display = "none";
 	}
 	,sumAffixes: function(mod) {
@@ -3233,11 +3370,21 @@ ostm.item.Item.prototype = {
 		}
 		return mod;
 	}
+	,subtractAffixes: function(mod) {
+		var _g = 0;
+		var _g1 = this.affixes;
+		while(_g < _g1.length) {
+			var affix = _g1[_g];
+			++_g;
+			affix.subtractModifier(mod);
+		}
+		return mod;
+	}
 	,attack: function() {
 		var mod = this.sumAffixes();
 		var atk = this.type.attack;
 		atk *= 1 + 2. * this.get_tier();
-		atk += mod.flatAttack;
+		atk += mod.localFlatAttack;
 		atk *= 1 + mod.localPercentAttack / 100;
 		return Math.round(atk);
 	}
@@ -3259,7 +3406,7 @@ ostm.item.Item.prototype = {
 			crt *= 1 + 0.5 * this.get_tier();
 		}
 		var mod = this.sumAffixes();
-		crt += mod.flatCritRating;
+		crt += mod.localFlatCritRating;
 		crt *= 1 + mod.localPercentCritRating / 100;
 		return Math.round(crt);
 	}
@@ -3267,20 +3414,21 @@ ostm.item.Item.prototype = {
 		var mod = this.sumAffixes();
 		var def = this.type.defense;
 		def *= 1 + 2. * this.get_tier();
-		def += mod.flatDefense;
+		def += mod.localFlatDefense;
 		def *= 1 + mod.localPercentDefense / 100;
 		return Math.round(def);
 	}
 	,buyValue: function() {
 		var value = Math.pow(this.get_tier() + 1,2.2) * 10;
+		var mult = 1.0;
 		var _g = 0;
 		var _g1 = this.affixes;
 		while(_g < _g1.length) {
 			var affix = _g1[_g];
 			++_g;
-			value *= affix.value();
+			mult += affix.value();
 		}
-		return Math.round(value);
+		return Math.round(value * mult);
 	}
 	,sellValue: function() {
 		return Math.round(Math.pow(this.buyValue(),0.85) * 0.5);
@@ -3290,6 +3438,10 @@ ostm.item.Item.prototype = {
 	}
 	,get_tier: function() {
 		return Math.floor(this.level / 5);
+	}
+	,dropLevel: function() {
+		var dropLevel = this.get_tier() * 5;
+		if(dropLevel > 0) return dropLevel; else return 1;
 	}
 	,serialize: function() {
 		return { id : this.type.id, itemLevel : this.itemLevel, level : this.level, isOwned : this.isOwned, affixes : this.affixes.map(function(affix) {
@@ -3301,7 +3453,7 @@ ostm.item.Item.prototype = {
 };
 ostm.item.ItemType = function(data) {
 	this.id = data.id;
-	this.image = data.image;
+	this.images = data.images;
 	this.names = data.names;
 	this.slot = data.slot;
 	this.attack = data.attack;
@@ -3312,7 +3464,7 @@ ostm.item.ItemType.prototype = {
 	__class__: ostm.item.ItemType
 };
 ostm.item.WeaponType = function(data) {
-	ostm.item.ItemType.call(this,{ id : data.id, image : data.image, names : data.names, slot : ostm.item.ItemSlot.Weapon, attack : data.attack, defense : data.defense});
+	ostm.item.ItemType.call(this,{ id : data.id, images : data.images, names : data.names, slot : ostm.item.ItemSlot.Weapon, attack : data.attack, defense : data.defense});
 	this.attackSpeed = data.attackSpeed;
 	this.crit = data.crit;
 };
@@ -3338,6 +3490,7 @@ ostm.map.MapGenerator = function() {
 	this._hints = [{ x : 4, y : -1, level : 0},{ x : 8, y : -2, level : 5}];
 	this._movePath = null;
 	this._moveTimer = 0;
+	this._shouldCenter = true;
 	this._rand = new ostm.map.StaticRandom();
 	this._gridGeneratedFlags = new haxe.ds.IntMap();
 	this._generated = new haxe.ds.IntMap();
@@ -3374,8 +3527,15 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		this.centerCurrentNode();
 	}
 	,update: function() {
+		var _g = this;
 		var rect = this._mapScreenElem.getBoundingClientRect();
 		this._moveBarTransform.pos = jengine._Vec2.Vec2_Impl_._new(rect.left + 20,rect.top + 20);
+		if(this._shouldCenter && this.selectedNode.elem != null) {
+			window.setTimeout(function() {
+				_g.selectedNode.elem.scrollIntoViewIfNeeded(true);
+			},0);
+			this._shouldCenter = false;
+		}
 		if(ostm.battle.BattleManager.instance.isInBattle() || ostm.battle.BattleManager.instance.isPlayerDead()) return;
 		var player = ostm.battle.BattleManager.instance.getPlayer();
 		this._moveTimer += jengine.Time.dt * player.moveSpeed();
@@ -3429,6 +3589,7 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 			if(node2.isHint()) node2._dirtyFlag = true;
 		});
 		this.updateScrollBounds();
+		this.centerCurrentNode();
 	}
 	,generateSurroundingCells: function(i,j) {
 		var p = this.getGridCoord(i,j);
@@ -3770,24 +3931,7 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		});
 	}
 	,centerCurrentNode: function() {
-		if(this.selectedNode.elem != null) {
-			var container = this.selectedNode.elem.parentElement;
-			var size = jengine._Vec2.Vec2_Impl_._new(container.clientWidth,container.clientHeight);
-			var pos = this.selectedNode.entity.getComponent(jengine.Transform).pos;
-			var scroll = jengine._Vec2.Vec2_Impl_._new(container.scrollLeft,container.scrollTop);
-			var relPos = jengine._Vec2.Vec2_Impl_._new(pos.x - scroll.x,pos.y - scroll.y);
-			var scrollToPos = jengine._Vec2.Vec2_Impl_._new(scroll.x,scroll.y);
-			var tlBound = jengine._Vec2.Vec2_Impl_._new(size.x / 3,size.y / 3);
-			var brBound;
-			var lhs = jengine._Vec2.Vec2_Impl_._new(size.x * 2,size.y * 2);
-			brBound = jengine._Vec2.Vec2_Impl_._new(lhs.x / 3,lhs.y / 3);
-			scrollToPos = jengine._Vec2.Vec2_Impl_._new(scroll.x,scroll.y);
-			if(relPos.x < tlBound.x) scrollToPos.x += relPos.x - tlBound.x;
-			if(relPos.y < tlBound.y) scrollToPos.y += relPos.y - tlBound.y;
-			if(relPos.x > brBound.x) scrollToPos.x += relPos.x - brBound.x;
-			if(relPos.y > brBound.y) scrollToPos.y += relPos.y - brBound.y;
-			window.scrollTo(scrollToPos.x,scrollToPos.y);
-		}
+		this._shouldCenter = true;
 	}
 	,isAdjacent: function(a,b) {
 		return HxOverrides.indexOf(a.neighbors,b,0) != -1;
@@ -3914,6 +4058,7 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		var chk = this.getNode(data.checkpoint.i,data.checkpoint.j);
 		if(chk != null) this._checkpoint = chk;
 		this.updateScrollBounds();
+		this.centerCurrentNode();
 	}
 	,__class__: ostm.map.MapGenerator
 });
@@ -3951,6 +4096,8 @@ ostm.map.MapNode.prototype = $extend(ostm.GameNode.prototype,{
 	}
 	,start: function() {
 		ostm.GameNode.prototype.start.call(this);
+	}
+	,postStart: function() {
 		if(this._isOccupied) this.map.centerCurrentNode();
 	}
 	,isPathVisible: function(node) {
@@ -4613,8 +4760,8 @@ ostm.battle.BattleManager.kPlayerDeathTime = 5;
 ostm.battle.ClassType.playerType = new ostm.battle.ClassType({ name : "Adventurer", image : "classes/Adventurer.png", str : new ostm.battle.StatType(5,1.5), dex : new ostm.battle.StatType(5,1.5), 'int' : new ostm.battle.StatType(5,1.5), vit : new ostm.battle.StatType(5,1.5), end : new ostm.battle.StatType(5,1.5)});
 ostm.battle.ClassType.enemyTypes = [new ostm.battle.ClassType({ name : "Slime", image : "enemies/Slime.png", attack : new ostm.battle.StatType(1.5,0.75), armor : new ostm.battle.StatType(1,1.25), str : new ostm.battle.ExpStatType(2.2,0.6), dex : new ostm.battle.ExpStatType(2.2,0.6), 'int' : new ostm.battle.ExpStatType(2.2,0.6), vit : new ostm.battle.ExpStatType(4.2,1.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Snake", image : "enemies/Snake.png", attack : new ostm.battle.StatType(2.25,1.15), armor : new ostm.battle.StatType(1,1.25), str : new ostm.battle.ExpStatType(4.6,1.1), dex : new ostm.battle.ExpStatType(5.2,1.3), 'int' : new ostm.battle.ExpStatType(2.2,0.8), vit : new ostm.battle.ExpStatType(2.8,0.6), end : new ostm.battle.ExpStatType(2.2,0.6)}),new ostm.battle.ClassType({ name : "Goblin", image : "enemies/Goblin.png", attack : new ostm.battle.StatType(2,1.1), armor : new ostm.battle.StatType(1,1.25), str : new ostm.battle.ExpStatType(3.5,0.9), dex : new ostm.battle.ExpStatType(5,1.2), 'int' : new ostm.battle.ExpStatType(3.2,0.8), vit : new ostm.battle.ExpStatType(3.8,0.9), end : new ostm.battle.ExpStatType(3.2,0.8)})];
 ostm.item.AffixType.kMaxRolls = 1000;
-ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", description : "Attack", base : 2, perLevel : 1, levelPower : 0.75, modifierFunc : function(value,mod) {
-	mod.flatAttack += value;
+ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", base : 2, perLevel : 1, levelPower : 0.75, modifierFunc : function(value,mod) {
+	mod.localFlatAttack += value;
 }, multipliers : (function($this) {
 	var $r;
 	var _g = new haxe.ds.EnumValueMap();
@@ -4623,7 +4770,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "local-percent-attack-speed", description : "% Attack Speed", base : 5, perLevel : 1, levelPower : 0.5, modifierFunc : function(value1,mod1) {
+}(this))}),new ostm.item.AffixType({ id : "local-percent-attack-speed", base : 5, perLevel : 1, levelPower : 0.5, modifierFunc : function(value1,mod1) {
 	mod1.localPercentAttackSpeed += value1;
 }, multipliers : (function($this) {
 	var $r;
@@ -4631,7 +4778,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g1.set(ostm.item.ItemSlot.Weapon,1.0);
 	$r = _g1;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "local-percent-attack", description : "% Attack", base : 5, perLevel : 1.5, modifierFunc : function(value2,mod2) {
+}(this))}),new ostm.item.AffixType({ id : "local-percent-attack", base : 5, perLevel : 1.5, modifierFunc : function(value2,mod2) {
 	mod2.localPercentAttack += value2;
 }, multipliers : (function($this) {
 	var $r;
@@ -4639,8 +4786,8 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g2.set(ostm.item.ItemSlot.Weapon,1.0);
 	$r = _g2;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-crit-rating", description : "Crit Rating", base : 4, perLevel : 2, modifierFunc : function(value3,mod3) {
-	mod3.flatCritRating += value3;
+}(this))}),new ostm.item.AffixType({ id : "flat-crit-rating", base : 4, perLevel : 2, modifierFunc : function(value3,mod3) {
+	mod3.localFlatCritRating += value3;
 }, multipliers : (function($this) {
 	var $r;
 	var _g3 = new haxe.ds.EnumValueMap();
@@ -4649,7 +4796,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g3.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g3;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "local-percent-crit-rating", description : "% Crit Rating", base : 5, perLevel : 1, modifierFunc : function(value4,mod4) {
+}(this))}),new ostm.item.AffixType({ id : "local-percent-crit-rating", base : 5, perLevel : 1, modifierFunc : function(value4,mod4) {
 	mod4.localPercentCritRating += value4;
 }, multipliers : (function($this) {
 	var $r;
@@ -4657,8 +4804,8 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g4.set(ostm.item.ItemSlot.Weapon,1.0);
 	$r = _g4;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-defense", description : "Defense", base : 2, perLevel : 1.25, levelPower : 0.75, modifierFunc : function(value5,mod5) {
-	mod5.flatDefense += value5;
+}(this))}),new ostm.item.AffixType({ id : "flat-defense", base : 2, perLevel : 1.25, levelPower : 0.75, modifierFunc : function(value5,mod5) {
+	mod5.localFlatDefense += value5;
 }, multipliers : (function($this) {
 	var $r;
 	var _g5 = new haxe.ds.EnumValueMap();
@@ -4668,7 +4815,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g5.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g5;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-hp-regen", description : "Health Regen", base : 1, perLevel : 0.35, modifierFunc : function(value6,mod6) {
+}(this))}),new ostm.item.AffixType({ id : "flat-hp-regen", base : 1, perLevel : 0.35, modifierFunc : function(value6,mod6) {
 	mod6.flatHealthRegen += value6;
 }, multipliers : (function($this) {
 	var $r;
@@ -4677,7 +4824,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g6.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g6;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "percent-hp", description : "% Health", base : 8, perLevel : 2, levelPower : 0.5, modifierFunc : function(value7,mod7) {
+}(this))}),new ostm.item.AffixType({ id : "percent-hp", base : 8, perLevel : 2, levelPower : 0.5, modifierFunc : function(value7,mod7) {
 	mod7.percentHealth += value7;
 }, multipliers : (function($this) {
 	var $r;
@@ -4685,7 +4832,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g7.set(ostm.item.ItemSlot.Helmet,1.0);
 	$r = _g7;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-mp", description : "Mana", base : 5, perLevel : 2.5, levelPower : 0.75, modifierFunc : function(value8,mod8) {
+}(this))}),new ostm.item.AffixType({ id : "flat-mp", base : 5, perLevel : 2.5, levelPower : 0.75, modifierFunc : function(value8,mod8) {
 	mod8.flatMana += value8;
 }, multipliers : (function($this) {
 	var $r;
@@ -4696,7 +4843,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g8.set(ostm.item.ItemSlot.Gloves,0.5);
 	$r = _g8;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-hunt", description : "Hunting", base : 3, perLevel : 2, levelPower : 0.75, modifierFunc : function(value9,mod9) {
+}(this))}),new ostm.item.AffixType({ id : "flat-hunt", base : 3, perLevel : 2, levelPower : 0.75, modifierFunc : function(value9,mod9) {
 	mod9.flatHuntSkill += value9;
 }, multipliers : (function($this) {
 	var $r;
@@ -4704,9 +4851,10 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g9.set(ostm.item.ItemSlot.Helmet,0.5);
 	_g9.set(ostm.item.ItemSlot.Boots,1.0);
 	_g9.set(ostm.item.ItemSlot.Ring,0.5);
+	_g9.set(ostm.item.ItemSlot.Jewel,0.5);
 	$r = _g9;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "percent-mp-regen", description : "% Mana Regen", base : 10, perLevel : 3, modifierFunc : function(value10,mod10) {
+}(this))}),new ostm.item.AffixType({ id : "percent-mp-regen", base : 10, perLevel : 3, modifierFunc : function(value10,mod10) {
 	mod10.percentManaRegen += value10;
 }, multipliers : (function($this) {
 	var $r;
@@ -4715,7 +4863,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g10.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g10;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "local-percent-defense", description : "% Defense", base : 10, perLevel : 5, modifierFunc : function(value11,mod11) {
+}(this))}),new ostm.item.AffixType({ id : "local-percent-defense", base : 10, perLevel : 5, modifierFunc : function(value11,mod11) {
 	mod11.localPercentDefense += value11;
 }, multipliers : (function($this) {
 	var $r;
@@ -4726,7 +4874,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g11.set(ostm.item.ItemSlot.Gloves,0.5);
 	$r = _g11;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "percent-attack-speed", description : "% Global Attack Speed", base : 3, perLevel : 1, levelPower : 0.65, modifierFunc : function(value12,mod12) {
+}(this))}),new ostm.item.AffixType({ id : "percent-attack-speed", base : 3, perLevel : 1, levelPower : 0.65, modifierFunc : function(value12,mod12) {
 	mod12.percentAttackSpeed += value12;
 }, multipliers : (function($this) {
 	var $r;
@@ -4735,7 +4883,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g12.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g12;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "percent-crit-chance", description : "% Global Crit Chance", base : 2, perLevel : 1, modifierFunc : function(value13,mod13) {
+}(this))}),new ostm.item.AffixType({ id : "percent-crit-chance", base : 2, perLevel : 1, modifierFunc : function(value13,mod13) {
 	mod13.percentCritChance += value13;
 }, multipliers : (function($this) {
 	var $r;
@@ -4744,7 +4892,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g13.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g13;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "percent-crit-damage", description : "% Global Crit Damage", base : 10, perLevel : 2, modifierFunc : function(value14,mod14) {
+}(this))}),new ostm.item.AffixType({ id : "percent-crit-damage", base : 10, perLevel : 2, modifierFunc : function(value14,mod14) {
 	mod14.percentCritDamage += value14;
 }, multipliers : (function($this) {
 	var $r;
@@ -4753,15 +4901,16 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g14.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g14;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "percent-move-speed", description : "% Move Speed", base : 10, perLevel : 2, modifierFunc : function(value15,mod15) {
+}(this))}),new ostm.item.AffixType({ id : "percent-move-speed", base : 10, perLevel : 2, modifierFunc : function(value15,mod15) {
 	mod15.percentMoveSpeed += value15;
 }, multipliers : (function($this) {
 	var $r;
 	var _g15 = new haxe.ds.EnumValueMap();
 	_g15.set(ostm.item.ItemSlot.Boots,1.0);
+	_g15.set(ostm.item.ItemSlot.Jewel,0.5);
 	$r = _g15;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-strength", description : "Strength", base : 2, perLevel : 0.75, modifierFunc : function(value16,mod16) {
+}(this))}),new ostm.item.AffixType({ id : "flat-strength", base : 2, perLevel : 0.75, levelPower : 0.9, modifierFunc : function(value16,mod16) {
 	mod16.flatStrength += value16;
 }, multipliers : (function($this) {
 	var $r;
@@ -4773,7 +4922,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g16.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g16;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-dexterity", description : "Dexterity", base : 2, perLevel : 0.75, modifierFunc : function(value17,mod17) {
+}(this))}),new ostm.item.AffixType({ id : "flat-dexterity", base : 2, perLevel : 0.75, levelPower : 0.9, modifierFunc : function(value17,mod17) {
 	mod17.flatDexterity += value17;
 }, multipliers : (function($this) {
 	var $r;
@@ -4785,7 +4934,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g17.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g17;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-vitality", description : "Vitality", base : 2, perLevel : 0.75, modifierFunc : function(value18,mod18) {
+}(this))}),new ostm.item.AffixType({ id : "flat-vitality", base : 2, perLevel : 0.75, levelPower : 0.9, modifierFunc : function(value18,mod18) {
 	mod18.flatVitality += value18;
 }, multipliers : (function($this) {
 	var $r;
@@ -4797,7 +4946,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g18.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g18;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-endurance", description : "Endurance", base : 2, perLevel : 0.75, modifierFunc : function(value19,mod19) {
+}(this))}),new ostm.item.AffixType({ id : "flat-endurance", base : 2, perLevel : 0.75, levelPower : 0.9, modifierFunc : function(value19,mod19) {
 	mod19.flatEndurance += value19;
 }, multipliers : (function($this) {
 	var $r;
@@ -4809,7 +4958,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g19.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g19;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-intelligence", description : "Intelligence", base : 2, perLevel : 0.75, modifierFunc : function(value20,mod20) {
+}(this))}),new ostm.item.AffixType({ id : "flat-intelligence", base : 2, perLevel : 0.75, levelPower : 0.9, modifierFunc : function(value20,mod20) {
 	mod20.flatIntelligence += value20;
 }, multipliers : (function($this) {
 	var $r;
@@ -4821,10 +4970,50 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g20.set(ostm.item.ItemSlot.Ring,1.0);
 	$r = _g20;
 	return $r;
+}(this))}),new ostm.item.AffixType({ id : "xp-gain", base : 2, perLevel : 1, levelPower : 0.8, modifierFunc : function(value21,mod21) {
+	mod21.percentXpGained += value21;
+}, multipliers : (function($this) {
+	var $r;
+	var _g21 = new haxe.ds.EnumValueMap();
+	_g21.set(ostm.item.ItemSlot.Jewel,1.0);
+	$r = _g21;
+	return $r;
+}(this))}),new ostm.item.AffixType({ id : "gold-gain", base : 5, perLevel : 2, levelPower : 0.8, modifierFunc : function(value22,mod22) {
+	mod22.percentGoldGained += value22;
+}, multipliers : (function($this) {
+	var $r;
+	var _g22 = new haxe.ds.EnumValueMap();
+	_g22.set(ostm.item.ItemSlot.Jewel,1.0);
+	$r = _g22;
+	return $r;
+}(this))}),new ostm.item.AffixType({ id : "gem-drop", base : 2, perLevel : 0.65, levelPower : 0.8, modifierFunc : function(value23,mod23) {
+	mod23.percentGemDropRate += value23;
+}, multipliers : (function($this) {
+	var $r;
+	var _g23 = new haxe.ds.EnumValueMap();
+	_g23.set(ostm.item.ItemSlot.Jewel,1.0);
+	$r = _g23;
+	return $r;
+}(this))}),new ostm.item.AffixType({ id : "item-drop", base : 3, perLevel : 1, levelPower : 0.8, modifierFunc : function(value24,mod24) {
+	mod24.percentItemDropRate += value24;
+}, multipliers : (function($this) {
+	var $r;
+	var _g24 = new haxe.ds.EnumValueMap();
+	_g24.set(ostm.item.ItemSlot.Jewel,1.0);
+	$r = _g24;
+	return $r;
+}(this))}),new ostm.item.AffixType({ id : "item-rarity", base : 8, perLevel : 2, levelPower : 0.8, modifierFunc : function(value25,mod25) {
+	mod25.percentItemRarity += value25;
+}, multipliers : (function($this) {
+	var $r;
+	var _g25 = new haxe.ds.EnumValueMap();
+	_g25.set(ostm.item.ItemSlot.Jewel,1.0);
+	$r = _g25;
+	return $r;
 }(this))})];
 ostm.item.Inventory.kBaseInventoryCount = 10;
 ostm.item.Item.kTierLevels = 5;
-ostm.item.ItemData.types = [new ostm.item.WeaponType({ id : "sword", image : "Sword.png", names : ["Rusted Sword","Copper Sword","Short Sword","Long Sword"], attack : 4.1, attackSpeed : 1.55, crit : 5, defense : 0}),new ostm.item.WeaponType({ id : "axe", image : "Axe.png", names : ["Rusted Axe","Hatchet","Tomahawk","Battle Axe"], attack : 5.25, attackSpeed : 1.35, crit : 7, defense : 0}),new ostm.item.WeaponType({ id : "dagger", image : "Dagger.png", names : ["Rusted Dagger","Knife","Dagger","Kris"], attack : 3, attackSpeed : 1.8, crit : 9, defense : 0}),new ostm.item.ItemType({ id : "armor", image : "Armor.png", names : ["Tattered Shirt","Cloth Shirt","Padded Armor","Leather Armor"], slot : ostm.item.ItemSlot.Body, attack : 0, defense : 2}),new ostm.item.ItemType({ id : "helm", image : "Helmet.png", names : ["Hat","Leather Cap","Iron Hat","Chainmail Coif"], slot : ostm.item.ItemSlot.Helmet, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "boots", image : "Boot.png", names : ["Sandals","Leather Shoes","Boots","Studded Boots"], slot : ostm.item.ItemSlot.Boots, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "gloves", image : "Glove.png", names : ["Cuffs","Wool Gloves","Leather Gloves","Studded Gloves"], slot : ostm.item.ItemSlot.Gloves, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "ring", image : "Ring.png", names : ["Ring"], slot : ostm.item.ItemSlot.Ring, attack : 0, defense : 0})];
+ostm.item.ItemData.types = [new ostm.item.WeaponType({ id : "sword", images : ["Sword0.png","Sword1.png","Sword2.png","Sword3.png"], names : ["Rusted Sword","Copper Sword","Short Sword","Long Sword"], attack : 4.1, attackSpeed : 1.55, crit : 5, defense : 0}),new ostm.item.WeaponType({ id : "axe", images : ["Axe0.png","Axe1.png","Axe2.png","Axe3.png"], names : ["Rusted Axe","Hatchet","Tomahawk","Battle Axe"], attack : 5.25, attackSpeed : 1.35, crit : 7, defense : 0}),new ostm.item.WeaponType({ id : "dagger", images : ["Dagger0.png","Dagger1.png","Dagger2.png","Dagger3.png"], names : ["Rusted Dagger","Knife","Dagger","Kris"], attack : 3, attackSpeed : 1.8, crit : 9, defense : 0}),new ostm.item.ItemType({ id : "armor", images : ["Armor.png"], names : ["Tattered Shirt","Cloth Shirt","Padded Armor","Leather Armor"], slot : ostm.item.ItemSlot.Body, attack : 0, defense : 2}),new ostm.item.ItemType({ id : "helm", images : ["Helmet.png"], names : ["Hat","Leather Cap","Iron Hat","Chainmail Coif"], slot : ostm.item.ItemSlot.Helmet, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "boots", images : ["Boot.png"], names : ["Sandals","Leather Shoes","Boots","Studded Boots"], slot : ostm.item.ItemSlot.Boots, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "gloves", images : ["Glove.png"], names : ["Cuffs","Wool Gloves","Leather Gloves","Studded Gloves"], slot : ostm.item.ItemSlot.Gloves, attack : 0, defense : 1}),new ostm.item.ItemType({ id : "ring", images : ["Ring.png"], names : ["Ring"], slot : ostm.item.ItemSlot.Ring, attack : 0.2, defense : 0.3}),new ostm.item.ItemType({ id : "jewel", images : ["Jewel.png"], names : ["Jewel"], slot : ostm.item.ItemSlot.Jewel, attack : 0, defense : 0})];
 ostm.map.MapGenerator.kMoveTime = 12.0;
 ostm.map.MapGenerator.kGridSize = 5;
 ostm.map.MapGenerator.kLevelsPerCellDist = 6;

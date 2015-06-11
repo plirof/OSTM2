@@ -76,6 +76,10 @@ div {
     top: 0px;
 }
 
+li {
+    display: block;
+}
+
 .column {
     height: 100%;
 }
@@ -83,6 +87,7 @@ div {
 .screen {
     width: 100%;
     overflow: auto;
+    box-shadow: inset 0px 0px 7px -1px #000000;
 }
 
 #stat-screen {
@@ -127,14 +132,72 @@ div {
 }
 
 .item {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
+    margin: 2px;
     border-width: 2px;
     border-style: solid;
     border-color: #000000;
     text-align: center;
     display: inline-block;
 }
+.item img {
+    height: 50px;
+    image-rendering: pixelated;
+}
+.item-buttons {
+    position: relative;
+    top: -12px;
+}
+.item button {
+    z-index: 3;
+}
+.item-affix {
+    font-style: italic;
+    color: #88aaff;
+}
+.item-power-increase {
+    color: #44ff66;
+}
+.item-power-decrease {
+    color: #ff4466;
+}
+.item-equip-hint {
+    position: relative;
+    left: 36px;
+    top: -14px;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #000000;
+    border-radius: 6px;
+    background-color: #44ff66;
+}
+
+#equip-screen {
+    background-color: #95EAC8;
+}
+.equip-container {
+  width: 180px;
+  height: 180px;
+  left: 60px;
+  top: 20px;
+  position: absolute;
+}
+.equip-container div {
+    width: 50px;
+    height: 50px;
+    background-color: #444444;
+}
+.equip-container .item {
+    margin: 0px;
+}
+.weapon-slot { left: 0px; top: 60px; }
+.body-slot { left: 60px; top: 60px; }
+.helmet-slot { left: 60px; top: 0px; }
+.boots-slot { left: 60px; top: 120px; }
+.gloves-slot { left: 0px; top: 120px; }
+.ring-slot { left: 120px; top: 60px; }
+.jewel-slot { left: 120px; top: 120px; }
 
 .xp-bar {
     left: 27px;
