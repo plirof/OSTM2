@@ -274,7 +274,7 @@ class SkillNode extends GameNode {
     public override function onMouseOver(event :MouseEvent) :Void {
         _description.style.display = '';
         _description.style.left = cast (event.x - 275);
-        _description.style.top = cast event.y;
+        _description.style.top = cast (event.y - 120);
     }
 
     public override function onMouseOut(event :MouseEvent) :Void {
