@@ -97,7 +97,6 @@ class Item {
             player.unequip(this);
 
             Inventory.instance.push(this);
-            Inventory.instance.updateInventoryHtml();
         }
     }
 

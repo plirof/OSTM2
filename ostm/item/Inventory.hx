@@ -18,6 +18,8 @@ class Inventory extends Component
     var _inventory :Array<Item> = [];
     var _sizeUpgrades :Int = 0;
 
+    var _capacityElem :Element;
+
     static inline var kBaseInventoryCount :Int = 10;
 
     public static var instance(default, null) :Inventory;
@@ -27,12 +29,12 @@ class Inventory extends Component
     }
 
     public override function start() :Void {
-        updateInventoryHtml();
+        refreshInventoryHtml();
 
         SaveManager.instance.addItem(this);
     }
 
-    public function updateInventoryHtml() :Void {
+    public function refreshInventoryHtml() :Void {
         for (item in _inventory) {
             item.cleanupElement();
         }
@@ -42,9 +44,9 @@ class Inventory extends Component
             inventory.removeChild(inventory.firstChild);
         }
 
-        var count = Browser.document.createLIElement();
-        count.innerText = 'Capacity: ' + _inventory.length + ' / ' + capacity();
-        inventory.appendChild(count);
+        _capacityElem = Browser.document.createLIElement();
+        inventory.appendChild(_capacityElem);
+        updateCapacityElem();
 
         var sortBtn = Browser.document.createButtonElement();
         sortBtn.innerText = 'Sort Value';
@@ -52,7 +54,7 @@ class Inventory extends Component
             _inventory.sort(function(it1, it2) {
                 return -Reflect.compare(it1.buyValue(), it2.buyValue());
             });
-            updateInventoryHtml();
+            refreshInventoryHtml();
         };
         inventory.appendChild(sortBtn);
 
@@ -70,7 +72,7 @@ class Inventory extends Component
                         item.discard();
                     }
                 }
-                updateInventoryHtml();
+                refreshInventoryHtml();
             };
             inventory.appendChild(clear);
         }
@@ -87,11 +89,11 @@ class Inventory extends Component
         var li = item.createElement([
             'Equip' => function(event) {
                 item.equip();
-                updateInventoryHtml();
+                refreshInventoryHtml();
             },
             'Discard' => function(event) {
                 item.discard();
-                updateInventoryHtml();
+                refreshInventoryHtml();
             },
         ]);
         inventory.appendChild(li);
@@ -99,6 +101,8 @@ class Inventory extends Component
 
     public function push(item :Item) :Void {
         _inventory.push(item);
+        appendItemHtml(item);
+        updateCapacityElem();
     }
     public function remove(item :Item) :Void {
         _inventory.remove(item);
@@ -108,6 +112,11 @@ class Inventory extends Component
         if (i >= 0 && i < _inventory.length) {
             _inventory[i] = forItem;
         }
+    }
+
+    function updateCapacityElem() {
+        var str = 'Capacity: ' + _inventory.length + ' / ' + capacity();
+        _capacityElem.innerText = str;
     }
 
     public function capacity() :Int {
@@ -120,7 +129,7 @@ class Inventory extends Component
 
     public function upgradeCapacity() :Void {
         _sizeUpgrades++;
-        updateInventoryHtml();
+        updateCapacityElem();
     }
 
     public function hasSpaceForItem() :Bool {
@@ -158,16 +167,11 @@ class Inventory extends Component
         var dropRate = 0.35;
         dropRate *= 1 + mod.percentItemDropRate / 100;
 
-        var didAdd = false;
         while ((dropRate >= 1 || Random.randomBool(dropRate)) &&
                 hasSpaceForItem()) {
             var rarityMult = 1 + mod.percentItemRarity / 100;
-            _inventory.push(randomItem(maxLevel, rarityMult));
-            didAdd = true;
+            push(randomItem(maxLevel, rarityMult));
             dropRate -= 1;
-        }
-        if (didAdd) {
-            updateInventoryHtml();
         }
     }
 
@@ -184,6 +188,6 @@ class Inventory extends Component
         if (SaveManager.instance.loadedVersion < 2) {
             _sizeUpgrades = 0;
         }
-        Browser.window.setTimeout(updateInventoryHtml, 0);
+        Browser.window.setTimeout(refreshInventoryHtml, 0);
     }
 }
