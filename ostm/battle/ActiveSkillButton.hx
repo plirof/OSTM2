@@ -51,6 +51,7 @@ class ActiveSkillButton extends Component {
 
         var bodyItems = [
             _skill.name,
+            'Keyboard shortcut: ' + Util.format(_idx + 1),
             'Mana Cost: ' + Util.format(_skill.manaCost),
             'Power: ' + Util.format(Math.round(100 * _skill.damage)) + '%',
             'Speed: ' + Util.format(Math.round(100 * _skill.speed)) + '%',
