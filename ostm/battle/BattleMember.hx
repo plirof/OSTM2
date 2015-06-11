@@ -305,7 +305,9 @@ class BattleMember implements Saveable {
         var curItem = equipment[slot];
         var oldCache = sumAffixes();
         var newMod = _cachedStatMod.copy();
-        curItem.subtractAffixes(newMod);
+        if (curItem != null) {
+            curItem.subtractAffixes(newMod);
+        }
         item.sumAffixes(newMod);
 
         _cachedStatMod = newMod;

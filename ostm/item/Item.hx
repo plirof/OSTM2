@@ -142,7 +142,7 @@ class Item {
         _elem.appendChild(img);
 
         _buttons = Browser.document.createSpanElement();
-        _elem.appendChild(_buttons);
+        _buttons.className = 'item-buttons';
 
         var index = 0;
         var clickFuncs :Array<MouseEvent -> Void> = [];
@@ -250,12 +250,6 @@ class Item {
         powElem.innerText = powStr;
         _body.appendChild(powElem);
 
-        if (deltaPow > 0) {
-            var eqHint = Browser.document.createSpanElement();
-            eqHint.className = 'item-equip-hint';
-            _elem.appendChild(eqHint);
-        }
-
         var buy = Browser.document.createLIElement();
         buy.innerText = 'Buy Price: ' + Util.shortFormat(buyValue());
         _body.appendChild(buy);
@@ -263,6 +257,12 @@ class Item {
         sell.innerText = 'Sell Price: ' + Util.shortFormat(sellValue());
         _body.appendChild(sell);
 
+        if (deltaPow > 0) {
+            var eqHint = Browser.document.createDivElement();
+            eqHint.className = 'item-equip-hint';
+            _elem.appendChild(eqHint);
+        }
+        _elem.appendChild(_buttons);
 
         Browser.document.getElementById('popup-container').appendChild(_body);
 

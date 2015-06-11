@@ -145,6 +145,10 @@ li {
     height: 50px;
     image-rendering: pixelated;
 }
+.item-buttons {
+    position: relative;
+    top: -12px;
+}
 .item button {
     z-index: 3;
 }
@@ -160,8 +164,11 @@ li {
 }
 .item-equip-hint {
     position: relative;
-    width: 14px;
-    height: 14px;
+    left: 36px;
+    top: -14px;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #000000;
     border-radius: 6px;
     background-color: #44ff66;
 }

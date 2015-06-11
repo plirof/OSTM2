@@ -36,11 +36,12 @@ class KeyboardManager extends Component {
     }
 
     function updateKey(key :Int, pressed :Bool) {
-        if (key == 16) {
-            isShiftHeld = pressed;
-        }
-        if (key == 17 || key == 91) { //ctrl or command?
-            isCtrlHeld = pressed;
-        }
+        //TODO: fix shift/ctrl event handling
+        // if (key == 16) {
+        //     isShiftHeld = pressed;
+        // }
+        // if (key == 17 || key == 91) { //ctrl or command?
+        //     isCtrlHeld = pressed;
+        // }
     }
 }
