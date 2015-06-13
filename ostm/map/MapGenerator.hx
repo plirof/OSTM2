@@ -93,6 +93,10 @@ class MapGenerator extends Component
 
         updateScrollBounds();
         centerCurrentNode();
+
+        Browser.window.setTimeout(function() {
+            NotificationManager.instance.queueNotification(MapUpdate);
+        }, 0);
     }
 
     public override function update() {
@@ -185,6 +189,8 @@ class MapGenerator extends Component
 
         updateScrollBounds();
         centerCurrentNode();
+
+        NotificationManager.instance.queueNotification(MapUpdate);
     }
 
     function generateSurroundingCells(i :Int, j :Int) :Void {
@@ -491,6 +497,8 @@ class MapGenerator extends Component
         }
 
         setPath(path);
+
+        NotificationManager.instance.queueNotification(MapUpdate);
     }
 
     public function hover(node :MapNode) :Void {
@@ -500,10 +508,12 @@ class MapGenerator extends Component
                 n.setPathHighlight(path);
             }
         }
+        NotificationManager.instance.queueNotification(MapUpdate);
     }
 
     public function hoverOver(node :MapNode) :Void {
         forAllNodes(function (node) { node.clearPathHighlight(); });
+        NotificationManager.instance.queueNotification(MapUpdate);
     }
 
     function forAllNodes(f :MapNode -> Void) :Void {
@@ -683,5 +693,9 @@ class MapGenerator extends Component
 
         updateScrollBounds();
         centerCurrentNode();
+
+        Browser.window.setTimeout(function() {
+            NotificationManager.instance.queueNotification(MapUpdate);
+        }, 0);
     }
 }

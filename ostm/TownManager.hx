@@ -89,7 +89,6 @@ class TownManager extends Component
     public override function update() :Void {
         var mapNode = MapGenerator.instance.selectedNode;
         var inTown = mapNode.isTown();
-        _townScreen.style.display = inTown ? '' : 'none';
 
         if (!inTown) {
             shouldWarp = false;
@@ -116,6 +115,7 @@ class TownManager extends Component
             }
             updateRestockPrice(mapNode);
         }
+        _townScreen.style.display = inTown ? '' : 'none';
 
         _lastNode = mapNode;
     }

@@ -26,6 +26,7 @@ class GameMain extends JEngineMain {
                 new SkillTree(),
                 new TownManager(),
                 new TabManager(),
+                new NotificationManager(),
             ]),
         ];
 

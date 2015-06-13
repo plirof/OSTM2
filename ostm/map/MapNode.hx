@@ -8,8 +8,10 @@ import jengine.*;
 import jengine.util.*;
 
 import ostm.GameNode;
+import ostm.NotificationManager;
 
-class MapNode extends GameNode {
+class MapNode extends GameNode
+        implements NotificationReceiver {
     var map :MapGenerator;
     public var region :Int = 0;
     public var level :Int = 0;
@@ -55,6 +57,8 @@ class MapNode extends GameNode {
 
     public override function start() :Void {
         super.start();
+
+        NotificationManager.instance.register(this, MapUpdate);
     }
 
     public override function postStart() :Void {        
@@ -74,10 +78,10 @@ class MapNode extends GameNode {
             (node._highlightedPath == path || node._selectedPath == path);
     }
 
-    public override function update() :Void {
-        if (_dirtyFlag) {
+    public function receivedNotification(notification :NotificationType) :Void {
+        if (notification == MapUpdate && _dirtyFlag) {
             _dirtyFlag = false;
-            
+
             var color = getColor().asHtml();
 
             var borderColor = '#000000';
