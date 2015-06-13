@@ -34,6 +34,9 @@ class TownManager extends Component
     public var shouldWarp(default, null) :Bool = false;
 
     var _warpButton :Element;
+    var _townScreen :Element;
+    var _shopClock :Element;
+    var _capacityPrice :Element;
 
     static inline var kShopRefreshTime = 300;
 
@@ -45,6 +48,10 @@ class TownManager extends Component
 
     public override function start() :Void {
         SaveManager.instance.addItem(this);
+
+        _townScreen = Browser.document.getElementById('town-screen');
+        _shopClock = Browser.document.getElementById('town-shop-clock');
+        _capacityPrice = Browser.document.getElementById('town-shop-capacity-price');
 
         _warpButton = Browser.document.getElementById('town-warp-button');
         _warpButton.onclick = function(event) {
@@ -73,14 +80,16 @@ class TownManager extends Component
             if (price <= player.gems) {
                 player.addGems(-price);
                 Inventory.instance.upgradeCapacity();
+                _capacityPrice.innerText = Util.format(Inventory.instance.capacityUpgradeCost());
             }
         };
+        _capacityPrice.innerText = Util.format(Inventory.instance.capacityUpgradeCost());
     }
 
     public override function update() :Void {
         var mapNode = MapGenerator.instance.selectedNode;
         var inTown = mapNode.isTown();
-        Browser.document.getElementById('town-screen').style.display = inTown ? '' : 'none';
+        _townScreen.style.display = inTown ? '' : 'none';
 
         if (!inTown) {
             shouldWarp = false;
@@ -100,14 +109,12 @@ class TownManager extends Component
             }
 
             var refreshTime = Math.round(shop.generateTime + kShopRefreshTime - Time.raw);
-            Browser.document.getElementById('town-shop-clock').innerText = Util.format(refreshTime);
+            _shopClock.innerText = Util.format(refreshTime);
 
             if (mapNode != _lastNode) {
                 updateShopHtml(mapNode);
             }
             updateRestockPrice(mapNode);
-
-            Browser.document.getElementById('town-shop-capacity-price').innerText = Util.format(Inventory.instance.capacityUpgradeCost());
         }
 
         _lastNode = mapNode;

@@ -15,6 +15,7 @@ class HtmlRenderer extends Component {
     var _transform :Transform;
     var _cachedPos :Vec2;
     var _cachedSize :Vec2;
+    var _noPos :Bool = false;
 
     public function new(options :Dynamic) {
         _options = options;
@@ -61,7 +62,9 @@ class HtmlRenderer extends Component {
     }
 
     public override function deinit() :Void {
-        _elem.parentElement.removeChild(_elem);
+        if (_elem.parentElement != null) {
+            _elem.parentElement.removeChild(_elem);
+        }
     }
 
     function getPos() :Vec2 {
@@ -79,10 +82,16 @@ class HtmlRenderer extends Component {
     }
 
     function isDirty() :Bool {
-        if (getPos() == null && size == null) {
+        if (_noPos) {
             return false;
         }
-        return _cachedPos != getPos() || _cachedSize != size;
+
+        var pos = getPos();
+        if (pos == null && size == null) {
+            _noPos = true;
+            return false;
+        }
+        return _cachedPos != pos || _cachedSize != size;
     }
     function markClean() :Void {
         _cachedPos = getPos();

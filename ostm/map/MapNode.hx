@@ -75,7 +75,9 @@ class MapNode extends GameNode {
     }
 
     public override function update() :Void {
-        if (isDirty()) {
+        if (_dirtyFlag) {
+            _dirtyFlag = false;
+            
             var color = getColor().asHtml();
 
             var borderColor = '#000000';
@@ -134,8 +136,6 @@ class MapNode extends GameNode {
                 line.elem.style.background = lineColor;
                 line.elem.style.width = cast lineWidth;
             }
-
-            _dirtyFlag = false;
         }
     }
 

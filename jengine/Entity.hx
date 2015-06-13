@@ -18,12 +18,7 @@ class Entity {
     public function addComponent(cmp :Component) :Void {
         _components.push(cmp);
         cmp.entity = this;
-    }
-
-    public function forAllComponents(f :Component -> Void) :Void {
-        for (cmp in _components) {
-            f(cmp);
-        }
+        cmp.init();
     }
 
     public function getComponent<T :Component>(c :Class<T>) :T {
