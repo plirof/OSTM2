@@ -146,8 +146,10 @@ class BattleMember implements Saveable {
                 }
             }
 
-            for (passive in SkillTree.instance.skills) {
-                passive.sumAffixes(_cachedStatMod);
+            if (isPlayer) {
+                for (passive in SkillTree.instance.skills) {
+                    passive.sumAffixes(_cachedStatMod);
+                }
             }
         }
         return _cachedStatMod;

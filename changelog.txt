@@ -1,5 +1,8 @@
 OSTM2 - CHANGELOG
 
+---=== v0.0.5a - June 13 2015 ===---
+. Bugfix: Enemies no longer receive bonuses from the player's passive skills :D
+
 ---=== v0.0.5 - June 13 2015 ===---
 * Redo sword and dagger art
 * Add inventory sort by item power
