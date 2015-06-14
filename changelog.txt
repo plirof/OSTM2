@@ -1,5 +1,13 @@
 OSTM2 - CHANGELOG
 
+---=== v0.0.5 - June 13 2015 ===---
+* Redo sword and dagger art
+* Add inventory sort by item power
+. Skill node mouseover positioned slightly better
+. Some affix tweaks
+. Some performance improvements
+. Bugfix: Item mouseover stays open when getting a new item
+
 ---=== v0.0.4 - June 11 2015 ===---
 * Add Jewel item slot
   - Jewels have secondary stats, like bonus XP and item rarity bonuses
