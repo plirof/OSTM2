@@ -2093,12 +2093,14 @@ ostm.battle.BattleMember.prototype = {
 				var item = $it0.next();
 				if(item != null) item.sumAffixes(this._cachedStatMod);
 			}
-			var _g = 0;
-			var _g1 = ostm.skill.SkillTree.instance.skills;
-			while(_g < _g1.length) {
-				var passive = _g1[_g];
-				++_g;
-				passive.sumAffixes(this._cachedStatMod);
+			if(this.isPlayer) {
+				var _g = 0;
+				var _g1 = ostm.skill.SkillTree.instance.skills;
+				while(_g < _g1.length) {
+					var passive = _g1[_g];
+					++_g;
+					passive.sumAffixes(this._cachedStatMod);
+				}
 			}
 		}
 		return this._cachedStatMod;

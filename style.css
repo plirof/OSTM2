@@ -26,12 +26,12 @@ html {
 }
 .changelog {
     position: absolute;
-    left: 275px;
+    left: 295px;
     top: 28px;
 }
 .subreddit {
     position: absolute;
-    left: 275px;
+    left: 295px;
     top: 46px;
 }
 a {
