@@ -440,15 +440,7 @@ jengine.Entity.prototype = {
 	addComponent: function(cmp) {
 		this._components.push(cmp);
 		cmp.entity = this;
-	}
-	,forAllComponents: function(f) {
-		var _g = 0;
-		var _g1 = this._components;
-		while(_g < _g1.length) {
-			var cmp = _g1[_g];
-			++_g;
-			f(cmp);
-		}
+		cmp.init();
 	}
 	,getComponent: function(c) {
 		var _g = 0;
@@ -469,75 +461,109 @@ jengine.Entity.prototype = {
 	,__class__: jengine.Entity
 };
 jengine.EntitySystem = function() {
-	this._entities = new Array();
+	this._entitiesToRemove = [];
+	this._entitiesToAdd = [];
+	this._entities = [];
 };
 jengine.EntitySystem.__name__ = true;
 jengine.EntitySystem.prototype = {
 	addEntity: function(ent) {
-		this._entities.push(ent);
+		this._entitiesToAdd.push(ent);
 		ent._system = this;
 	}
-	,update: function() {
-		var entsThisFrame = this._entities.slice();
-		var _g = 0;
-		while(_g < entsThisFrame.length) {
-			var ent = entsThisFrame[_g];
-			++_g;
-			if(!ent._hasStarted) ent.forAllComponents(function(cmp) {
-				cmp.start();
-			});
-		}
-		var _g1 = 0;
-		while(_g1 < entsThisFrame.length) {
-			var ent1 = entsThisFrame[_g1];
-			++_g1;
-			if(!ent1._hasStarted) {
-				ent1.forAllComponents(function(cmp1) {
-					cmp1.postStart();
-				});
-				ent1._hasStarted = true;
-			}
-		}
-		var _g2 = 0;
-		while(_g2 < entsThisFrame.length) {
-			var ent2 = entsThisFrame[_g2];
-			++_g2;
-			ent2.forAllComponents(function(cmp2) {
-				cmp2.update();
-			});
-		}
-		var _g3 = 0;
-		while(_g3 < entsThisFrame.length) {
-			var ent3 = entsThisFrame[_g3];
-			++_g3;
-			ent3.forAllComponents(function(cmp3) {
-				cmp3.draw();
-			});
-		}
-	}
 	,removeEntity: function(ent) {
+		this._entitiesToRemove.push(ent);
+	}
+	,update: function() {
 		var _g = 0;
 		var _g1 = this._entities;
 		while(_g < _g1.length) {
-			var e = _g1[_g];
+			var ent = _g1[_g];
 			++_g;
-			if(e == ent) {
-				e.forAllComponents(function(cmp) {
-					cmp.deinit();
-				});
-				e._system = null;
-				HxOverrides.remove(this._entities,e);
-				return;
+			if(!ent._hasStarted) {
+				var _g2 = 0;
+				var _g3 = ent._components;
+				while(_g2 < _g3.length) {
+					var cmp = _g3[_g2];
+					++_g2;
+					cmp.start();
+				}
 			}
 		}
-		jengine.util.Log.log("Failed to find entity " + Std.string(ent));
-	}
-	,removeAll: function() {
-		while(this._entities.length > 0) this.removeEntity(this._entities[0]);
+		var _g4 = 0;
+		var _g11 = this._entities;
+		while(_g4 < _g11.length) {
+			var ent1 = _g11[_g4];
+			++_g4;
+			if(!ent1._hasStarted) {
+				var _g21 = 0;
+				var _g31 = ent1._components;
+				while(_g21 < _g31.length) {
+					var cmp1 = _g31[_g21];
+					++_g21;
+					cmp1.postStart();
+				}
+				ent1._hasStarted = true;
+			}
+		}
+		var _g5 = 0;
+		var _g12 = this._entities;
+		while(_g5 < _g12.length) {
+			var ent2 = _g12[_g5];
+			++_g5;
+			var _g22 = 0;
+			var _g32 = ent2._components;
+			while(_g22 < _g32.length) {
+				var cmp2 = _g32[_g22];
+				++_g22;
+				cmp2.update();
+			}
+		}
+		var _g6 = 0;
+		var _g13 = this._entities;
+		while(_g6 < _g13.length) {
+			var ent3 = _g13[_g6];
+			++_g6;
+			var _g23 = 0;
+			var _g33 = ent3._components;
+			while(_g23 < _g33.length) {
+				var cmp3 = _g33[_g23];
+				++_g23;
+				cmp3.draw();
+			}
+		}
+		var _g7 = 0;
+		var _g14 = this._entitiesToAdd;
+		while(_g7 < _g14.length) {
+			var ent4 = _g14[_g7];
+			++_g7;
+			this._entities.push(ent4);
+		}
+		var _g8 = 0;
+		var _g15 = this._entitiesToRemove;
+		while(_g8 < _g15.length) {
+			var ent5 = _g15[_g8];
+			++_g8;
+			var i = HxOverrides.indexOf(this._entities,ent5,0);
+			if(i >= 0) {
+				var _g24 = 0;
+				var _g34 = ent5._components;
+				while(_g24 < _g34.length) {
+					var cmp4 = _g34[_g24];
+					++_g24;
+					cmp4.deinit();
+				}
+				ent5._system = null;
+				HxOverrides.remove(this._entities,ent5);
+			}
+		}
+		this._entitiesToAdd = [];
+		this._entitiesToRemove = [];
 	}
 	,__class__: jengine.EntitySystem
 };
 jengine.HtmlRenderer = function(options) {
+	this._noPos = false;
 	this.floating = false;
 	jengine.Component.call(this);
 	this._options = options;
@@ -572,7 +598,7 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 		this._transform = this.entity.getComponent(jengine.Transform);
 	}
 	,deinit: function() {
-		this._elem.parentElement.removeChild(this._elem);
+		if(this._elem.parentElement != null) this._elem.parentElement.removeChild(this._elem);
 	}
 	,getPos: function() {
 		if(this._transform == null) return null;
@@ -585,28 +611,27 @@ jengine.HtmlRenderer.prototype = $extend(jengine.Component.prototype,{
 		return pos;
 	}
 	,isDirty: function() {
-		if((function($this) {
+		if(this._noPos) return false;
+		var pos = this.getPos();
+		if((pos == null?true:pos == null || true?false:pos.x == null.x && pos.y == null.y) && (function($this) {
 			var $r;
-			var lhs = $this.getPos();
+			var lhs = $this.size;
 			$r = lhs == null?true:lhs == null || true?false:lhs.x == null.x && lhs.y == null.y;
 			return $r;
-		}(this)) && (function($this) {
-			var $r;
-			var lhs1 = $this.size;
-			$r = lhs1 == null?true:lhs1 == null || true?false:lhs1.x == null.x && lhs1.y == null.y;
-			return $r;
-		}(this))) return false;
+		}(this))) {
+			this._noPos = true;
+			return false;
+		}
 		return (function($this) {
 			var $r;
-			var lhs2 = $this._cachedPos;
-			var rhs = $this.getPos();
-			$r = !(lhs2 == null && rhs == null?true:lhs2 == null || rhs == null?false:lhs2.x == rhs.x && lhs2.y == rhs.y);
+			var lhs1 = $this._cachedPos;
+			$r = !(lhs1 == null && pos == null?true:lhs1 == null || pos == null?false:lhs1.x == pos.x && lhs1.y == pos.y);
 			return $r;
 		}(this)) || (function($this) {
 			var $r;
-			var lhs3 = $this._cachedSize;
-			var rhs1 = $this.size;
-			$r = !(lhs3 == null && rhs1 == null?true:lhs3 == null || rhs1 == null?false:lhs3.x == rhs1.x && lhs3.y == rhs1.y);
+			var lhs2 = $this._cachedSize;
+			var rhs = $this.size;
+			$r = !(lhs2 == null && rhs == null?true:lhs2 == null || rhs == null?false:lhs2.x == rhs.x && lhs2.y == rhs.y);
 			return $r;
 		}(this));
 	}
@@ -854,11 +879,6 @@ jengine.util.JsUtil.createSpan = function(text,parent) {
 	if(parent != null) parent.appendChild(elem);
 	return elem;
 };
-jengine.util.Log = function() { };
-jengine.util.Log.__name__ = true;
-jengine.util.Log.log = function(message) {
-	console.log(message);
-};
 jengine.util.Random = function() { };
 jengine.util.Random.__name__ = true;
 jengine.util.Random.randomBool = function(prob) {
@@ -1090,7 +1110,7 @@ js.Browser.getLocalStorage = function() {
 };
 var ostm = {};
 ostm.GameMain = function() {
-	var entityList = [new jengine.Entity([new ostm.KeyboardManager(),new ostm.map.MapGenerator(),new ostm.battle.BattleManager(),new ostm.item.Inventory(),new jengine.SaveManager(),new ostm.skill.SkillTree(),new ostm.TownManager(),new ostm.TabManager()])];
+	var entityList = [new jengine.Entity([new ostm.KeyboardManager(),new ostm.map.MapGenerator(),new ostm.battle.BattleManager(),new ostm.item.Inventory(),new jengine.SaveManager(),new ostm.skill.SkillTree(),new ostm.TownManager(),new ostm.TabManager(),new ostm.NotificationManager()])];
 	ostm.MouseManager.init();
 	jengine.JEngineMain.call(this,entityList);
 };
@@ -1238,6 +1258,62 @@ ostm.MouseManager.init = function() {
 ostm.MouseManager.onMouseMove = function(event) {
 	ostm.MouseManager.mousePos = jengine._Vec2.Vec2_Impl_._new(event.clientX,event.clientY);
 };
+ostm.NotificationType = { __ename__ : true, __constructs__ : ["MapUpdate","StatUpdate"] };
+ostm.NotificationType.MapUpdate = ["MapUpdate",0];
+ostm.NotificationType.MapUpdate.toString = $estr;
+ostm.NotificationType.MapUpdate.__enum__ = ostm.NotificationType;
+ostm.NotificationType.StatUpdate = ["StatUpdate",1];
+ostm.NotificationType.StatUpdate.toString = $estr;
+ostm.NotificationType.StatUpdate.__enum__ = ostm.NotificationType;
+ostm.NotificationType.__empty_constructs__ = [ostm.NotificationType.MapUpdate,ostm.NotificationType.StatUpdate];
+ostm.NotificationReceiver = function() { };
+ostm.NotificationReceiver.__name__ = true;
+ostm.NotificationReceiver.prototype = {
+	__class__: ostm.NotificationReceiver
+};
+ostm.NotificationManager = function() {
+	this._pendingNotifications = [];
+	this._registeredObjects = new haxe.ds.EnumValueMap();
+	jengine.Component.call(this);
+};
+ostm.NotificationManager.__name__ = true;
+ostm.NotificationManager.__super__ = jengine.Component;
+ostm.NotificationManager.prototype = $extend(jengine.Component.prototype,{
+	init: function() {
+		ostm.NotificationManager.instance = this;
+	}
+	,update: function() {
+		var _g = 0;
+		var _g1 = this._pendingNotifications;
+		while(_g < _g1.length) {
+			var notif = _g1[_g];
+			++_g;
+			var toFire = this._registeredObjects.get(notif);
+			if(toFire != null) {
+				var _g2 = 0;
+				var _g3 = this._registeredObjects.get(notif);
+				while(_g2 < _g3.length) {
+					var obj = _g3[_g2];
+					++_g2;
+					obj.receivedNotification(notif);
+				}
+			}
+		}
+		this._pendingNotifications = [];
+	}
+	,register: function(receiver,notif) {
+		if(this._registeredObjects.get(notif) == null) {
+			var v = [];
+			this._registeredObjects.set(notif,v);
+			v;
+		}
+		this._registeredObjects.get(notif).push(receiver);
+	}
+	,queueNotification: function(notif) {
+		if(HxOverrides.indexOf(this._pendingNotifications,notif,0) == -1) this._pendingNotifications.push(notif);
+	}
+	,__class__: ostm.NotificationManager
+});
 ostm.ProgressBar = function(func,style) {
 	jengine.Component.call(this);
 	this._func = func;
@@ -1400,6 +1476,9 @@ ostm.TownManager.prototype = $extend(jengine.Component.prototype,{
 	,start: function() {
 		var _g = this;
 		jengine.SaveManager.instance.addItem(this);
+		this._townScreen = window.document.getElementById("town-screen");
+		this._shopClock = window.document.getElementById("town-shop-clock");
+		this._capacityPrice = window.document.getElementById("town-shop-capacity-price");
 		this._warpButton = window.document.getElementById("town-warp-button");
 		this._warpButton.onclick = function(event) {
 			_g.shouldWarp = !_g.shouldWarp;
@@ -1425,13 +1504,14 @@ ostm.TownManager.prototype = $extend(jengine.Component.prototype,{
 			if(price1 <= player1.gems) {
 				player1.addGems(-price1);
 				ostm.item.Inventory.instance.upgradeCapacity();
+				_g.updateCapacityPrice();
 			}
 		};
+		this.updateCapacityPrice();
 	}
 	,update: function() {
 		var mapNode = ostm.map.MapGenerator.instance.selectedNode;
 		var inTown = mapNode.isTown();
-		if(inTown) window.document.getElementById("town-screen").style.display = ""; else window.document.getElementById("town-screen").style.display = "none";
 		if(!inTown) {
 			this.shouldWarp = false;
 			this.updateWarpButton();
@@ -1444,11 +1524,14 @@ ostm.TownManager.prototype = $extend(jengine.Component.prototype,{
 			}
 			if(shop.generateTime + 300 <= jengine.Time.get_raw()) this.generateItems(mapNode);
 			var refreshTime = Math.round(shop.generateTime + 300 - jengine.Time.get_raw());
-			window.document.getElementById("town-shop-clock").innerText = jengine.util.Util.format(refreshTime);
-			if(mapNode != this._lastNode) this.updateShopHtml(mapNode);
+			this._shopClock.innerText = jengine.util.Util.format(refreshTime);
+			if(mapNode != this._lastNode) {
+				this.updateShopHtml(mapNode);
+				this.updateCapacityPrice();
+			}
 			this.updateRestockPrice(mapNode);
-			window.document.getElementById("town-shop-capacity-price").innerText = jengine.util.Util.format(ostm.item.Inventory.instance.capacityUpgradeCost());
 		}
+		if(inTown) this._townScreen.style.display = ""; else this._townScreen.style.display = "none";
 		this._lastNode = mapNode;
 	}
 	,generateItems: function(mapNode) {
@@ -1491,8 +1574,8 @@ ostm.TownManager.prototype = $extend(jengine.Component.prototype,{
 						if(ostm.item.Inventory.instance.hasSpaceForItem() && player.gold >= price) {
 							player.addGold(-price);
 							HxOverrides.remove(items,item[0]);
+							item[0].cleanupElement();
 							ostm.item.Inventory.instance.push(item[0]);
-							ostm.item.Inventory.instance.updateInventoryHtml();
 							_g2.updateShopHtml(mapNode);
 						}
 					};
@@ -1519,6 +1602,9 @@ ostm.TownManager.prototype = $extend(jengine.Component.prototype,{
 	,updateRestockPrice: function(mapNode) {
 		var label = window.document.getElementById("town-shop-restock-price");
 		label.innerText = jengine.util.Util.format(this.restockPrice(mapNode));
+	}
+	,updateCapacityPrice: function() {
+		this._capacityPrice.innerText = jengine.util.Util.format(ostm.item.Inventory.instance.capacityUpgradeCost());
 	}
 	,serialize: function() {
 		var shops = new Array();
@@ -2919,36 +3005,51 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		ostm.item.Inventory.instance = this;
 	}
 	,start: function() {
-		this.updateInventoryHtml();
+		this.refreshInventoryHtml();
 		jengine.SaveManager.instance.addItem(this);
 	}
-	,updateInventoryHtml: function() {
-		var _g = this;
-		var _g1 = 0;
-		var _g11 = this._inventory;
-		while(_g1 < _g11.length) {
-			var item = _g11[_g1];
-			++_g1;
+	,refreshInventoryHtml: function() {
+		var _g2 = this;
+		var _g = 0;
+		var _g1 = this._inventory;
+		while(_g < _g1.length) {
+			var item = _g1[_g];
+			++_g;
 			item.cleanupElement();
 		}
 		var inventory = window.document.getElementById("inventory");
 		while(inventory.childElementCount > 0) inventory.removeChild(inventory.firstChild);
-		var count;
 		var _this = window.document;
-		count = _this.createElement("li");
-		count.innerText = "Capacity: " + this._inventory.length + " / " + this.capacity();
-		inventory.appendChild(count);
-		var sortBtn;
-		var _this1 = window.document;
-		sortBtn = _this1.createElement("button");
-		sortBtn.innerText = "Sort Value";
-		sortBtn.onclick = function(event) {
-			_g._inventory.sort(function(it1,it2) {
-				return -Reflect.compare(it1.buyValue(),it2.buyValue());
-			});
-			_g.updateInventoryHtml();
-		};
-		inventory.appendChild(sortBtn);
+		this._capacityElem = _this.createElement("li");
+		inventory.appendChild(this._capacityElem);
+		this.updateCapacityElem();
+		var sortTexts = ["Value","Power"];
+		var sortFuncs = [function(item1) {
+			return item1.buyValue();
+		},function(item2) {
+			return item2.powerDelta();
+		}];
+		var _g11 = 0;
+		var _g3 = sortTexts.length;
+		while(_g11 < _g3) {
+			var i = _g11++;
+			var sortBtn;
+			var _this1 = window.document;
+			sortBtn = _this1.createElement("button");
+			sortBtn.innerText = "Sort " + sortTexts[i];
+			var f = [sortFuncs[i]];
+			sortBtn.onclick = (function(f) {
+				return function(event) {
+					_g2._inventory.sort((function(f) {
+						return function(it1,it2) {
+							return -Reflect.compare(f[0](it1),f[0](it2));
+						};
+					})(f));
+					_g2.refreshInventoryHtml();
+				};
+			})(f);
+			inventory.appendChild(sortBtn);
+		}
 		inventory.appendChild((function($this) {
 			var $r;
 			var _this2 = window.document;
@@ -2958,25 +3059,25 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		var discardTexts = ["Basic","Magic","All"];
 		var discardAffixes = [0,2,999];
 		var _g12 = 0;
-		var _g2 = discardTexts.length;
-		while(_g12 < _g2) {
-			var i = [_g12++];
+		var _g4 = discardTexts.length;
+		while(_g12 < _g4) {
+			var i1 = [_g12++];
 			var clear;
 			var _this3 = window.document;
 			clear = _this3.createElement("button");
-			clear.innerText = "Discard " + discardTexts[i[0]];
-			clear.onclick = (function(i) {
+			clear.innerText = "Discard " + discardTexts[i1[0]];
+			clear.onclick = (function(i1) {
 				return function(event1) {
-					var inv = _g._inventory.slice();
-					var _g21 = 0;
-					while(_g21 < inv.length) {
-						var item1 = inv[_g21];
-						++_g21;
-						if(item1.numAffixes() <= discardAffixes[i[0]]) item1.discard();
+					var inv = _g2._inventory.slice();
+					var _g31 = 0;
+					while(_g31 < inv.length) {
+						var item3 = inv[_g31];
+						++_g31;
+						if(item3.numAffixes() <= discardAffixes[i1[0]]) item3.discard();
 					}
-					_g.updateInventoryHtml();
+					_g2.refreshInventoryHtml();
 				};
-			})(i);
+			})(i1);
 			inventory.appendChild(clear);
 		}
 		inventory.appendChild((function($this) {
@@ -2985,12 +3086,12 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 			$r = _this4.createElement("br");
 			return $r;
 		}(this)));
-		var _g3 = 0;
+		var _g5 = 0;
 		var _g13 = this._inventory;
-		while(_g3 < _g13.length) {
-			var item2 = _g13[_g3];
-			++_g3;
-			this.appendItemHtml(item2);
+		while(_g5 < _g13.length) {
+			var item4 = _g13[_g5];
+			++_g5;
+			this.appendItemHtml(item4);
 		}
 	}
 	,appendItemHtml: function(item) {
@@ -3001,11 +3102,11 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 			var _g = new haxe.ds.StringMap();
 			_g.set("Equip",function(event) {
 				item.equip();
-				_g1.updateInventoryHtml();
+				_g1.refreshInventoryHtml();
 			});
 			_g.set("Discard",function(event1) {
 				item.discard();
-				_g1.updateInventoryHtml();
+				_g1.refreshInventoryHtml();
 			});
 			$r = _g;
 			return $r;
@@ -3014,6 +3115,8 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 	}
 	,push: function(item) {
 		this._inventory.push(item);
+		this.appendItemHtml(item);
+		this.updateCapacityElem();
 	}
 	,remove: function(item) {
 		HxOverrides.remove(this._inventory,item);
@@ -3021,6 +3124,10 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 	,swap: function(item,forItem) {
 		var i = HxOverrides.indexOf(this._inventory,item,0);
 		if(i >= 0 && i < this._inventory.length) this._inventory[i] = forItem;
+	}
+	,updateCapacityElem: function() {
+		var str = "Capacity: " + this._inventory.length + " / " + this.capacity();
+		this._capacityElem.innerText = str;
 	}
 	,capacity: function() {
 		return 10 + this._sizeUpgrades;
@@ -3030,7 +3137,7 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 	}
 	,upgradeCapacity: function() {
 		this._sizeUpgrades++;
-		this.updateInventoryHtml();
+		this.updateCapacityElem();
 	}
 	,hasSpaceForItem: function() {
 		return this._inventory.length < this.capacity();
@@ -3075,14 +3182,11 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		var maxLevel = enemy.level;
 		var dropRate = 0.35;
 		dropRate *= 1 + mod.percentItemDropRate / 100;
-		var didAdd = false;
 		while((dropRate >= 1 || jengine.util.Random.randomBool(dropRate)) && this.hasSpaceForItem()) {
 			var rarityMult = 1 + mod.percentItemRarity / 100;
-			this._inventory.push(this.randomItem(maxLevel,rarityMult));
-			didAdd = true;
+			this.push(this.randomItem(maxLevel,rarityMult));
 			dropRate -= 1;
 		}
-		if(didAdd) this.updateInventoryHtml();
 	}
 	,serialize: function() {
 		return { items : this._inventory.map(function(item) {
@@ -3095,7 +3199,7 @@ ostm.item.Inventory.prototype = $extend(jengine.Component.prototype,{
 		});
 		this._sizeUpgrades = data.size;
 		if(jengine.SaveManager.instance.loadedVersion < 2) this._sizeUpgrades = 0;
-		window.setTimeout($bind(this,this.updateInventoryHtml),0);
+		window.setTimeout($bind(this,this.refreshInventoryHtml),0);
 	}
 	,__class__: ostm.item.Inventory
 });
@@ -3176,7 +3280,6 @@ ostm.item.Item.prototype = {
 		if(cur == this && ostm.item.Inventory.instance.hasSpaceForItem()) {
 			player.unequip(this);
 			ostm.item.Inventory.instance.push(this);
-			ostm.item.Inventory.instance.updateInventoryHtml();
 		}
 	}
 	,getColor: function() {
@@ -3315,13 +3418,13 @@ ostm.item.Item.prototype = {
 		powElem = _this13.createElement("li");
 		var oldPow = player.power();
 		var newPow = player.powerIfEquipped(this);
-		var deltaPow = newPow - oldPow;
+		this._cachedPowerDelta = newPow - oldPow;
 		var powStr = "Power: ";
-		if(deltaPow > 0) {
+		if(this._cachedPowerDelta > 0) {
 			powElem.className = "item-power-increase";
 			powStr += "+";
-		} else if(deltaPow < 0) powElem.className = "item-power-decrease";
-		powStr += jengine.util.Util.format(deltaPow);
+		} else if(this._cachedPowerDelta < 0) powElem.className = "item-power-decrease";
+		powStr += jengine.util.Util.format(this._cachedPowerDelta);
 		powElem.innerText = powStr;
 		this._body.appendChild(powElem);
 		var buy;
@@ -3334,7 +3437,7 @@ ostm.item.Item.prototype = {
 		sell = _this15.createElement("li");
 		sell.innerText = "Sell Price: " + jengine.util.Util.shortFormat(this.sellValue());
 		this._body.appendChild(sell);
-		if(deltaPow > 0) {
+		if(this._cachedPowerDelta > 0) {
 			var eqHint;
 			var _this16 = window.document;
 			eqHint = _this16.createElement("div");
@@ -3436,6 +3539,9 @@ ostm.item.Item.prototype = {
 	,numAffixes: function() {
 		return this.affixes.length;
 	}
+	,powerDelta: function() {
+		return this._cachedPowerDelta;
+	}
 	,get_tier: function() {
 		return Math.floor(this.level / 5);
 	}
@@ -3525,6 +3631,9 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		this.setSelected(this._start);
 		this.updateScrollBounds();
 		this.centerCurrentNode();
+		window.setTimeout(function() {
+			ostm.NotificationManager.instance.queueNotification(ostm.NotificationType.MapUpdate);
+		},0);
 	}
 	,update: function() {
 		var _g = this;
@@ -3590,6 +3699,9 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		});
 		this.updateScrollBounds();
 		this.centerCurrentNode();
+		window.setTimeout(function() {
+			ostm.NotificationManager.instance.queueNotification(ostm.NotificationType.MapUpdate);
+		},0);
 	}
 	,generateSurroundingCells: function(i,j) {
 		var p = this.getGridCoord(i,j);
@@ -3859,6 +3971,7 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		var path = this.findPath(this.selectedNode,node);
 		if(path == null) return;
 		this.setPath(path);
+		ostm.NotificationManager.instance.queueNotification(ostm.NotificationType.MapUpdate);
 	}
 	,hover: function(node) {
 		var path = this.findPath(this.selectedNode,node);
@@ -3870,11 +3983,13 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 				n.setPathHighlight(path);
 			}
 		}
+		ostm.NotificationManager.instance.queueNotification(ostm.NotificationType.MapUpdate);
 	}
 	,hoverOver: function(node) {
 		this.forAllNodes(function(node1) {
 			node1.clearPathHighlight();
 		});
+		ostm.NotificationManager.instance.queueNotification(ostm.NotificationType.MapUpdate);
 	}
 	,forAllNodes: function(f) {
 		var $it0 = this._generated.iterator();
@@ -4059,6 +4174,9 @@ ostm.map.MapGenerator.prototype = $extend(jengine.Component.prototype,{
 		if(chk != null) this._checkpoint = chk;
 		this.updateScrollBounds();
 		this.centerCurrentNode();
+		window.setTimeout(function() {
+			ostm.NotificationManager.instance.queueNotification(ostm.NotificationType.MapUpdate);
+		},0);
 	}
 	,__class__: ostm.map.MapGenerator
 });
@@ -4083,6 +4201,7 @@ ostm.map.MapNode = function(gen,d,h,par) {
 	}
 };
 ostm.map.MapNode.__name__ = true;
+ostm.map.MapNode.__interfaces__ = [ostm.NotificationReceiver];
 ostm.map.MapNode.__super__ = ostm.GameNode;
 ostm.map.MapNode.prototype = $extend(ostm.GameNode.prototype,{
 	setHint: function(hint) {
@@ -4096,6 +4215,7 @@ ostm.map.MapNode.prototype = $extend(ostm.GameNode.prototype,{
 	}
 	,start: function() {
 		ostm.GameNode.prototype.start.call(this);
+		ostm.NotificationManager.instance.register(this,ostm.NotificationType.MapUpdate);
 	}
 	,postStart: function() {
 		if(this._isOccupied) this.map.centerCurrentNode();
@@ -4108,8 +4228,9 @@ ostm.map.MapNode.prototype = $extend(ostm.GameNode.prototype,{
 		node = js.Boot.__cast(line.node , ostm.map.MapNode);
 		return (HxOverrides.indexOf(path,this,0) != -1 || HxOverrides.indexOf(path,node,0) != -1) && (node._highlightedPath == path || node._selectedPath == path);
 	}
-	,update: function() {
-		if(this._dirtyFlag) {
+	,receivedNotification: function(notification) {
+		if(notification == ostm.NotificationType.MapUpdate && this._dirtyFlag) {
+			this._dirtyFlag = false;
 			var color = this.getColor().asHtml();
 			var borderColor = "#000000";
 			var isHighlighted = true;
@@ -4149,7 +4270,6 @@ ostm.map.MapNode.prototype = $extend(ostm.GameNode.prototype,{
 				line.elem.style.background = lineColor;
 				line.elem.style.width = lineWidth;
 			}
-			this._dirtyFlag = false;
 		}
 	}
 	,getColor: function() {
@@ -4684,7 +4804,7 @@ ostm.skill.SkillNode.prototype = $extend(ostm.GameNode.prototype,{
 	,onMouseOver: function(event) {
 		this._description.style.display = "";
 		this._description.style.left = event.x - 275;
-		this._description.style.top = event.y;
+		this._description.style.top = event.y - 120;
 	}
 	,onMouseOut: function(event) {
 		this._description.style.display = "none";
@@ -4786,7 +4906,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g2.set(ostm.item.ItemSlot.Weapon,1.0);
 	$r = _g2;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "flat-crit-rating", base : 4, perLevel : 2, modifierFunc : function(value3,mod3) {
+}(this))}),new ostm.item.AffixType({ id : "flat-crit-rating", base : 4, perLevel : 2, levelPower : 0.65, modifierFunc : function(value3,mod3) {
 	mod3.localFlatCritRating += value3;
 }, multipliers : (function($this) {
 	var $r;
@@ -4821,6 +4941,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	var $r;
 	var _g6 = new haxe.ds.EnumValueMap();
 	_g6.set(ostm.item.ItemSlot.Body,1.0);
+	_g6.set(ostm.item.ItemSlot.Helmet,0.5);
 	_g6.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g6;
 	return $r;
@@ -4829,6 +4950,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 }, multipliers : (function($this) {
 	var $r;
 	var _g7 = new haxe.ds.EnumValueMap();
+	_g7.set(ostm.item.ItemSlot.Body,0.5);
 	_g7.set(ostm.item.ItemSlot.Helmet,1.0);
 	$r = _g7;
 	return $r;
@@ -4854,7 +4976,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	_g9.set(ostm.item.ItemSlot.Jewel,0.5);
 	$r = _g9;
 	return $r;
-}(this))}),new ostm.item.AffixType({ id : "percent-mp-regen", base : 10, perLevel : 3, modifierFunc : function(value10,mod10) {
+}(this))}),new ostm.item.AffixType({ id : "percent-mp-regen", base : 10, perLevel : 3, levelPower : 0.85, modifierFunc : function(value10,mod10) {
 	mod10.percentManaRegen += value10;
 }, multipliers : (function($this) {
 	var $r;
@@ -4898,6 +5020,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 	var $r;
 	var _g14 = new haxe.ds.EnumValueMap();
 	_g14.set(ostm.item.ItemSlot.Weapon,1.0);
+	_g14.set(ostm.item.ItemSlot.Gloves,0.5);
 	_g14.set(ostm.item.ItemSlot.Ring,0.5);
 	$r = _g14;
 	return $r;
@@ -4975,6 +5098,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 }, multipliers : (function($this) {
 	var $r;
 	var _g21 = new haxe.ds.EnumValueMap();
+	_g21.set(ostm.item.ItemSlot.Helmet,0.5);
 	_g21.set(ostm.item.ItemSlot.Jewel,1.0);
 	$r = _g21;
 	return $r;
@@ -4983,6 +5107,7 @@ ostm.item.AffixData.affixTypes = [new ostm.item.AffixType({ id : "flat-attack", 
 }, multipliers : (function($this) {
 	var $r;
 	var _g22 = new haxe.ds.EnumValueMap();
+	_g22.set(ostm.item.ItemSlot.Ring,0.5);
 	_g22.set(ostm.item.ItemSlot.Jewel,1.0);
 	$r = _g22;
 	return $r;
