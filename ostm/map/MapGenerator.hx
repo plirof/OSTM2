@@ -190,7 +190,9 @@ class MapGenerator extends Component
         updateScrollBounds();
         centerCurrentNode();
 
-        NotificationManager.instance.queueNotification(MapUpdate);
+        Browser.window.setTimeout(function() {
+            NotificationManager.instance.queueNotification(MapUpdate);
+        }, 0);
     }
 
     function generateSurroundingCells(i :Int, j :Int) :Void {

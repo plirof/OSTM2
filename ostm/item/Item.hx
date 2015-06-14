@@ -26,6 +26,7 @@ class Item {
     var _elem :Element;
     var _body :Element;
     var _buttons :Element;
+    var _cachedPowerDelta :Int;
 
     static inline var kTierLevels :Int = 5;
 
@@ -236,16 +237,16 @@ class Item {
         var powElem = Browser.document.createLIElement();
         var oldPow = player.power();
         var newPow = player.powerIfEquipped(this);
-        var deltaPow = newPow - oldPow;
+        _cachedPowerDelta = newPow - oldPow;
         var powStr = 'Power: ';
-        if (deltaPow > 0) {
+        if (_cachedPowerDelta > 0) {
             powElem.className = 'item-power-increase';
             powStr += '+';
         }
-        else if (deltaPow < 0) {
+        else if (_cachedPowerDelta < 0) {
             powElem.className = 'item-power-decrease';
         }
-        powStr += Util.format(deltaPow);
+        powStr += Util.format(_cachedPowerDelta);
         powElem.innerText = powStr;
         _body.appendChild(powElem);
 
@@ -256,7 +257,7 @@ class Item {
         sell.innerText = 'Sell Price: ' + Util.shortFormat(sellValue());
         _body.appendChild(sell);
 
-        if (deltaPow > 0) {
+        if (_cachedPowerDelta > 0) {
             var eqHint = Browser.document.createDivElement();
             eqHint.className = 'item-equip-hint';
             _elem.appendChild(eqHint);
@@ -362,6 +363,10 @@ class Item {
 
     public function numAffixes() :Int {
         return affixes.length;
+    }
+
+    public function powerDelta() :Int {
+        return _cachedPowerDelta;
     }
 
     function get_tier() :Int {

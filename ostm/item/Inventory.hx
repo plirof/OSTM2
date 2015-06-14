@@ -48,15 +48,23 @@ class Inventory extends Component
         inventory.appendChild(_capacityElem);
         updateCapacityElem();
 
-        var sortBtn = Browser.document.createButtonElement();
-        sortBtn.innerText = 'Sort Value';
-        sortBtn.onclick = function (event) {
-            _inventory.sort(function(it1, it2) {
-                return -Reflect.compare(it1.buyValue(), it2.buyValue());
-            });
-            refreshInventoryHtml();
-        };
-        inventory.appendChild(sortBtn);
+        var sortTexts = ['Value', 'Power'];
+        var sortFuncs = [
+            function(item :Item) { return item.buyValue(); },
+            function(item :Item) { return item.powerDelta(); },
+        ];
+        for (i in 0...sortTexts.length) {
+            var sortBtn = Browser.document.createButtonElement();
+            sortBtn.innerText = 'Sort ' + sortTexts[i];
+            var f = sortFuncs[i];
+            sortBtn.onclick = function (event) {
+                _inventory.sort(function(it1, it2) {
+                    return -Reflect.compare(f(it1), f(it2));
+                });
+                refreshInventoryHtml();
+            };
+            inventory.appendChild(sortBtn);
+        }
 
         inventory.appendChild(Browser.document.createBRElement());
 
