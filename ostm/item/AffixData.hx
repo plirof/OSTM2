@@ -44,6 +44,7 @@ class AffixData {
             id: 'flat-crit-rating',
             base: 4,
             perLevel: 2,
+            levelPower: 0.65,
             modifierFunc: function(value, mod) {
                 mod.localFlatCritRating += value;
             },
@@ -75,7 +76,7 @@ class AffixData {
             modifierFunc: function(value, mod) {
                 mod.flatHealthRegen += value;
             },
-            multipliers: [ Body => 1.0, Ring => 0.5 ]
+            multipliers: [ Body => 1.0, Helmet => 0.5, Ring => 0.5 ]
         }),
         new AffixType({
             id: 'percent-hp',
@@ -85,7 +86,7 @@ class AffixData {
             modifierFunc: function(value, mod) {
                 mod.percentHealth += value;
             },
-            multipliers: [ Helmet => 1.0 ]
+            multipliers: [ Body => 0.5, Helmet => 1.0 ]
         }),
         new AffixType({
             id: 'flat-mp',
@@ -111,6 +112,7 @@ class AffixData {
             id: 'percent-mp-regen',
             base: 10,
             perLevel: 3,
+            levelPower: 0.85,
             modifierFunc: function(value, mod) {
                 mod.percentManaRegen += value;
             },
@@ -151,7 +153,7 @@ class AffixData {
             modifierFunc: function(value, mod) {
                 mod.percentCritDamage += value;
             },
-            multipliers: [ Weapon => 1.0, Ring => 0.5 ]
+            multipliers: [ Weapon => 1.0, Gloves => 0.5, Ring => 0.5 ]
         }),
         new AffixType({
             id: 'percent-move-speed',
@@ -220,7 +222,7 @@ class AffixData {
             modifierFunc: function(value, mod) {
                 mod.percentXpGained += value;
             },
-            multipliers: [ Jewel => 1.0 ],
+            multipliers: [ Helmet => 0.5, Jewel => 1.0 ],
         }),
         new AffixType({
             id: 'gold-gain',
@@ -230,7 +232,7 @@ class AffixData {
             modifierFunc: function(value, mod) {
                 mod.percentGoldGained += value;
             },
-            multipliers: [ Jewel => 1.0 ],
+            multipliers: [ Ring => 0.5, Jewel => 1.0 ],
         }),
         new AffixType({
             id: 'gem-drop',

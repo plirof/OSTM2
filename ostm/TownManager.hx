@@ -80,10 +80,10 @@ class TownManager extends Component
             if (price <= player.gems) {
                 player.addGems(-price);
                 Inventory.instance.upgradeCapacity();
-                _capacityPrice.innerText = Util.format(Inventory.instance.capacityUpgradeCost());
+                updateCapacityPrice();
             }
         };
-        _capacityPrice.innerText = Util.format(Inventory.instance.capacityUpgradeCost());
+        updateCapacityPrice();
     }
 
     public override function update() :Void {
@@ -112,6 +112,7 @@ class TownManager extends Component
 
             if (mapNode != _lastNode) {
                 updateShopHtml(mapNode);
+                updateCapacityPrice();
             }
             updateRestockPrice(mapNode);
         }
@@ -184,6 +185,10 @@ class TownManager extends Component
     function updateRestockPrice(mapNode :MapNode) :Void {
         var label = Browser.document.getElementById('town-shop-restock-price');
         label.innerText = Util.format(restockPrice(mapNode));
+    }
+
+    function updateCapacityPrice() :Void {
+        _capacityPrice.innerText = Util.format(Inventory.instance.capacityUpgradeCost());
     }
 
     public function serialize() :Dynamic {
