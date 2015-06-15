@@ -151,6 +151,13 @@ class BattleMember implements Saveable {
                     passive.sumAffixes(_cachedStatMod);
                 }
             }
+            else { // is enemy
+                _cachedStatMod.percentAttack = 5 * level;
+                _cachedStatMod.percentCritRating = 2 * level;
+                _cachedStatMod.percentHealth = Math.round(1.5 * level);
+                _cachedStatMod.percentDefense = 2 * level;
+                _cachedStatMod.percentAttackSpeed = 1 * level;
+            }
         }
         return _cachedStatMod;
     }
