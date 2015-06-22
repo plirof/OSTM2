@@ -15,24 +15,14 @@ html {
 }
 
 .title {
-    left: 50px;
-    top: 20px;
     font-size: 36px;
 }
 .version {
-    left: 200px;
-    top: 30px;
     font-size: 24px;
 }
 .changelog {
-    position: absolute;
-    left: 295px;
-    top: 28px;
 }
 .subreddit {
-    position: absolute;
-    left: 295px;
-    top: 46px;
 }
 a {
     color: #bbbbbb;
@@ -44,9 +34,9 @@ a:hover {
 }
 
 .alpha-warning {
-    left: 40px;
+/*    left: 40px;
     top: 64px;
-    font-size: 16px;
+*/    font-size: 16px;
     font-style: italic;
     color: #ff6666;
 }
@@ -54,27 +44,27 @@ a:hover {
 #game-header {
     position: absolute;
     left: 0px;
-    right: 0px;
     top: 0px;
-    height: 100px;
+    bottom: 0px;
+    width: 240px;
     background: #cccccc;
     overflow: auto;
 }
 
 #game-body {
     position: absolute;
-    left: 0px;
+    left: 240px;
     right: 0px;
-    top: 100px;
+    top: 0px;
     bottom: 0px;
     overflow: auto;
 }
 
-div {
+#game-body div {
     position: absolute;
-    left: 0px;
+/*    left: 0px;
     top: 0px;
-}
+*/}
 
 li {
     display: block;
@@ -228,10 +218,6 @@ li {
 }
 
 #header-button-container {
-    position: absolute;
-    left: 475px;
-    right: 0px;
-    height: 100%;
     overflow: auto;
 }
 #header-button-container button {
