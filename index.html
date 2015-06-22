@@ -30,48 +30,42 @@
         </div>
     </div>
     <div id="game-body">
-        <div id="column-1" class="column">
-            <div id="stat-screen" class="screen">
-                <span id='stats'></span>
-            </div>
-            <div id="equip-screen" class="screen"></div>
+        <div id="stat-screen" class="screen">
+            <span id='stats'></span>
         </div>
-        <div id="column-2" class="column">
-            <div id="main-screen" class="screen">
-                <div id="battle-screen" class="screen"></div>
-                <div id="town-screen" class="screen">
-                    <span>Town!</span>
+        <div id="equip-screen" class="screen"></div>
+        <div id="main-screen" class="screen">
+            <div id="battle-screen" class="screen"></div>
+            <div id="town-screen" class="screen">
+                <span>Town!</span>
+                <br />
+                <span>Shop:
+                    <ul id="town-shop"></ul>
+                    <span>Restocks in <span id="town-shop-clock"></span>s</span>
                     <br />
-                    <span>Shop:
-                        <ul id="town-shop"></ul>
-                        <span>Restocks in <span id="town-shop-clock"></span>s</span>
-                        <br />
-                        <span><button id="town-shop-restock-button">Restock now</button> Price: <span id="town-shop-restock-price"></span>G</span>
-                        <br />
-                        <span><button id="town-shop-capacity-button">Buy Inventory Slot</button> Price: <span id="town-shop-capacity-price"></span>Gem</span>
-                    </span>
+                    <span><button id="town-shop-restock-button">Restock now</button> Price: <span id="town-shop-restock-price"></span>G</span>
                     <br />
-                    <span>Warp? <button id="town-warp-button"></button></span>
-                    <br />
-                    <span id="town-rebirth">Rebirth? <button id="town-rebirth-button">Rebirth</button>
-                        <ul>
-                            <li>Current Rebirth Points: <span id="town-rebirth-points"></span></li>
-                            <li>Stored Levels: <span id="town-rebirth-levels"></span></li>
-                            <li>Points Gained on Rebirth: <span id="town-rebirth-points-gained"></span></li>
-                            <li>Levels to Next Point: <span id="town-rebirth-next"></span></li>
-                        </ul>
-                    </span>
-                </div>
-            </div>
-            <div id="inventory-screen" class="screen">
-                Inventory:
-                <span id='inventory'></span>
+                    <span><button id="town-shop-capacity-button">Buy Inventory Slot</button> Price: <span id="town-shop-capacity-price"></span>Gem</span>
+                </span>
+                <br />
+                <span>Warp? <button id="town-warp-button"></button></span>
+                <br />
+                <span id="town-rebirth">Rebirth? <button id="town-rebirth-button">Rebirth</button>
+                    <ul>
+                        <li>Current Rebirth Points: <span id="town-rebirth-points"></span></li>
+                        <li>Stored Levels: <span id="town-rebirth-levels"></span></li>
+                        <li>Points Gained on Rebirth: <span id="town-rebirth-points-gained"></span></li>
+                        <li>Levels to Next Point: <span id="town-rebirth-next"></span></li>
+                    </ul>
+                </span>
             </div>
         </div>
-        <div id="column-3" class="column">
-            <div id="map-screen" class="screen"></div>
-            <div id="skill-screen" class="screen"></div>
+        <div id="inventory-screen" class="screen">
+            Inventory:
+            <span id='inventory'></span>
         </div>
+        <div id="map-screen" class="screen"></div>
+        <div id="skill-screen" class="screen"></div>
     </div>
 
     <link type="text/css" rel="stylesheet" href="style.css" />
