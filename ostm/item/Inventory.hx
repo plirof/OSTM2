@@ -183,6 +183,14 @@ class Inventory extends Component
         }
     }
 
+    public function discardAll() :Void {
+        for (item in _inventory) {
+            item.discard();
+        }
+        _inventory = [];
+        refreshInventoryHtml();
+    }
+
     public function serialize() :Dynamic {
         return {
             items: _inventory.map(function (item) { return item.serialize(); }),

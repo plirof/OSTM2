@@ -60,6 +60,13 @@ class TownManager extends Component
         };
         updateWarpButton();
 
+        var rebirthButton = Browser.document.getElementById('town-rebirth-button');
+        rebirthButton.onclick = function(event) {
+            var player = BattleManager.instance.getPlayer();
+            player.doRebirth();
+            updateRebirthInfo();
+        };
+
         var restockButton = Browser.document.getElementById('town-shop-restock-button');
         restockButton.onclick = function(event) {
             var player = BattleManager.instance.getPlayer();
@@ -83,7 +90,6 @@ class TownManager extends Component
                 updateCapacityPrice();
             }
         };
-        updateCapacityPrice();
     }
 
     public override function update() :Void {
@@ -113,6 +119,7 @@ class TownManager extends Component
             if (mapNode != _lastNode) {
                 updateShopHtml(mapNode);
                 updateCapacityPrice();
+                updateRebirthInfo();
             }
             updateRestockPrice(mapNode);
         }
@@ -189,6 +196,28 @@ class TownManager extends Component
 
     function updateCapacityPrice() :Void {
         _capacityPrice.innerText = Util.format(Inventory.instance.capacityUpgradeCost());
+    }
+
+    function updateRebirthInfo() :Void {
+        var player = BattleManager.instance.getPlayer();
+        var canRebirth = player.level >= 50;
+        var rebirthElem = Browser.document.getElementById('town-rebirth');
+        rebirthElem.style.display = canRebirth ? '' : 'none';
+        if (!canRebirth) {
+            return;
+        }
+
+        var pointElem = Browser.document.getElementById('town-rebirth-points');
+        pointElem.innerText = Util.format(player.rebirthSkillPoints());
+
+        var levelElem = Browser.document.getElementById('town-rebirth-levels');
+        levelElem.innerText = Util.format(player.storedLevels);
+        
+        var gainElem = Browser.document.getElementById('town-rebirth-points-gained');
+        gainElem.innerText = Util.format(player.pointsGainedOnRebirth());
+
+        var nextElem = Browser.document.getElementById('town-rebirth-next');
+        nextElem.innerText = Util.format(player.levelsToNextRebirthPoint());
     }
 
     public function serialize() :Dynamic {

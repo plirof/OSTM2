@@ -8,9 +8,11 @@ import jengine.Time;
 import jengine.util.Random;
 
 import ostm.item.Affix;
+import ostm.item.Inventory;
 import ostm.item.Item;
 import ostm.item.ItemData;
 import ostm.item.ItemType;
+import ostm.map.MapGenerator;
 import ostm.skill.PassiveSkill;
 import ostm.skill.SkillTree;
 
@@ -30,6 +32,7 @@ class BattleMember implements Saveable {
     public var equipment = new Map<ItemSlot, Item>();
 
     public var level :Int;
+    public var storedLevels :Int = 0;
 
     public var xp :Int = 0;
     public var gold :Int = 0;
@@ -61,11 +64,7 @@ class BattleMember implements Saveable {
         this.isPlayer = isPlayer;
         if (this.isPlayer) {
             this.saveId = 'player';
-            var swordType = ItemData.getItemType('sword');
-            if (swordType != null) {
-                var sword = new Item(swordType, 1);
-                equipment[ItemSlot.Weapon] = sword;
-            }
+            giveStartingItem();
             SaveManager.instance.addItem(this);
         }
     }
@@ -76,6 +75,34 @@ class BattleMember implements Saveable {
         _cachedStatMod = null;
         
         untyped ga('send', 'event', 'player', 'level-up', '', level);
+    }
+
+    public function doRebirth() :Void {
+        storedLevels += level;
+
+        SkillTree.instance.doRespec();
+        Inventory.instance.discardAll();
+        MapGenerator.instance.returnToStart();
+
+        level = 1;
+        xp = 0;
+        gold = 0;
+        for (k in equipment.keys()) {
+            equipment[k] = null;
+        }
+        giveStartingItem();
+
+        updateCachedAffixes();
+
+        untyped ga('send', 'event', 'player', 'rebirth', '', level);
+    }
+
+    function giveStartingItem() :Void {
+        var swordType = ItemData.getItemType('sword');
+        if (swordType != null) {
+            var sword = new Item(swordType, 1);
+            equipment[ItemSlot.Weapon] = sword;
+        }
     }
 
     public function addXp(xp :Int) :Void {
@@ -152,9 +179,9 @@ class BattleMember implements Saveable {
                 }
             }
             else { // is enemy
-                _cachedStatMod.percentAttack = 5 * level;
+                _cachedStatMod.percentAttack = 6 * level;
                 _cachedStatMod.percentCritRating = 2 * level;
-                _cachedStatMod.percentHealth = Math.round(1.5 * level);
+                _cachedStatMod.percentHealth = Math.round(2.5 * level);
                 _cachedStatMod.percentDefense = 2 * level;
                 _cachedStatMod.percentAttackSpeed = 1 * level;
             }
@@ -397,6 +424,21 @@ class BattleMember implements Saveable {
         };
     }
 
+    public function rebirthSkillPoints() :Int {
+        return SkillTree.instance.rebirthSkillPoints(storedLevels);
+    }
+    public function pointsGainedOnRebirth() :Int {
+        var curPts = SkillTree.instance.rebirthSkillPoints(storedLevels);
+        var rbthPts = SkillTree.instance.rebirthSkillPoints(level + storedLevels);
+        return rbthPts - curPts;
+    }
+    public function levelsToNextRebirthPoint() :Int {
+        var totalLev = storedLevels + level;
+        var pts = SkillTree.instance.rebirthSkillPoints(totalLev);
+        var neededLev = SkillTree.instance.rebirthLevelsNeededForPoint(pts + 1);
+        return neededLev - totalLev;
+    }
+
     public function serialize() :Dynamic {
         var equips = [];
         for (item in equipment) {
@@ -413,6 +455,7 @@ class BattleMember implements Saveable {
             mana: this.mana,
             equipment: equips,
             hunt: this.huntType,
+            storedLevels: this.storedLevels,
         };
     }
     public function deserialize(data :Dynamic) :Void {
@@ -423,6 +466,7 @@ class BattleMember implements Saveable {
         health = data.health;
         mana = data.mana;
         huntType = data.hunt != null ? data.hunt : Normal;
+        storedLevels = data.storedLevels != null ? data.storedLevels : 0;
         for (k in equipment.keys()) {
             equipment[k] = null;
         }

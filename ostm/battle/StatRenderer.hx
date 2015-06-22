@@ -8,6 +8,7 @@ import jengine.util.Util;
 
 import ostm.item.Item;
 import ostm.item.ItemType;
+import ostm.skill.SkillTree;
 
 class StatElement {
     var elem :Element;

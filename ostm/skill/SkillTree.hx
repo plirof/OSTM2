@@ -51,12 +51,7 @@ class SkillTree extends Component
             var player = BattleManager.instance.getPlayer();
             if (player.gems >= respecCost()) {
                 player.addGems(-respecCost());
-                for (skill in skills) {
-                    skill.respec();
-                }
-                for (node in _skillNodes) {
-                    node.markDirty();
-                }
+                doRespec();
                 player.updateCachedAffixes();
 
                 untyped ga('send', 'event', 'player', 'respec-skill-points');
@@ -95,7 +90,20 @@ class SkillTree extends Component
 
     function maxSkillPoints() :Int {
         var player = BattleManager.instance.getPlayer();
-        return player.level - 1;
+        var rebirth = rebirthSkillPoints(player.storedLevels);
+        return player.level - 1 + rebirth;
+    }
+
+    // Constants refer to variables in RebirthSkillPoints.xls
+    static inline var kF = 3;
+    static inline var kG = 0.35;
+    static inline var kH = 0;
+    static inline var kD = (kF - kG) / (2 * kG);
+    public function rebirthSkillPoints(storedLevels :Int) :Int {
+        return Math.floor(Math.sqrt((storedLevels - kH) / kG + kD * kD) - kD);
+    }
+    public function rebirthLevelsNeededForPoint(points :Int) :Int {
+        return Math.ceil(kF * points + kG * (points - 1) * points + kH);
     }
 
     public function spentSkillPoints() :Int {
@@ -112,6 +120,15 @@ class SkillTree extends Component
 
     function respecCost() :Int {
         return spentSkillPoints();
+    }
+
+    public function doRespec() :Void {
+        for (skill in skills) {
+            skill.respec();
+        }
+        for (node in _skillNodes) {
+            node.markDirty();
+        }
     }
 
     function addNode(skill :PassiveSkill) :SkillNode {

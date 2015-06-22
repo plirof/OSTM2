@@ -642,6 +642,11 @@ class MapGenerator extends Component
         }
     }
 
+    public function returnToStart() {
+        _checkpoint = _start;
+        returnToCheckpoint();
+    }
+
     public function isInTown() :Bool {
         return selectedNode.isTown();
     }
