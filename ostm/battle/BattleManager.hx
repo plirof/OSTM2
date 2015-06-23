@@ -6,6 +6,7 @@ import js.html.*;
 import jengine.*;
 import jengine.util.*;
 
+import ostm.TabManager;
 import ostm.map.MapGenerator;
 import ostm.item.Item;
 import ostm.item.Inventory;
@@ -195,19 +196,23 @@ class BattleManager extends Component {
         target.health -= damage;
         attacker.mana -= attacker.manaCost();
 
+        var popupNumbers = TabManager.instance.isTabVisible('main-screen');
+
         var elem = target.entity.getComponent(HtmlRenderer).getElement();
         var rect = elem.getBoundingClientRect();
         var pos = new Vec2(rect.left + rect.width / 3, rect.top + rect.height / 4);
-        var damagePos = new Vec2(Random.randomRange(rect.left, rect.right),
-                                 Random.randomRange(rect.top, rect.bottom));
-        var numEnt = new Entity([
-            new Transform(damagePos),
-            new HtmlRenderer({
-                parent: 'popup-container',
-            }),
-            new DamageNumber(damage, isCrit, target.isPlayer),
-        ]);
-        entity.getSystem().addEntity(numEnt);
+        if (popupNumbers) {
+            var damagePos = new Vec2(Random.randomRange(rect.left, rect.right),
+                                     Random.randomRange(rect.top, rect.bottom));
+            var numEnt = new Entity([
+                new Transform(damagePos),
+                new HtmlRenderer({
+                    parent: 'popup-container',
+                }),
+                new DamageNumber(damage, isCrit, target.isPlayer),
+            ]);
+            entity.getSystem().addEntity(numEnt);
+        }
 
         if (target.health <= 0) {
             var isBattleDone = false;
@@ -238,31 +243,33 @@ class BattleManager extends Component {
                 _player.addGold(gold);
                 _player.addGems(gems);
 
-                var xpStr = Util.format(xp) + 'XP';
-                entity.getSystem().addEntity(new Entity([
-                    new Transform(pos),
-                    new HtmlRenderer({
-                        parent: 'popup-container',
-                    }),
-                    new PopupNumber(xpStr, '#33ff33', 22, 170, 2.5),
-                ]));
-                var goldStr = Util.format(gold) + 'G';
-                entity.getSystem().addEntity(new Entity([
-                    new Transform(pos + new Vec2(0, 30)),
-                    new HtmlRenderer({
-                        parent: 'popup-container',
-                    }),
-                    new PopupNumber(goldStr, '#ffff33', 22, 170, 2.5),
-                ]));
-                if (gems > 0) {
-                    var gemStr = Util.format(gems) + 'Gem';
+                if (popupNumbers) {
+                    var xpStr = Util.format(xp) + 'XP';
                     entity.getSystem().addEntity(new Entity([
-                        new Transform(pos + new Vec2(0, 60)),
+                        new Transform(pos),
                         new HtmlRenderer({
                             parent: 'popup-container',
                         }),
-                        new PopupNumber(gemStr, '#ff3333', 22, 170, 2.5),
+                        new PopupNumber(xpStr, '#33ff33', 22, 170, 2.5),
                     ]));
+                    var goldStr = Util.format(gold) + 'G';
+                    entity.getSystem().addEntity(new Entity([
+                        new Transform(pos + new Vec2(0, 30)),
+                        new HtmlRenderer({
+                            parent: 'popup-container',
+                        }),
+                        new PopupNumber(goldStr, '#ffff33', 22, 170, 2.5),
+                    ]));
+                    if (gems > 0) {
+                        var gemStr = Util.format(gems) + 'Gem';
+                        entity.getSystem().addEntity(new Entity([
+                            new Transform(pos + new Vec2(0, 60)),
+                            new HtmlRenderer({
+                                parent: 'popup-container',
+                            }),
+                            new PopupNumber(gemStr, '#ff3333', 22, 170, 2.5),
+                        ]));
+                    }
                 }
 
                 Inventory.instance.tryRewardItem(target, mod);

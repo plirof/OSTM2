@@ -32,6 +32,12 @@ class TabManager extends Component {
     var _shouldRefresh = true;
     var _selected = 'main-screen';
 
+    public static var instance(default, null) :TabManager;
+
+    public override function init() :Void {
+        instance = this;
+    }
+
     public override function start() :Void {
         var header = Browser.document.getElementById('header-tab-container');
         for (tab in _tabs) {
@@ -74,5 +80,9 @@ class TabManager extends Component {
     function toggleTabEnabled(tabId :String) :Void {
         _selected = tabId;
         _shouldRefresh = true;
+    }
+
+    public function isTabVisible(tabId :String) :Bool {
+        return tabId == _selected;
     }
 }
