@@ -183,7 +183,7 @@ class Item {
 
         _elem.onmouseover = function(event :MouseEvent) {
             _buttons.style.display = '';
-            var pos = new Vec2(event.x + 20, event.y - 180);
+            var pos = new Vec2(event.x - 250, event.y - 30);
             showBody(pos);
 
             var equipped = player.equipment.get(type.slot);
@@ -199,7 +199,7 @@ class Item {
         _body.style.position = 'absolute';
         _body.style.background = '#444444';
         _body.style.border = '2px solid #000000';
-        _body.style.width = cast 220;
+        _body.style.width = cast 190;
         _body.style.zIndex = cast 10;
 
         var dlvl = Browser.document.createLIElement();

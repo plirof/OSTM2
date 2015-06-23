@@ -12,6 +12,7 @@ html {
         -1px 0 1px #000000,
         0 1px 1px #000000,
         0 -1px 1px #000000;
+    margin: 0;
 }
 
 .title {
@@ -34,9 +35,7 @@ a:hover {
 }
 
 .alpha-warning {
-/*    left: 40px;
-    top: 64px;
-*/    font-size: 16px;
+    font-size: 16px;
     font-style: italic;
     color: #ff6666;
 }
@@ -60,12 +59,16 @@ a:hover {
     overflow: auto;
 }
 
-#game-body div {
+div {
     position: absolute;
 }
 
 li {
     display: block;
+}
+
+p {
+    margin: 0px;
 }
 
 .screen {
@@ -217,6 +220,7 @@ li {
 
 #header-button-container {
     overflow: auto;
+    margin-top: 30px;
 }
 #header-button-container button {
     height: 80px;

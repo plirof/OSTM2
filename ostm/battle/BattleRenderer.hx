@@ -83,22 +83,9 @@ class BattleRenderer extends Component {
         ]);
         _spawnedEnts.push(powerEnt);
 
-        var hpEnt = new Entity([
-            new Transform(new Vec2(barX, -42)),
-            new HtmlRenderer({
-                parent: id,
-                size: barSize,
-                style: [
-                    'background' => '#662222',
-                    'border' => '2px solid black',
-                ],
-            }),
-            new ProgressBar(function() {
-                return _member.health / _member.maxHealth();
-            }, [
-                'background' => '#ff0000',
-            ]),
-        ]);
+        var hpEnt = makeHpBar(id, new Vec2(barX, -42), barSize);
+        _spawnedEnts.push(hpEnt);
+
         var mpEnt = new Entity([
             new Transform(new Vec2(barX, -24)),
             new HtmlRenderer({
@@ -117,15 +104,16 @@ class BattleRenderer extends Component {
         ]);
 
         if (_member.isPlayer) {
-            hpEnt.addComponent(new CenteredText(function() {
-                return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
-            }, 13));
             mpEnt.addComponent(new CenteredText(function() {
                 return Util.format(_member.mana) + ' / ' + Util.format(_member.maxMana());
             }, 13));
         }
-        _spawnedEnts.push(hpEnt);
         _spawnedEnts.push(mpEnt);
+
+        if (_member.isPlayer) {
+            var hpMenuEnt = makeHpBar('game-header', new Vec2(10, 160), new Vec2(210, 20));
+            _spawnedEnts.push(hpMenuEnt);
+        }
 
         var attackBar = new Entity([
             new Transform(new Vec2(atkBarX, 70)),
@@ -151,5 +139,30 @@ class BattleRenderer extends Component {
         for (ent in _spawnedEnts) {
             entity.getSystem().addEntity(ent);
         }
+    }
+
+    function makeHpBar(parentId :String, pos :Vec2, barSize :Vec2) :Entity {
+        var hpEnt = new Entity([
+            new Transform(pos),
+            new HtmlRenderer({
+                parent: parentId,
+                size: barSize,
+                style: [
+                    'background' => '#662222',
+                    'border' => '2px solid black',
+                ],
+            }),
+            new ProgressBar(function() {
+                return _member.health / _member.maxHealth();
+            }, [
+                'background' => '#ff0000',
+            ]),
+        ]);
+        if (_member.isPlayer) {
+            hpEnt.addComponent(new CenteredText(function() {
+                return Util.format(_member.health) + ' / ' + Util.format(_member.maxHealth());
+            }, 13));
+        }
+        return hpEnt;
     }
 }
