@@ -36,7 +36,6 @@ class BattleManager extends Component {
 
     public override function start() :Void {
         _player = addBattleMember(true, new Vec2(75, 80));
-
         entity.getSystem().addEntity(new Entity([
             new HtmlRenderer({
                 parent: 'battle-screen',

@@ -37,6 +37,10 @@ class TownManager extends Component
     var _townScreen :Element;
     var _shopClock :Element;
     var _capacityPrice :Element;
+    var _goldElem :Element;
+    var _gemsElem :Element;
+
+    var _player :BattleMember;
 
     static inline var kShopRefreshTime = 300;
 
@@ -49,9 +53,14 @@ class TownManager extends Component
     public override function start() :Void {
         SaveManager.instance.addItem(this);
 
+        _player = BattleManager.instance.getPlayer();
+
         _townScreen = Browser.document.getElementById('town-screen');
         _shopClock = Browser.document.getElementById('town-shop-clock');
         _capacityPrice = Browser.document.getElementById('town-shop-capacity-price');
+        
+        _goldElem = Browser.document.getElementById('town-shop-gold');
+        _gemsElem = Browser.document.getElementById('town-shop-gems');
 
         _warpButton = Browser.document.getElementById('town-warp-button');
         _warpButton.onclick = function(event) {
@@ -62,18 +71,16 @@ class TownManager extends Component
 
         var rebirthButton = Browser.document.getElementById('town-rebirth-button');
         rebirthButton.onclick = function(event) {
-            var player = BattleManager.instance.getPlayer();
-            player.doRebirth();
+            _player.doRebirth();
             updateRebirthInfo();
         };
 
         var restockButton = Browser.document.getElementById('town-shop-restock-button');
         restockButton.onclick = function(event) {
-            var player = BattleManager.instance.getPlayer();
             var mapNode = MapGenerator.instance.selectedNode;
             var price = restockPrice(mapNode);
-            if (price <= player.gold) {
-                player.addGold(-price);
+            if (price <= _player.gold) {
+                _player.addGold(-price);
                 generateItems(mapNode);
                 updateShopHtml(mapNode);
                 updateRestockPrice(mapNode);
@@ -82,10 +89,9 @@ class TownManager extends Component
 
         var capacityButton = Browser.document.getElementById('town-shop-capacity-button');
         capacityButton.onclick = function(event) {
-            var player = BattleManager.instance.getPlayer();
             var price = Inventory.instance.capacityUpgradeCost();
-            if (price <= player.gems) {
-                player.addGems(-price);
+            if (price <= _player.gems) {
+                _player.addGems(-price);
                 Inventory.instance.upgradeCapacity();
                 updateCapacityPrice();
             }
@@ -122,6 +128,8 @@ class TownManager extends Component
                 updateRebirthInfo();
             }
             updateRestockPrice(mapNode);
+            _goldElem.innerText = Util.format(_player.gold);
+            _gemsElem.innerText = Util.format(_player.gems);
         }
         _townScreen.style.display = inTown ? '' : 'none';
 
@@ -157,15 +165,14 @@ class TownManager extends Component
             shopElem.removeChild(shopElem.firstChild);
         }
 
-        var player = BattleManager.instance.getPlayer();
         var items = _shops[mapNode].items;
         for (item in items) {
             shopElem.appendChild(item.createElement([
                 'Buy' => function(event) {
                     var price = item.buyValue();
                     if (Inventory.instance.hasSpaceForItem() &&
-                        player.gold >= price) {
-                        player.addGold(-price);
+                        _player.gold >= price) {
+                        _player.addGold(-price);
                         items.remove(item);
                         item.cleanupElement();
                         Inventory.instance.push(item);
@@ -199,8 +206,7 @@ class TownManager extends Component
     }
 
     function updateRebirthInfo() :Void {
-        var player = BattleManager.instance.getPlayer();
-        var canRebirth = player.level >= 50;
+        var canRebirth = _player.level >= 50;
         var rebirthElem = Browser.document.getElementById('town-rebirth');
         rebirthElem.style.display = canRebirth ? '' : 'none';
         if (!canRebirth) {
@@ -208,16 +214,16 @@ class TownManager extends Component
         }
 
         var pointElem = Browser.document.getElementById('town-rebirth-points');
-        pointElem.innerText = Util.format(player.rebirthSkillPoints());
+        pointElem.innerText = Util.format(_player.rebirthSkillPoints());
 
         var levelElem = Browser.document.getElementById('town-rebirth-levels');
-        levelElem.innerText = Util.format(player.storedLevels);
+        levelElem.innerText = Util.format(_player.storedLevels);
         
         var gainElem = Browser.document.getElementById('town-rebirth-points-gained');
-        gainElem.innerText = Util.format(player.pointsGainedOnRebirth());
+        gainElem.innerText = Util.format(_player.pointsGainedOnRebirth());
 
         var nextElem = Browser.document.getElementById('town-rebirth-next');
-        nextElem.innerText = Util.format(player.levelsToNextRebirthPoint());
+        nextElem.innerText = Util.format(_player.levelsToNextRebirthPoint());
     }
 
     public function serialize() :Dynamic {
