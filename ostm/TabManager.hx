@@ -15,9 +15,6 @@ class TabManager extends Component {
             id: 'stat-screen',
             buttonName: 'Stats',
         }, {
-            id: 'equip-screen',
-            buttonName: 'Equipment',
-        }, {
             id: 'inventory-screen',
             buttonName: 'Inventory',
         }, {

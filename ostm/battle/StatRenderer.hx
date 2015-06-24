@@ -145,11 +145,9 @@ class StatRenderer extends Component {
 
         if (_member.isPlayer) {
             var equipTab = doc.getElementById('equip-screen');
-            var equipContainer = createAndAddTo('div', equipTab);
-            equipContainer.className = 'equip-container';
             for (k in _member.equipment.keys()) {
-                var slot = createAndAddTo('div', equipContainer);
-                slot.className = (k + '-slot').toLowerCase();
+                var slot = createAndAddTo('span', equipTab);
+                slot.className = ('equip-slot').toLowerCase();
                 _equipment[k] = slot;
                 updateEquipSlot(k);
             }

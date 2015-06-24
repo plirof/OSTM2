@@ -76,7 +76,6 @@ class Item {
         }
         player.equip(this);
 
-        hideBothBodies();
         cleanupElement();
     }
 
@@ -87,7 +86,6 @@ class Item {
         
         Inventory.instance.remove(this);
 
-        hideBothBodies();
         cleanupElement();
     }
 
@@ -95,8 +93,9 @@ class Item {
         var player = BattleManager.instance.getPlayer();
         var cur = player.equipment[type.slot];
         if (cur == this && Inventory.instance.hasSpaceForItem()) {
-            player.unequip(this);
+            cleanupElement();
 
+            player.unequip(this);
             Inventory.instance.push(this);
         }
     }
@@ -183,12 +182,12 @@ class Item {
 
         _elem.onmouseover = function(event :MouseEvent) {
             _buttons.style.display = '';
-            var pos = new Vec2(event.x - 250, event.y - 30);
+            var pos = new Vec2(event.x - 275, event.y - 30);
             showBody(pos);
 
             var equipped = player.equipment.get(type.slot);
             if (equipped != null && equipped != this) {
-                equipped.showBody(pos + new Vec2(_body.clientWidth + 50, 0));
+                equipped.showBody(pos + new Vec2(_body.clientWidth + 75, 0));
             }
         };
         _elem.onmouseout = function(event) {
