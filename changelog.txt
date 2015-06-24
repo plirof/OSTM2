@@ -1,5 +1,18 @@
 OSTM2 - CHANGELOG
 
+---=== v0.0.6 - June 24 2015 ===---
+* New UI layout
+    - One screen is visible at a time
+    - Header tabs have been moved to the left
+    - Moved Equipment into Inventory menu
+    - Currency is visible in town! Inventory is not.
+    - Still lots of work to do here; a lot of flows are sub-good
+* Rebirth is available in towns after level 50
+    - Rebirth gives additional skill points, separate from current level
+    - You lose all levels, passives, items, and gold
+    - You keep gems and uncovered map areas
+* Enemies gain their own passive stats as they level. They're hopefully much much harder now.
+
 ---=== v0.0.5a - June 13 2015 ===---
 . Bugfix: Enemies no longer receive bonuses from the player's passive skills :D
 
